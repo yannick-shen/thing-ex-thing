@@ -1,0 +1,143 @@
+<view class="mine-container">
+  <!-- 顶部个人信息 -->
+  <view class="header">
+    <view class="user-info">
+      <view class="avatar">
+        <view class="avatar-placeholder">👤</view>
+      </view>
+      <view class="user-details">
+        <view class="username">闲置用户</view>
+        <view class="user-desc">让闲置物品找到新主人</view>
+      </view>
+    </view>
+    
+    <!-- 统计信息 -->
+    <view class="stats">
+      <view class="stat-item">
+        <view class="stat-number">{{stats.published}}</view>
+        <view class="stat-label">已发布</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-number">{{stats.active}}</view>
+        <view class="stat-label">展示中</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-number">{{stats.expired}}</view>
+        <view class="stat-label">已下架</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能入口 -->
+  <view class="feature-section">
+    <view class="feature-item" bindtap="goPublish">
+      <view class="feature-icon publish">➕</view>
+      <view class="feature-info">
+        <view class="feature-title">发布物品</view>
+        <view class="feature-desc">发布你的闲置物品</view>
+      </view>
+      <view class="feature-arrow">></view>
+    </view>
+    
+    <view class="feature-item" bindtap="goFavorites">
+      <view class="feature-icon favorites">❤️</view>
+      <view class="feature-info">
+        <view class="feature-title">我的收藏</view>
+        <view class="feature-desc">查看收藏的物品</view>
+      </view>
+      <view class="feature-arrow">></view>
+    </view>
+    
+    <view class="feature-item" bindtap="goMessages">
+      <view class="feature-icon messages">💬</view>
+      <view class="feature-info">
+        <view class="feature-title">消息通知</view>
+        <view class="feature-desc">{{messageCount > 0 ? '有' + messageCount + '条新消息' : '暂无新消息'}}</view>
+      </view>
+      <view class="feature-arrow">></view>
+      <view wx:if="{{messageCount > 0}}" class="message-badge">{{messageCount}}</view>
+    </view>
+  </view>
+
+  <!-- 我的物品列表 -->
+  <view class="items-section">
+    <view class="section-header">
+      <view class="section-title">我的物品</view>
+      <view class="tab-group">
+        <view 
+          class="tab-item {{currentTab === 'all' ? 'active' : ''}}" 
+          bindtap="switchTab" 
+          data-tab="all"
+        >全部</view>
+        <view 
+          class="tab-item {{currentTab === 'active' ? 'active' : ''}}" 
+          bindtap="switchTab" 
+          data-tab="active"
+        >展示中</view>
+        <view 
+          class="tab-item {{currentTab === 'expired' ? 'active' : ''}}" 
+          bindtap="switchTab" 
+          data-tab="expired"
+        >已下架</view>
+      </view>
+    </view>
+
+    <!-- 物品列表 -->
+    <view class="items-list">
+      <!-- 空状态 -->
+      <view wx:if="{{items.length === 0 && !loading}}" class="empty-state">
+        <view class="empty-icon">📦</view>
+        <view class="empty-text">
+          <view wx:if="{{currentTab === 'all'}}">还没有发布任何物品</view>
+          <view wx:if="{{currentTab === 'active'}}">没有展示中的物品</view>
+          <view wx:if="{{currentTab === 'expired'}}">没有下架的物品</view>
+        </view>
+        <button class="empty-btn" bindtap="goPublish" wx:if="{{currentTab === 'all'}}">
+          去发布
+        </button>
+      </view>
+
+      <!-- 物品项 -->
+      <view 
+        class="item-card" 
+        wx:for="{{items}}" 
+        wx:key="id"
+        bindtap="goDetail" 
+        data-id="{{item.id}}"
+      >
+        <view class="item-image">
+          <image src="{{item.images[0]}}" mode="aspectFill" />
+          <view wx:if="{{item.status === 'expired'}}" class="status-tag expired">已下架</view>
+        </view>
+        <view class="item-content">
+          <view class="item-title">{{item.title}}</view>
+          <view class="item-desc">{{item.desc}}</view>
+          <view class="item-meta">
+            <view class="item-mode mode-{{item.mode}}">
+              <text wx:if="{{item.mode === 'sale'}}">¥{{item.price}}</text>
+              <text wx:if="{{item.mode === 'exchange'}}">交换</text>
+              <text wx:if="{{item.mode === 'donate'}}">赠送</text>
+            </view>
+            <view class="item-location">📍 {{item.addressText || '未知位置'}}</view>
+          </view>
+          <view class="item-stats">
+            <view class="stat">👁 {{item.counters.views}}</view>
+            <view class="stat">❤️ {{item.counters.favorites}}</view>
+            <view class="stat">💬 {{item.counters.comments}}</view>
+          </view>
+        </view>
+        <view class="item-actions">
+          <view wx:if="{{item.status === 'active'}}" class="action-btn edit" bindtap="editItem" data-id="{{item.id}}" catchtap="true">编辑</view>
+          <view wx:if="{{item.status === 'expired'}}" class="action-btn republish" bindtap="republishItem" data-id="{{item.id}}" catchtap="true">重新发布</view>
+          <view class="action-btn delete" bindtap="deleteItem" data-id="{{item.id}}" catchtap="true">删除</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载状态 -->
+    <view wx:if="{{loading}}" class="loading-state">
+      <view class="loading-icon">⏳</view>
+      <view class="loading-text">加载中...</view>
+    </view>
+  </view>
+</view>

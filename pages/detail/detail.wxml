@@ -1,0 +1,81 @@
+<view class="container" wx:if="{{item}}"
+      catchtouchstart="stopContentScroll"
+      catchtouchmove="stopContentScroll"
+      catchtouchend="stopContentScroll">
+  <view class="swiper-wrapper">
+    <swiper class="img-swiper" indicator-dots="true" autoplay="false" bindchange="onSwiperChange">
+      <swiper-item wx:for="{{item.images}}" wx:key="index" wx:for-item="img">
+        <image src="{{img}}" mode="aspectFill" class="swiper-img" bindtap="previewImage" data-index="{{index}}" />
+      </swiper-item>
+    </swiper>
+    <view class="img-indicator">{{currentImgIndex + 1}}/{{item.images.length}}</view>
+  </view>
+
+  <view class="info-card">
+    <view class="title">{{item.title}}</view>
+    <view class="price-row">
+      <text wx:if="{{item.mode === 'sale'}}" class="price">¥{{item.price}}</text>
+      <text wx:if="{{item.mode === 'exchange'}}" class="price">交换</text>
+      <text wx:if="{{item.mode === 'donate'}}" class="price">赠送</text>
+      <view class="stats">
+        <text class="stat-item">{{item.counters.views}} 浏览</text>
+        <text class="stat-item">{{item.counters.favorites}} 收藏</text>
+      </view>
+    </view>
+    <view class="desc">{{item.desc}}</view>
+    <view class="meta">
+      <text class="meta-item">交易方式: {{item.tradeMethod === 'face' ? '面交' : '快递'}}</text>
+      <text class="meta-item">发布时间: {{createTime}}</text>
+    </view>
+  </view>
+
+  <view class="location-card">
+    <view class="card-title">📍 交易位置</view>
+    <map class="location-map" 
+         latitude="{{item.lat}}" 
+         longitude="{{item.lng}}" 
+         scale="16"
+         show-location="false"
+         enable-scroll="false"
+         enable-zoom="true"
+         markers="{{[{id:0, latitude:item.lat, longitude:item.lng, width:24, height:24}]}}">
+    </map>
+    <text class="address">{{item.addressText || '当前位置'}}</text>
+  </view>
+
+  <view class="actions">
+    <button class="btn-fav {{favorited ? 'favorited' : ''}}" bindtap="handleFavorite">
+      {{favorited ? '已收藏' : '收藏'}}
+    </button>
+    <button class="btn-contact" bindtap="handleContact">联系卖家</button>
+    <button class="btn-report" bindtap="handleReport">举报</button>
+  </view>
+</view>
+
+<view wx:else class="loading">加载中...</view>
+
+<!-- 登录弹窗 -->
+<login-modal 
+  show="{{showLoginModal}}" 
+  title="{{loginTitle}}"
+  content="{{loginContent}}"
+  bindclose="hideLoginModal"
+/>
+
+<view wx:if="{{showReport}}" class="report-overlay" catchtap="hideReportDialog">
+  <view class="report-dialog" catchtap="stopPropagation">
+    <view class="report-title">举报理由</view>
+    <view class="report-reasons">
+      <view wx:for="{{reportReasons}}" wx:key="value" 
+            class="reason-item {{selectedReason === item.value ? 'selected' : ''}}"
+            bindtap="selectReason" data-value="{{item.value}}">
+        {{item.label}}
+      </view>
+    </view>
+    <textarea class="report-detail" placeholder="补充说明（选填）" value="{{reportDetail}}" bindinput="onReportInput" maxlength="200" />
+    <view class="report-actions">
+      <button class="btn-cancel" bindtap="hideReportDialog">取消</button>
+      <button class="btn-submit" bindtap="submitReport">提交</button>
+    </view>
+  </view>
+</view>

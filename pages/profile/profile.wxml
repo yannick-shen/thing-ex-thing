@@ -1,0 +1,139 @@
+<view class="profile-container">
+  <!-- 顶部个人信息 -->
+  <view class="header">
+    <!-- 未登录状态 -->
+    <view wx:if="{{!isLoggedIn}}" class="login-prompt">
+      <view class="login-icon">👤</view>
+      <view class="login-text">
+        <view class="login-title">登录后享受完整功能</view>
+        <view class="login-desc">发布物品、收藏喜欢的宝贝、管理个人资料</view>
+      </view>
+      <button class="login-btn" bindtap="goToLogin">立即登录</button>
+    </view>
+
+    <!-- 已登录状态 -->
+    <view wx:else class="user-info">
+      <view class="avatar">
+        <image wx:if="{{userInfo.profile.avatarUrl}}" 
+               src="{{userInfo.profile.avatarUrl}}" 
+               class="avatar-image"
+               mode="aspectFill" />
+        <view wx:else class="avatar-placeholder">👤</view>
+      </view>
+      <view class="user-details">
+        <view class="username">{{userInfo.profile.nickname || '用户'}}</view>
+        <view class="user-desc">{{userInfo.profile.phone ? '已绑定手机' : '未绑定手机'}}</view>
+      </view>
+    </view>
+    
+    <!-- 统计信息 -->
+    <view wx:if="{{isLoggedIn}}" class="stats">
+      <view class="stat-item" bindtap="goToMyItems">
+        <view class="stat-number">{{userInfo.stats.publishedCount}}</view>
+        <view class="stat-label">发布</view>
+      </view>
+      <view class="stat-item" bindtap="goToFavorites">
+        <view class="stat-number">{{userInfo.stats.favoritesCount}}</view>
+        <view class="stat-label">收藏</view>
+      </view>
+      <view class="stat-item" bindtap="goToMessages">
+        <view class="stat-number">{{messageCount > 99 ? '99+' : messageCount}}</view>
+        <view class="stat-label">消息</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-section">
+    <!-- 我的物品 -->
+    <view class="menu-group">
+      <view class="menu-item" bindtap="goToMyItems">
+        <view class="menu-icon">📦</view>
+        <view class="menu-info">
+          <view class="menu-title">我的物品</view>
+          <view class="menu-desc">管理发布的物品</view>
+        </view>
+        <view class="menu-badge" wx:if="{{stats.active > 0}}">{{stats.active}}</view>
+        <view class="menu-arrow">></view>
+      </view>
+      
+      <view class="menu-item" bindtap="goToFavorites">
+        <view class="menu-icon">❤️</view>
+        <view class="menu-info">
+          <view class="menu-title">我的收藏</view>
+          <view class="menu-desc">查看收藏的物品</view>
+        </view>
+        <view class="menu-badge" wx:if="{{stats.favorited > 0}}">{{stats.favorited}}</view>
+        <view class="menu-arrow">></view>
+      </view>
+    </view>
+
+    <!-- 互动功能 -->
+    <view class="menu-group">
+      <view class="menu-item" bindtap="goToMessages">
+        <view class="menu-icon">💬</view>
+        <view class="menu-info">
+          <view class="menu-title">消息中心</view>
+          <view class="menu-desc">{{messageCount > 0 ? '有' + messageCount + '条新消息' : '暂无新消息'}}</view>
+        </view>
+        <view class="menu-badge" wx:if="{{messageCount > 0}}">{{messageCount}}</view>
+        <view class="menu-arrow">></view>
+      </view>
+    </view>
+
+    <!-- 设置功能 -->
+    <view class="menu-group">
+      <view class="menu-item" bindtap="goToSettings">
+        <view class="menu-icon">⚙️</view>
+        <view class="menu-info">
+          <view class="menu-title">应用设置</view>
+          <view class="menu-desc">权限、通知等设置</view>
+        </view>
+        <view class="menu-arrow">></view>
+      </view>
+      
+      <view class="menu-item" bindtap="goToPolicy">
+        <view class="menu-icon">📋</view>
+        <view class="menu-info">
+          <view class="menu-title">隐私政策</view>
+          <view class="menu-desc">用户协议、隐私政策</view>
+        </view>
+        <view class="menu-arrow">></view>
+      </view>
+      
+      <view class="menu-item" bindtap="contactService">
+        <view class="menu-icon">📞</view>
+        <view class="menu-info">
+          <view class="menu-title">联系客服</view>
+          <view class="menu-desc">问题反馈、意见建议</view>
+        </view>
+        <view class="menu-arrow">></view>
+      </view>
+    </view>
+
+    <!-- 关于 -->
+    <view class="menu-group">
+      <view class="menu-item">
+        <view class="menu-icon">ℹ️</view>
+        <view class="menu-info">
+          <view class="menu-title">关于我们</view>
+          <view class="menu-desc">版本 1.0.0</view>
+        </view>
+        <view class="menu-arrow">></view>
+      </view>
+    </view>
+
+    <!-- 退出登录 -->
+    <view class="menu-group" wx:if="{{isLoggedIn}}">
+      <view class="menu-item logout-item" bindtap="logout">
+        <view class="menu-icon">🚪</view>
+        <view class="menu-info">
+          <view class="menu-title logout-title">退出登录</view>
+          <view class="menu-desc">安全退出当前账户</view>
+        </view>
+        <view class="menu-arrow">></view>
+      </view>
+    </view>
+  </view>
+
+</view>

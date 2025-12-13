@@ -1,0 +1,40 @@
+<view wx:if="{{show}}" class="modal-overlay" bindtap="close">
+  <view class="modal-content" catchtap="stopPropagation">
+    <view class="modal-header">
+      <view class="modal-icon">🔐</view>
+      <view class="modal-title">{{title}}</view>
+    </view>
+    
+    <view class="modal-body">
+      <view class="modal-text">{{content}}</view>
+      
+      <view class="feature-list">
+        <view class="feature-item">
+          <text class="feature-icon">✓</text>
+          <text>发布闲置物品</text>
+        </view>
+        <view class="feature-item">
+          <text class="feature-icon">✓</text>
+          <text>收藏喜欢的宝贝</text>
+        </view>
+        <view class="feature-item">
+          <text class="feature-icon">✓</text>
+          <text>联系卖家交流</text>
+        </view>
+        <view class="feature-item">
+          <text class="feature-icon">✓</text>
+          <text>管理个人资料</text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="modal-footer">
+      <button class="login-btn" bindtap="goToLogin">
+        <text class="btn-icon">🟢</text>
+        <text>微信快速登录</text>
+      </button>
+      
+      <view class="cancel-btn" bindtap="close">暂不登录</view>
+    </view>
+  </view>
+</view>

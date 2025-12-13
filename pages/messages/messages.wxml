@@ -1,0 +1,100 @@
+<view class="messages-container">
+  <!-- 未登录状态 -->
+  <view wx:if="{{!isLoggedIn}}" class="login-required">
+    <view class="login-prompt">
+      <view class="login-icon">💬</view>
+      <view class="login-title">需要登录才能查看消息</view>
+      <view class="login-desc">登录后可以查看评论、系统通知等消息</view>
+      <button class="login-btn" bindtap="goToLogin">立即登录</button>
+    </view>
+  </view>
+
+  <!-- 已登录状态或跳过登录状态 -->
+  <view wx:else>
+  <!-- 顶部标题 -->
+  <view class="header">
+    <view class="header-title">消息中心</view>
+  </view>
+
+  <!-- 消息类型切换 -->
+  <view class="tab-section">
+    <view class="tab-group">
+      <view 
+        class="tab-item {{currentTab === 'comments' ? 'active' : ''}}" 
+        bindtap="switchTab" 
+        data-tab="comments"
+      >
+        <view class="tab-text">评论消息</view>
+        <view wx:if="{{comments.length > 0}}" class="tab-badge">{{comments.length}}</view>
+      </view>
+      <view 
+        class="tab-item {{currentTab === 'system' ? 'active' : ''}}" 
+        bindtap="switchTab" 
+        data-tab="system"
+      >
+        <view class="tab-text">系统消息</view>
+        <view wx:if="{{systemMessages.length > 0}}" class="tab-badge">{{systemMessages.length}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 评论消息列表 -->
+  <view wx:if="{{currentTab === 'comments'}}" class="message-list">
+    <view wx:if="{{comments.length === 0}}" class="empty-state">
+      <view class="empty-icon">💬</view>
+      <view class="empty-text">暂无评论消息</view>
+      <view class="empty-desc">当有人评论您的物品时会在这里显示</view>
+    </view>
+
+    <view wx:for="{{comments}}" wx:key="id" class="message-item">
+      <view class="message-avatar">
+        <view class="avatar-placeholder">👤</view>
+      </view>
+      <view class="message-content">
+        <view class="message-header">
+          <view class="message-user">{{item.username}}</view>
+          <view class="message-time">{{formatTime(item.createdAt)}}</view>
+        </view>
+        <view class="message-text">{{item.content}}</view>
+        <view class="message-item-info" bindtap="goToDetail" data-id="{{item.itemId}}">
+          <view class="item-title">{{item.itemTitle}}</view>
+          <view class="item-image" wx:if="{{item.itemImage}}">
+            <image src="{{item.itemImage}}" mode="aspectFill" />
+          </view>
+          <view class="item-arrow">></view>
+        </view>
+      </view>
+      <view wx:if="{{!item.read}}" class="unread-dot"></view>
+    </view>
+  </view>
+
+  <!-- 系统消息列表 -->
+  <view wx:if="{{currentTab === 'system'}}" class="message-list">
+    <view wx:if="{{systemMessages.length === 0}}" class="empty-state">
+      <view class="empty-icon">📢</view>
+      <view class="empty-text">暂无系统消息</view>
+      <view class="empty-desc">系统通知和活动消息会在这里显示</view>
+    </view>
+
+    <view wx:for="{{systemMessages}}" wx:key="id" class="message-item system">
+      <view class="message-avatar system">
+        <view class="system-icon">📢</view>
+      </view>
+      <view class="message-content">
+        <view class="message-header">
+          <view class="message-user">{{item.title}}</view>
+          <view class="message-time">{{formatTime(item.createdAt)}}</view>
+        </view>
+        <view class="message-text">{{item.content}}</view>
+        <view wx:if="{{item.actionText}}" class="message-action">
+          <button class="action-btn" bindtap="handleMessageAction" data-id="{{item.id}}" data-type="{{item.actionType}}">
+            {{item.actionText}}
+          </button>
+        </view>
+      </view>
+      <view wx:if="{{!item.read}}" class="unread-dot"></view>
+    </view>
+  </view>
+
+  </view>
+</view>

@@ -1,0 +1,62 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/auth/auth",
+    "pages/publish/publish",
+    "pages/detail/detail",
+
+    "pages/mine/mine",
+    "pages/favorites/favorites",
+    "pages/settings/settings",
+    "pages/policy/policy",
+    "pages/messages/messages",
+    "pages/location-settings/location-settings",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "navigationBarTitleText": "闲置地图",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1677ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/publish/publish",
+        "text": "发布"
+      },
+      {
+        "pagePath": "pages/messages/messages",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于在地图展示附近的闲置物品位置"
+    }
+  },
+  "requiredPrivateInfos": [
+    "chooseLocation",
+    "getLocation"
+  ],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "cloud": true,
+  "usingComponents": {
+    "login-modal": "/components/login-modal/login-modal"
+  }
+}

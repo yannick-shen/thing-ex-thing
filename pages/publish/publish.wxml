@@ -1,0 +1,162 @@
+<view class="publish-container">
+  <!-- 未登录状态 -->
+  <view wx:if="{{!isLoggedIn}}" class="login-required">
+    <view class="login-prompt">
+      <view class="login-icon">🔒</view>
+      <view class="login-title">需要登录才能发布物品</view>
+      <view class="login-desc">登录后可以发布闲置物品，让更多人看到</view>
+      <button class="login-btn" bindtap="goToLogin">立即登录</button>
+    </view>
+  </view>
+
+  <!-- 已登录状态或跳过登录状态 -->
+  <view wx:else>
+  <!-- 发布表单 -->
+
+  <!-- 发布表单 -->
+  <view class="form-container">
+    <form bindsubmit="onSubmit">
+      <!-- 基本信息 -->
+      <view class="form-section">
+        <view class="section-title">基本信息</view>
+        
+        <view class="form-item required">
+          <view class="label">标题</view>
+          <input 
+            name="title" 
+            class="input-field" 
+            placeholder="请输入物品标题，如：iPhone 13" 
+            placeholder-class="input-placeholder"
+            maxlength="30" 
+            value="{{formData.title}}"
+            bindinput="onTitleInput"
+          />
+          <view class="input-counter">{{formData.title.length}}/30</view>
+        </view>
+
+        <view class="form-item required">
+          <view class="label">描述</view>
+          <textarea 
+            name="desc" 
+            class="textarea-field" 
+            placeholder="详细描述物品情况、使用时长、新旧程度等" 
+            placeholder-class="textarea-placeholder"
+            maxlength="500"
+            value="{{formData.desc}}"
+            bindinput="onDescInput"
+            auto-height
+          />
+          <view class="input-counter">{{formData.desc.length}}/500</view>
+        </view>
+
+        <view class="form-item required">
+          <view class="label">交易形态</view>
+          <radio-group name="mode" class="mode-group" bindchange="onModeChange">
+            <label class="mode-item {{formData.mode === 'sale' ? 'active' : ''}}">
+              <radio value="sale" checked="{{formData.mode === 'sale'}}"/>
+              <view class="mode-icon">💰</view>
+              <view class="mode-text">出售</view>
+            </label>
+            <label class="mode-item {{formData.mode === 'exchange' ? 'active' : ''}}">
+              <radio value="exchange" checked="{{formData.mode === 'exchange'}}"/>
+              <view class="mode-icon">🔄</view>
+              <view class="mode-text">交换</view>
+            </label>
+            <label class="mode-item {{formData.mode === 'donate' ? 'active' : ''}}">
+              <radio value="donate" checked="{{formData.mode === 'donate'}}"/>
+              <view class="mode-icon">🎁</view>
+              <view class="mode-text">赠送</view>
+            </label>
+            <label class="mode-item {{formData.mode === 'help' ? 'active' : ''}}">
+              <radio value="help" checked="{{formData.mode === 'help'}}"/>
+              <view class="mode-icon">🙏</view>
+              <view class="mode-text">求助</view>
+            </label>
+          </radio-group>
+        </view>
+
+        <view class="form-item {{formData.mode === 'sale' ? 'required' : ''}}">
+          <view class="label">价格（元）{{formData.mode === 'sale' ? '*' : ''}}</view>
+          <input 
+            name="price" 
+            class="input-field" 
+            placeholder="{{formData.mode === 'sale' ? '请输入价格' : '交换或赠送可不填'}}" 
+            placeholder-class="input-placeholder"
+            type="digit"
+            value="{{formData.price}}"
+            bindinput="onPriceInput"
+          />
+        </view>
+      </view>
+
+
+
+      <!-- 位置信息 -->
+      <view class="form-section">
+        <view class="section-title">位置信息</view>
+        <view class="form-item required">
+          <view class="label">交易位置</view>
+          <view class="location-selector" bindtap="chooseLocation">
+            <view class="location-info">
+              <view wx:if="{{location}}" class="location-detail">
+                <view class="location-name">{{location.name}}</view>
+                <view class="location-address" wx:if="{{location.address}}">{{location.address}}</view>
+              </view>
+              <view wx:else class="location-placeholder">选择交易位置</view>
+            </view>
+            <view class="location-arrow">></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 图片上传 -->
+      <view class="form-section">
+        <view class="section-title">
+          <text>物品图片</text>
+          <text class="required-star">*</text>
+          <text class="upload-tips">（最多6张，第一张为封面）</text>
+        </view>
+        <view class="form-item">
+          <view class="image-upload">
+            <!-- 已上传的图片 -->
+            <view 
+              class="image-item uploaded"
+              wx:for="{{images}}" 
+              wx:key="index"
+            >
+              <image src="{{item}}" mode="aspectFill" class="uploaded-image"/>
+              <view class="image-actions">
+                <view class="image-delete" bindtap="removeImage" data-index="{{index}}">×</view>
+                <view wx:if="{{index === 0}}" class="image-cover-tag">封面</view>
+              </view>
+            </view>
+            
+            <!-- 添加图片按钮 -->
+            <view 
+              wx:if="{{images.length < 6}}" 
+              class="image-item add"
+              bindtap="chooseImages"
+            >
+              <view class="add-icon">+</view>
+              <view class="add-text">添加图片</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 提交按钮 -->
+      <view class="submit-section">
+        <button 
+          class="submit-btn {{isSubmitting ? 'submitting' : ''}}" 
+          formType="submit"
+          disabled="{{isSubmitting}}"
+        >
+          {{isSubmitting ? '发布中...' : '发布物品'}}
+        </button>
+        <view class="submit-tips">发布后将在地图上显示30天</view>
+      </view>
+    </form>
+  </view>
+  </view>
+</view>
+

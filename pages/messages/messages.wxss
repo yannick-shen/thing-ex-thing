@@ -1,0 +1,287 @@
+.messages-container {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20rpx);
+}
+
+/* 登录提示样式 */
+.login-required {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 0 40rpx;
+}
+
+.login-prompt {
+  text-align: center;
+  background: white;
+  border-radius: 20rpx;
+  padding: 80rpx 60rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 600rpx;
+}
+
+.login-icon {
+  font-size: 120rpx;
+  margin-bottom: 40rpx;
+}
+
+.login-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.login-desc {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 60rpx;
+  line-height: 1.5;
+}
+
+.login-btn {
+  background: #1677ff;
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  width: 100%;
+}
+
+.login-btn::after {
+  border: none;
+}
+
+.skip-btn {
+  background: transparent;
+  color: #666;
+  border: 2rpx solid #ddd;
+  border-radius: 50rpx;
+  height: 88rpx;
+  line-height: 84rpx;
+  font-size: 28rpx;
+  width: 100%;
+}
+
+.skip-btn::after {
+  border: none;
+}
+
+/* 顶部标题 */
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40rpx 30rpx;
+  color: white;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 36rpx;
+  font-weight: bold;
+}
+
+/* 标签切换 */
+.tab-section {
+  background: white;
+  padding: 20rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.tab-group {
+  display: flex;
+  background: #f8f9fa;
+  border-radius: 25rpx;
+  padding: 4rpx;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx 24rpx;
+  border-radius: 20rpx;
+  position: relative;
+}
+
+.tab-item.active {
+  background: white;
+  color: #667eea;
+  font-weight: 500;
+  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.2);
+}
+
+.tab-text {
+  font-size: 28rpx;
+}
+
+.tab-badge {
+  position: absolute;
+  top: -8rpx;
+  right: 8rpx;
+  background: #ff4757;
+  color: white;
+  font-size: 20rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 12rpx;
+  min-width: 20rpx;
+  text-align: center;
+}
+
+/* 消息列表 */
+.message-list {
+  padding: 20rpx;
+}
+
+.message-item {
+  display: flex;
+  background: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  position: relative;
+}
+
+.message-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  margin-right: 25rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-placeholder {
+  font-size: 40rpx;
+  color: #ccc;
+}
+
+.message-avatar.system {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.system-icon {
+  font-size: 40rpx;
+  color: white;
+}
+
+.message-content {
+  flex: 1;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.message-user {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.message-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.message-text {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 15rpx;
+}
+
+.message-item-info {
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+
+.item-title {
+  flex: 1;
+  font-size: 26rpx;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-image {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
+  margin: 0 15rpx;
+}
+
+.item-image image {
+  width: 100%;
+  height: 100%;
+}
+
+.item-arrow {
+  font-size: 24rpx;
+  color: #ccc;
+}
+
+.message-action {
+  margin-top: 15rpx;
+}
+
+.action-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25rpx;
+  padding: 15rpx 30rpx;
+  font-size: 26rpx;
+}
+
+.unread-dot {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  width: 16rpx;
+  height: 16rpx;
+  background: #ff4757;
+  border-radius: 50%;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 120rpx 40rpx;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.empty-desc {
+  font-size: 26rpx;
+  color: #999;
+  line-height: 1.4;
+}
+

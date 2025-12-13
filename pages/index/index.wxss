@@ -1,0 +1,334 @@
+page { height: 100%; }
+map { height: 100%; }
+/* 按钮组布局 */
+.button-group {
+  position: fixed;
+  right: 16px;
+  bottom: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 10;
+}
+
+/* 通用按钮样式 */
+.fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+/* 定位按钮 */
+.fab.location {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 4px; /* 居中对齐 */
+}
+
+/* 发布按钮 */
+.fab.publish {
+  background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%);
+}
+
+/* 按钮图标 */
+.button-icon {
+  font-size: 24px;
+  font-weight: 300;
+}
+
+.fab.publish .button-icon {
+  font-size: 28px;
+}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:flex-start;padding-top:20px}
+.search-panel{background:#fff;margin:0 16px;border-radius:12px;padding:16px;width:calc(100% - 32px);max-height:70vh;overflow-y:auto}
+.search-input{background:#f5f5f5;padding:12px;border-radius:8px;font-size:14px;margin-bottom:16px}
+.history-section{margin-bottom:16px}
+.history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.history-title{font-size:14px;font-weight:600;color:#333}
+.history-clear{font-size:12px;color:#999}
+.history-tags{display:flex;flex-wrap:wrap;gap:8px}
+.history-tag{background:#f0f0f0;padding:6px 12px;border-radius:16px;font-size:12px;color:#666}
+.search-actions{display:flex;gap:12px}
+.btn{flex:1;padding:12px;border-radius:8px;font-size:14px;background:#1677ff;color:#fff}
+.btn.secondary{background:#f5f5f5;color:#333}
+.search-capsule{position:fixed;top:12px;left:16px;right:16px;z-index:10}
+.capsule{background:#fff;border-radius:20px;padding:8px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);display:flex;align-items:center}
+.capsule-text{font-size:14px;color:#999}
+.filter-tag{position:fixed;top:56px;left:16px;background:#1677ff;color:#fff;padding:4px 12px;border-radius:12px;font-size:12px;z-index:10}
+
+/* 图例样式 */
+.legend {
+  position: fixed;
+  top: 80px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 12px;
+  z-index: 5;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-dot {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.legend-text {
+  font-size: 12px;
+  color: #666;
+}
+
+/* 详情弹窗样式 */
+.detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 10px;
+  box-sizing: border-box;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.detail-panel {
+  background: #fff;
+  border-radius: 16px;
+  width: calc(100% - 40px);
+  max-width: 480px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  margin: 20px;
+  overflow: hidden;
+}
+
+/* 统一使用圆角 */
+.detail-panel {
+  border-radius: 16px !important;
+}
+
+.detail-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #666;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+}
+
+.detail-swiper {
+  height: 200px;
+  position: relative;
+}
+
+.detail-img-swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.detail-swiper-img {
+  width: 100%;
+  height: 100%;
+}
+
+/* 图片轮播圆角处理 */
+.detail-swiper {
+  border-radius: 16px 16px 0 0 !important;
+  overflow: hidden;
+}
+
+.detail-img-indicator {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.detail-content {
+  flex: 1;
+  padding: 16px;
+  padding-bottom: 8px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.detail-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+  line-height: 1.4;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+.detail-price-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detail-price {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ff4757;
+  flex-shrink: 0;
+}
+
+.detail-stats {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.detail-stat-item {
+  font-size: 12px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.detail-desc {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.detail-meta {
+  margin-bottom: 16px;
+}
+
+.detail-meta-item {
+  font-size: 12px;
+  color: #999;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.detail-location {
+  margin-bottom: 16px;
+}
+
+.detail-location-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.detail-location-map {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+}
+
+.detail-address {
+  font-size: 12px;
+  color: #666;
+  display: block;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-top: 1px solid #f0f0f0;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.detail-btn-fav {
+  flex: 1;
+  height: 44px;
+  border-radius: 22px;
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #e9ecef;
+  font-size: 14px;
+}
+
+.detail-btn-fav.favorited {
+  background: #fff3cd;
+  color: #856404;
+  border-color: #ffeaa7;
+}
+
+.detail-btn-contact {
+  flex: 2;
+  height: 44px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%);
+  color: #fff;
+  font-size: 14px;
+}
+
+/* 调试按钮样式 */
+.debug-btn {
+  position: fixed;
+  top: 80px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 10;
+  opacity: 0.3;
+}
+
+.debug-btn:active {
+  opacity: 0.8;
+}
+
+.dialog-title{font-size:18px;font-weight:600;color:#333;margin-bottom:12px;text-align:center}
+.dialog-content{font-size:14px;color:#666;line-height:1.8;margin-bottom:24px}
+.dialog-content .link{color:#1677ff;margin:0 2px}
+.dialog-actions{display:flex;gap:12px}
+.dialog-btn{flex:1;padding:12px 0;border-radius:8px;font-size:14px}
+.dialog-btn.refuse{background:#f5f5f5;color:#333}
+.dialog-btn.agree{background:#1677ff;color:#fff}

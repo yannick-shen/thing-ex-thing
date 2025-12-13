@@ -1,0 +1,127 @@
+<view class="search-capsule" catchtap="openSearch">
+  <view class="capsule">
+    <text class="capsule-text">搜索标题或描述</text>
+  </view>
+</view>
+<view wx:if="{{searchKeyword}}" class="filter-tag" catchtap="clearSearch">已筛选:{{searchKeyword}}</view>
+
+<!-- 图例 -->
+<view class="legend">
+  <view class="legend-item">
+    <text class="legend-dot" style="color: #FF4757;">●</text>
+    <text class="legend-text">出售</text>
+  </view>
+  <view class="legend-item">
+    <text class="legend-dot" style="color: #3742FA;">●</text>
+    <text class="legend-text">交换</text>
+  </view>
+  <view class="legend-item">
+    <text class="legend-dot" style="color: #2ED573;">●</text>
+    <text class="legend-text">赠送</text>
+  </view>
+  <view class="legend-item">
+    <text class="legend-dot" style="color: #FFA502;">●</text>
+    <text class="legend-text">求助</text>
+  </view>
+</view>
+
+<!-- 调试按钮（生产环境可删除） -->
+<view class="debug-btn" bindtap="findMissingItems" bindlongpress="openDebugConsole">
+  调试
+</view>
+<map id="map" longitude="{{center.longitude}}" latitude="{{center.latitude}}" scale="{{scale}}" style="width: 100%; height: 100vh;" show-location="true" enable-scroll="true" enable-zoom="true" bindregionchange="onRegionChange" bindmarkertap="onMarkerTap" markers="{{markers}}">
+</map>
+
+<view class="button-group">
+  <view class="fab location" bindtap="relocate">
+    <text class="button-icon">📍</text>
+  </view>
+  <view class="fab publish" bindtap="goPublish">
+    <text class="button-icon">+</text>
+  </view>
+</view>
+
+<!-- 物品详情弹窗 -->
+<view wx:if="{{showDetailModal}}" class="detail-modal" 
+      catchtap="hideDetailModal">
+  <view class="detail-panel" catchtap="stopPropagation">
+    <!-- 关闭按钮 -->
+    <view class="detail-close" bindtap="hideDetailModal">×</view>
+    
+    <!-- 图片轮播 -->
+    <view class="detail-swiper" wx:if="{{detailItem && detailItem.images.length > 0}}">
+      <swiper class="detail-img-swiper" indicator-dots="true" bindchange="onDetailSwiperChange">
+        <swiper-item wx:for="{{detailItem.images}}" wx:key="index" wx:for-item="img">
+          <image src="{{img}}" mode="aspectFill" class="detail-swiper-img" bindtap="previewDetailImage" data-index="{{index}}" />
+        </swiper-item>
+      </swiper>
+      <view class="detail-img-indicator">{{detailImgIndex + 1}}/{{detailItem.images.length}}</view>
+    </view>
+
+    <!-- 物品信息 -->
+    <scroll-view class="detail-content" scroll-y="true">
+      <view class="detail-title">{{detailItem.title}}</view>
+      <view class="detail-price-row">
+        <text wx:if="{{detailItem.mode === 'sale'}}" class="detail-price">¥{{detailItem.price}}</text>
+        <text wx:if="{{detailItem.mode === 'exchange'}}" class="detail-price">交换</text>
+        <text wx:if="{{detailItem.mode === 'donate'}}" class="detail-price">赠送</text>
+        <text wx:if="{{detailItem.mode === 'help'}}" class="detail-price">求助</text>
+        <view class="detail-stats">
+          <text class="detail-stat-item">{{detailItem.counters.views}} 浏览</text>
+          <text class="detail-stat-item">{{detailItem.counters.favorites}} 收藏</text>
+        </view>
+      </view>
+      <view class="detail-desc">{{detailItem.desc}}</view>
+      <view class="detail-meta">
+        <text class="detail-meta-item">发布时间: {{detailCreateTime}}</text>
+      </view>
+
+      <!-- 位置信息 -->
+      <view class="detail-location">
+        <view class="detail-location-title">📍 交易位置</view>
+        <map class="detail-location-map" 
+             latitude="{{detailItem.lat}}" 
+             longitude="{{detailItem.lng}}" 
+             scale="16"
+             show-location="false"
+             enable-scroll="false"
+             enable-zoom="true"
+             markers="{{[{id:0, latitude:detailItem.lat, longitude:detailItem.lng, width:24, height:24}]}}">
+        </map>
+        <text class="detail-address">{{detailItem.addressText || '当前位置'}}</text>
+      </view>
+    </scroll-view>
+
+    <!-- 操作按钮 -->
+    <view class="detail-actions">
+      <button class="detail-btn-fav {{detailFavorited ? 'favorited' : ''}}" bindtap="handleDetailFavorite">
+        {{detailFavorited ? '已收藏' : '收藏'}}
+      </button>
+      <button class="detail-btn-contact" bindtap="handleDetailContact">联系卖家</button>
+    </view>
+  </view>
+</view>
+
+<view wx:if="{{showSearch}}" class="overlay" catchtouchmove="prevent">
+  <view class="search-panel">
+    <input class="search-input" placeholder="请输入关键词" value="{{tmpKeyword}}" bindinput="onInput" confirm-type="search" bindconfirm="applySearch" />
+    
+    <view wx:if="{{searchHistory.length > 0}}" class="history-section">
+      <view class="history-header">
+        <text class="history-title">搜索历史</text>
+        <text class="history-clear" bindtap="clearHistory">清空</text>
+      </view>
+      <view class="history-tags">
+        <view wx:for="{{searchHistory}}" wx:key="index" class="history-tag" bindtap="selectHistory" data-keyword="{{item}}">
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="search-actions">
+      <button class="btn secondary" bindtap="closeSearch">取消</button>
+      <button class="btn" bindtap="applySearch">搜索</button>
+    </view>
+  </view>
+</view>
+

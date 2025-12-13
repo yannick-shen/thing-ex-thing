@@ -1,0 +1,61 @@
+<view class="login-container">
+  <!-- 顶部状态栏占位 -->
+  <view class="status-bar-placeholder"></view>
+
+  <!-- 主要内容区域 -->
+  <view class="content-area">
+    <!-- Logo和标题 -->
+    <view class="logo-section">
+      <text class="logo-icon">🗺️</text>
+      <text class="app-name">闲置地图</text>
+      <text class="app-slogan">让闲置物品找到新主人</text>
+    </view>
+
+    <!-- 授权区域 -->
+    <view class="auth-section">
+      <view class="auth-tips">
+        <text class="tips-title">登录后享受完整功能</text>
+        <view class="tips-list">
+          <view class="tips-item">
+            <text class="tips-icon">✓</text>
+            <text class="tips-text">发布闲置物品</text>
+          </view>
+          <view class="tips-item">
+            <text class="tips-icon">✓</text>
+            <text class="tips-text">收藏喜欢的宝贝</text>
+          </view>
+          <view class="tips-item">
+            <text class="tips-icon">✓</text>
+            <text class="tips-text">与卖家实时沟通</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 协议勾选 -->
+      <view class="agreement-check">
+        <checkbox-group bindchange="onAgreementChange">
+          <label class="agreement-label">
+            <checkbox value="agree" checked="{{privacyAgreed}}" class="agreement-checkbox" />
+            <text class="agreement-text">我已阅读并同意</text>
+          </label>
+        </checkbox-group>
+        <view class="agreement-links">
+          <text class="link" bindtap="showUserAgreement">《用户协议》</text>
+          <text>和</text>
+          <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>
+        </view>
+      </view>
+
+      <!-- 微信登录按钮 -->
+      <button 
+        class="wechat-login-btn {{!privacyAgreed ? 'disabled' : ''}}" 
+        bindtap="handleWechatLogin"
+        disabled="{{!privacyAgreed}}"
+      >
+        <text class="wechat-icon">🟢</text>
+        <text class="btn-text">微信快速登录</text>
+      </button>
+    </view>
+  </view>
+
+</view>

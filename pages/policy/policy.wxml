@@ -1,0 +1,19 @@
+<view class="container">
+  <scroll-view scroll-y class="scroll-view">
+    <view wx:for="{{sections}}" wx:key="title" class="section">
+      <view class="title">{{item.title}}</view>
+      <view class="content">
+        <view wx:for="{{item.paragraphs}}" wx:key="index" class="paragraph">
+          <block wx:for="{{item.texts}}" wx:key="index">
+            <text>{{item}}</text>
+          </block>
+        </view>
+      </view>
+    </view>
+
+    <view class="footer">
+      <text class="footer-text">最后更新时间：2025年11月</text>
+      <text class="footer-text">如有疑问，请联系客服</text>
+    </view>
+  </scroll-view>
+</view>

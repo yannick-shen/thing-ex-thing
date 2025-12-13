@@ -1,0 +1,81 @@
+.settings-container {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 设置区块 */
+.setting-section {
+  margin: 20rpx 30rpx;
+  background: white;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  padding: 30rpx 30rpx 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  cursor: pointer;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-info {
+  flex: 1;
+}
+
+.setting-label {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 5rpx;
+}
+
+.setting-desc {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.4;
+}
+
+.setting-arrow {
+  font-size: 32rpx;
+  color: #ccc;
+  margin-left: 20rpx;
+}
+
+/* 重置功能 */
+.reset-section {
+  margin: 40rpx 30rpx;
+  text-align: center;
+}
+
+.reset-btn {
+  background: white;
+  color: #ff4757;
+  border: 2rpx solid #ff4757;
+  border-radius: 44rpx;
+  padding: 20rpx 40rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  margin-bottom: 20rpx;
+}
+
+.reset-desc {
+  font-size: 26rpx;
+  color: #999;
+  line-height: 1.4;
+}

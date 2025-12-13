@@ -1,0 +1,30 @@
+<view class="container">
+  <!-- 未登录状态 -->
+  <view wx:if="{{!isLoggedIn}}" class="login-required">
+    <view class="login-prompt">
+      <view class="login-icon">❤️</view>
+      <view class="login-title">需要登录才能查看收藏</view>
+      <view class="login-desc">登录后可以查看收藏的物品</view>
+      <button class="login-btn" bindtap="goToLogin">立即登录</button>
+    </view>
+  </view>
+
+  <!-- 已登录状态或跳过登录状态 -->
+  <view wx:else>
+    <view class="list">
+      <view wx:for="{{items}}" wx:key="_id" class="item-card" bindtap="goDetail" data-id="{{item._id}}">
+        <image src="{{item.images[0]}}" mode="aspectFill" class="item-img" />
+        <view class="item-info">
+          <view class="item-title">{{item.title}}</view>
+          <view class="item-desc">{{item.desc}}</view>
+          <view class="item-price">
+            <text wx:if="{{item.mode === 'sale'}}" class="price">¥{{item.price}}</text>
+            <text wx:else class="price">{{item.mode === 'exchange' ? '交换' : '赠送'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{items.length === 0}}" class="empty">暂无收藏</view>
+  </view>
+</view>

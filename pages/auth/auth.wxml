@@ -1,0 +1,58 @@
+<view class="auth-container">
+  <view class="auth-header">
+    <image class="logo" src="/assets/logo.png" mode="aspectFit" wx:if="{{false}}" />
+    <view class="app-title">闲置地图</view>
+    <view class="app-subtitle">让闲置物品找到新主人</view>
+  </view>
+
+  <view class="auth-content">
+    <view class="section-title">欢迎使用闲置地图</view>
+    <view class="section-desc">在使用本应用前，请仔细阅读并同意以下协议</view>
+    
+    <view class="agreement-list">
+      <view class="agreement-item" bindtap="openPolicy" data-type="agreement">
+        <text class="agreement-name">《用户协议》</text>
+        <text class="agreement-arrow">></text>
+      </view>
+      <view class="agreement-item" bindtap="openPolicy" data-type="privacy">
+        <text class="agreement-name">《隐私政策》</text>
+        <text class="agreement-arrow">></text>
+      </view>
+      <view class="agreement-item" bindtap="openPolicy" data-type="rules">
+        <text class="agreement-name">《平台规则》</text>
+        <text class="agreement-arrow">></text>
+      </view>
+    </view>
+
+    <view class="permission-section">
+      <view class="permission-title">需要以下权限</view>
+      <view class="permission-item">
+        <text class="permission-icon">📍</text>
+        <view class="permission-info">
+          <view class="permission-name">位置权限</view>
+          <view class="permission-desc">用于展示附近的闲置物品和设置发布位置</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="privacy-notice">
+      <checkbox-group bindchange="onPrivacyChange">
+        <label class="privacy-label">
+          <checkbox value="agree" checked="{{privacyAgreed}}" />
+          <text>我已阅读并同意《用户协议》、《隐私政策》和《平台规则》，并同意收集和使用我的位置信息</text>
+        </label>
+      </checkbox-group>
+    </view>
+  </view>
+
+  <view class="auth-footer">
+    <button 
+      class="auth-btn {{!privacyAgreed ? 'disabled' : ''}}" 
+      bindtap="handleAuth"
+      disabled="{{!privacyAgreed}}"
+    >
+      同意并开始使用
+    </button>
+    <view class="auth-tips">点击同意即表示您已阅读并接受相关协议</view>
+  </view>
+</view>
