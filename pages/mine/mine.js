@@ -3,23 +3,20 @@ Page({
     stats: {
       published: 0,
       active: 0,
-      expired: 0
+      draft: 0
     },
-    currentTab: 'all',
+    currentTab: 'active',
     items: [],
-    loading: true,
-    messageCount: 0
+    loading: true
   },
 
   onLoad() {
     this.loadMyItems();
-    this.loadMessageCount();
   },
 
   onShow() {
     // 每次显示页面时刷新数据
     this.loadMyItems();
-    this.loadMessageCount();
   },
 
   // 加载我的物品
@@ -55,12 +52,19 @@ Page({
       items = [];
     }
 
+    // 为每个物品添加格式化的时间和统一的ID字段
+    items = items.map(item => ({
+      ...item,
+      id: item._id, // 确保有统一的id字段
+      formattedTime: this.formatTime(item.updatedAt || item.createdAt)
+    }));
+
     const now = Date.now();
     const activeItems = items.filter(item => 
       item.status === 'on' && item.expireAt > now
     );
-    const expiredItems = items.filter(item => 
-      item.status === 'off' || item.expireAt <= now
+    const draftItems = items.filter(item => 
+      item.status === 'draft' || item.status === 'off' || item.expireAt <= now
     );
 
     // 更新统计
@@ -68,7 +72,7 @@ Page({
       stats: {
         published: items.length,
         active: activeItems.length,
-        expired: expiredItems.length
+        draft: draftItems.length
       },
       items: this.getFilteredItems(items)
     });
@@ -89,9 +93,9 @@ Page({
         return allItems.filter(item => 
           item.status === 'on' && item.expireAt > now
         );
-      case 'expired':
+      case 'draft':
         return allItems.filter(item => 
-          item.status === 'off' || item.expireAt <= now
+          item.status === 'draft' || item.status === 'off' || item.expireAt <= now
         );
       default:
         return allItems;
@@ -106,12 +110,18 @@ Page({
     const cachedItems = wx.getStorageSync('myCachedItems') || [];
     
     if (cachedItems.length > 0) {
-      mockItems.push(...cachedItems);
+      // 确保缓存的物品也有正确的id字段
+      const processedCachedItems = cachedItems.map(item => ({
+        ...item,
+        id: item._id || item.id // 确保有统一的id字段
+      }));
+      mockItems.push(...processedCachedItems);
     } else {
       // 生成一些示例数据
       for (let i = 1; i <= 3; i++) {
         mockItems.push({
-          id: `mock_${i}`,
+          _id: `mock_${i}`, // 数据库字段
+          id: `mock_${i}`, // 显示字段
           title: `示例物品 ${i}`,
           desc: '这是一个示例物品，展示在我的发布页面中',
           mode: ['sale', 'exchange', 'donate'][i % 3],
@@ -178,6 +188,51 @@ Page({
     wx.showToast({
       title: '编辑功能开发中',
       icon: 'none'
+    });
+  },
+
+  async publishDraft(e) {
+    const id = e.currentTarget.dataset.id;
+    
+    wx.showModal({
+      title: '发布草稿',
+      content: '是否发布此草稿？',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '发布中...' });
+          
+          try {
+            const result = await wx.cloud.callFunction({
+              name: 'update-item-status',
+              data: {
+                itemId: id,
+                status: 'on'
+              }
+            });
+
+            if (result.result && result.result.code === 0) {
+              wx.hideLoading();
+              wx.showToast({
+                title: '发布成功',
+                icon: 'success'
+              });
+              this.loadMyItems();
+            } else {
+              wx.hideLoading();
+              wx.showToast({
+                title: result.result?.message || '发布失败',
+                icon: 'none'
+              });
+            }
+          } catch (error) {
+            wx.hideLoading();
+            wx.showToast({
+              title: '发布失败，请重试',
+              icon: 'none'
+            });
+          }
+        }
+      }
     });
   },
 
@@ -273,6 +328,49 @@ Page({
         }
       }
     });
+  },
+
+  // 时间格式化
+  formatTime(timestamp) {
+    if (!timestamp) return '';
+    
+    const now = Date.now();
+    const diff = now - timestamp;
+    
+    // 少于1分钟
+    if (diff < 60000) {
+      return '刚刚';
+    }
+    
+    // 少于1小时
+    if (diff < 3600000) {
+      const minutes = Math.floor(diff / 60000);
+      return `${minutes}分钟前`;
+    }
+    
+    // 少于1天
+    if (diff < 86400000) {
+      const hours = Math.floor(diff / 3600000);
+      return `${hours}小时前`;
+    }
+    
+    // 少于7天
+    if (diff < 604800000) {
+      const days = Math.floor(diff / 86400000);
+      return `${days}天前`;
+    }
+    
+    // 超过7天显示具体日期
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    
+    if (year === new Date().getFullYear()) {
+      return `${month}-${day}`;
+    } else {
+      return `${year}-${month}-${day}`;
+    }
   },
 
   // 页面分享

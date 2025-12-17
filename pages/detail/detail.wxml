@@ -49,6 +49,7 @@
     </button>
     <button class="btn-contact" bindtap="handleContact">联系卖家</button>
     <button class="btn-report" bindtap="handleReport">举报</button>
+    <button class="btn-debug" bindtap="checkDatabase">检查数据库</button>
   </view>
 </view>
 

@@ -21,6 +21,7 @@ page{background:#f7f8fa}
 .btn-fav.favorited{background:#1677ff;color:#fff}
 .btn-contact{flex:2;background:#1677ff;color:#fff;border-radius:8px;font-size:14px}
 .btn-report{flex:1;background:#fff;color:#ff4d4f;border:1px solid #ff4d4f;border-radius:8px;font-size:14px}
+.btn-debug{flex:1;background:#f0f0f0;color:#666;border:1px solid #d9d9d9;border-radius:8px;font-size:12px}
 .loading{padding:40px;text-align:center;color:#999}
 .report-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center}
 .report-dialog{background:#fff;margin:0 32px;border-radius:12px;padding:20px;width:calc(100% - 64px);max-width:400px}
