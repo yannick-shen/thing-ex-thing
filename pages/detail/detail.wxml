@@ -1,7 +1,4 @@
-<view class="container" wx:if="{{item}}"
-      catchtouchstart="stopContentScroll"
-      catchtouchmove="stopContentScroll"
-      catchtouchend="stopContentScroll">
+<view class="container" wx:if="{{item}}">
   <view class="swiper-wrapper">
     <swiper class="img-swiper" indicator-dots="true" autoplay="false" bindchange="onSwiperChange">
       <swiper-item wx:for="{{item.images}}" wx:key="index" wx:for-item="img">
@@ -44,12 +41,11 @@
   </view>
 
   <view class="actions">
-    <button class="btn-fav {{favorited ? 'favorited' : ''}}" bindtap="handleFavorite">
+    <button class="btn-fav {{favorited ? 'favorited' : ''}}" bindtap="handleFavorite" hover-class="btn-hover">
       {{favorited ? '已收藏' : '收藏'}}
     </button>
-    <button class="btn-contact" bindtap="handleContact">联系卖家</button>
-    <button class="btn-report" bindtap="handleReport">举报</button>
-    <button class="btn-debug" bindtap="checkDatabase">检查数据库</button>
+    <button class="btn-contact" bindtap="handleContact" hover-class="btn-hover">联系卖家</button>
+    <button class="btn-report" bindtap="handleReport" hover-class="btn-hover">举报</button>
   </view>
 </view>
 

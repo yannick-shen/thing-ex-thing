@@ -183,13 +183,6 @@ Page({
   },
 
   // 物品操作
-  editItem(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.showToast({
-      title: '编辑功能开发中',
-      icon: 'none'
-    });
-  },
 
   async publishDraft(e) {
     const id = e.currentTarget.dataset.id;

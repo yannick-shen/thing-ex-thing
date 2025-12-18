@@ -39,35 +39,7 @@ Page({
       this.loadDetail();
     }
   },
-  // 检查数据库状态
-  checkDatabase() {
-    wx.showLoading({ title: '检查数据库...' });
-    
-    wx.cloud.callFunction({ 
-      name: 'check-database', 
-      data: {} 
-    }).then(res => {
-      wx.hideLoading();
-      console.log('数据库检查结果:', res);
-      
-      if (res.result && res.result.code === 0) {
-        const data = res.result.data;
-        const message = `用户: ${data.currentUser}\n用户数: ${data.users.length}\n物品数: ${data.items.length}\n收藏数: ${data.favorites.length}`;
-        
-        wx.showModal({
-          title: '数据库状态',
-          content: message,
-          showCancel: false
-        });
-      } else {
-        wx.showToast({ title: '检查失败', icon: 'none' });
-      }
-    }).catch(err => {
-      wx.hideLoading();
-      console.error('检查数据库失败:', err);
-      wx.showToast({ title: '检查失败', icon: 'none' });
-    });
-  },
+
 
   // 加载模拟数据详情
   loadMockDetail(itemId) {
@@ -184,13 +156,18 @@ Page({
     });
   },
   handleFavorite() {
+    console.log('收藏按钮被点击，当前状态:', this.data.favorited);
+    wx.vibrateShort();
+    
     const authManager = require('../../utils/auth.js');
     if (!authManager.isLoggedIn()) {
+      console.log('用户未登录，显示登录弹窗');
       this.setData({ showLoginModal: true });
       return;
     }
 
     const { item } = this.data;
+    console.log('开始收藏操作，物品ID:', this.itemId);
     
     wx.showLoading({ title: '处理中...' });
     wx.cloud.callFunction({
@@ -198,6 +175,7 @@ Page({
       data: { itemId: this.itemId }
     }).then(res => {
       wx.hideLoading();
+      console.log('收藏操作结果:', res);
       if (res.result.code === 0) {
         const favorited = res.result.data.favorited;
         const newFavoritesCount = favorited ? item.counters.favorites + 1 : item.counters.favorites - 1;
@@ -212,11 +190,12 @@ Page({
           icon: 'success'
         });
       } else {
+        console.error('收藏操作失败:', res.result);
         wx.showToast({ title: res.result.message || '操作失败', icon: 'none' });
       }
     }).catch(err => {
       wx.hideLoading();
-      console.error(err);
+      console.error('收藏操作失败:', err);
       wx.showToast({ title: '操作失败，请重试', icon: 'none' });
     });
   },
@@ -227,13 +206,15 @@ Page({
     });
   },
   handleReport() {
+    console.log('举报按钮被点击');
+    wx.vibrateShort();
     this.setData({ showReport: true });
   },
   closeReport() {
     this.setData({ showReport: false, selectedReason: '', reportDetail: '' });
   },
   selectReason(e) {
-    this.setData({ selectedReason: e.currentTarget.dataset.reason });
+    this.setData({ selectedReason: e.currentTarget.dataset.value });
   },
   onReportDetail(e) {
     this.setData({ reportDetail: e.detail.value });
@@ -276,13 +257,26 @@ Page({
     wx.switchTab({ url: '/pages/mine/mine' });
   },
   handleContact() {
+    console.log('联系卖家按钮被点击 - 开始执行');
+    wx.vibrateShort();
+    
+    // 检查是否是自己的物品
+    const { item } = this.data;
+    console.log('当前物品信息:', item);
+    
     const authManager = require('../../utils/auth.js');
-    if (!authManager.isLoggedIn()) {
-      this.setData({ showLoginModal: true });
+    const currentUserId = authManager.getUserId();
+    console.log('当前用户ID:', currentUserId, '物品作者ID:', item.authorId);
+    
+    if (item.authorId === currentUserId) {
+      console.log('用户点击的是自己的物品');
+      wx.showToast({ title: '这是您发布的物品', icon: 'none' });
       return;
     }
+    
     // 这里可以实现联系功能，比如跳转到聊天页面
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    console.log('显示联系功能开发中提示');
+    wx.showToast({ title: '联系功能开发中', icon: 'none' });
   },
   handleLocation() {
     const { item } = this.data;

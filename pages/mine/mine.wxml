@@ -90,12 +90,11 @@
           <view class="stat">👁 {{item.counters.views}}</view>
           <view class="stat">❤️ {{item.counters.favorites}}</view>
           <view class="stat">💬 {{item.counters.comments}}</view>
+          <view class="delete-btn" bindtap="deleteItem" data-id="{{item.id}}" catchtap="true">
+            <text class="delete-text">删除</text>
+          </view>
         </view>
-      </view>
-      <view class="item-actions">
-        <view wx:if="{{item.status === 'on'}}" class="action-btn edit" bindtap="editItem" data-id="{{item.id}}" catchtap="true">编辑</view>
-        <view wx:elif="{{item.status === 'draft' || item.status === 'off'}}" class="action-btn publish" bindtap="publishDraft" data-id="{{item.id}}" catchtap="true">发布</view>
-        <view class="action-btn delete" bindtap="deleteItem" data-id="{{item.id}}" catchtap="true">删除</view>
+        <view wx:if="{{item.status === 'draft' || item.status === 'off'}}" class="action-btn publish" bindtap="publishDraft" data-id="{{item.id}}" catchtap="true">发布</view>
       </view>
     </view>
 
