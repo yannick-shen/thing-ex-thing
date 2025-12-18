@@ -41,7 +41,7 @@
   </view>
 
   <view class="actions">
-    <button class="btn-fav {{favorited ? 'favorited' : ''}}" bindtap="handleFavorite" hover-class="btn-hover">
+    <button class="btn-fav {{favorited === true ? 'favorited' : ''}}" bindtap="handleFavorite" hover-class="btn-hover">
       {{favorited ? '已收藏' : '收藏'}}
     </button>
     <button class="btn-contact" bindtap="handleContact" hover-class="btn-hover">联系卖家</button>

@@ -3,7 +3,8 @@ const authManager = require('../../utils/auth.js');
 Page({
   data: { 
     item: null, 
-    favorited: false, 
+    favorited: null, // 使用null表示状态未确定，避免闪烁
+    favoriteStatusLoaded: false, // 添加状态加载标识
     createTime: '', 
     currentImgIndex: 0,
     showReport: false,
@@ -20,6 +21,14 @@ Page({
       { value: 'other', label: '其他' }
     ]
   },
+
+  onShow() {
+    // 每次显示页面时重新检查收藏状态
+    if (this.data.item) {
+      console.log('页面显示，重新检查收藏状态');
+      this.loadFavoriteStatus();
+    }
+  },
   onLoad(query) {
     const itemId = query.id;
     if (!itemId) {
@@ -30,19 +39,32 @@ Page({
     this.itemId = itemId;
     console.log('页面加载，物品ID:', itemId);
     
+    // 检查来源页面，如果是从收藏页面进入，直接设置已收藏状态
+    const pages = getCurrentPages();
+    const prevPage = pages[pages.length - 2];
+    const fromFavorites = prevPage && prevPage.route === 'pages/favorites/favorites';
+    
+    if (fromFavorites) {
+      console.log('从收藏页面进入，直接设置已收藏状态');
+      this.setData({
+        favorited: true,
+        favoriteStatusLoaded: true
+      });
+    }
+    
     // 检查是否是模拟数据
     if (itemId.startsWith('mock_')) {
       console.log('这是模拟数据，使用模拟详情');
-      this.loadMockDetail(itemId);
+      this.loadMockDetail(itemId, fromFavorites);
     } else {
       console.log('这是真实数据，从云函数加载');
-      this.loadDetail();
+      this.loadDetail(fromFavorites);
     }
   },
 
 
   // 加载模拟数据详情
-  loadMockDetail(itemId) {
+  loadMockDetail(itemId, fromFavorites = false) {
     const mockIndex = parseInt(itemId.split('_')[1]) - 1;
     const modes = ['sale', 'exchange', 'donate'];
     
@@ -77,43 +99,22 @@ Page({
     });
     
     console.log('模拟详情加载完成:', mockItem);
+    
+    // 只有在非收藏页面进入时才检查收藏状态
+    if (!fromFavorites) {
+      this.loadFavoriteStatus();
+    }
   },
 
-  loadDetail() {
+  loadDetail(fromFavorites = false) {
     wx.showLoading({ title: '加载中...' });
     console.log('开始加载物品详情，ID:', this.itemId);
     
-    // 先测试简单云函数
-    wx.cloud.callFunction({ 
-      name: 'test-simple', 
-      data: {} 
-    }).then(res => {
-      console.log('测试云函数返回结果:', res);
-      
-      if (res.result && res.result.code === 0) {
-        console.log('云开发环境正常，开始获取物品详情');
-        return this.loadItemDetail();
-      } else {
-        wx.hideLoading();
-        console.error('测试云函数失败:', res);
-        wx.showToast({ 
-          title: '云开发环境异常', 
-          icon: 'none',
-          duration: 3000
-        });
-      }
-    }).catch(err => {
-      wx.hideLoading();
-      console.error('调用测试云函数失败:', err);
-      wx.showToast({ 
-        title: '云函数未部署或网络错误', 
-        icon: 'none',
-        duration: 3000
-      });
-    });
+    // 直接获取物品详情，跳过测试步骤
+    this.loadItemDetail(fromFavorites);
   },
 
-  loadItemDetail() {
+  loadItemDetail(fromFavorites = false) {
     wx.cloud.callFunction({ 
       name: 'get-item-detail', 
       data: { itemId: this.itemId } 
@@ -132,6 +133,11 @@ Page({
           originalLat: item.lat,  // 保存原始纬度
           originalLng: item.lng   // 保存原始经度
         });
+        
+        // 只有在非收藏页面进入时才需要检查收藏状态
+        if (!fromFavorites) {
+          this.loadFavoriteStatus();
+        }
       } else {
         console.error('云函数返回错误:', res);
         const errorMsg = res.result ? res.result.message : '加载失败';
@@ -155,8 +161,52 @@ Page({
       });
     });
   },
+
+  // 加载收藏状态
+  loadFavoriteStatus() {
+    console.log('开始检查收藏状态');
+    const authManager = require('../../utils/auth.js');
+    if (!authManager.isLoggedIn()) {
+      console.log('用户未登录，设置为未收藏');
+      this.setData({ 
+        favorited: false,
+        favoriteStatusLoaded: true 
+      });
+      return;
+    }
+
+    wx.cloud.callFunction({
+      name: 'get-my-favorites',
+      data: {}
+    }).then(res => {
+      console.log('获取收藏列表结果:', res);
+      if (res.result && res.result.code === 0) {
+        const favorites = res.result.data.items || [];
+        const isFavorited = favorites.some(fav => fav._id === this.itemId || fav.id === this.itemId);
+        console.log('当前物品收藏状态:', isFavorited);
+        this.setData({ 
+          favorited: isFavorited,
+          favoriteStatusLoaded: true 
+        });
+      } else {
+        console.log('获取收藏列表失败，设置为未收藏');
+        this.setData({ 
+          favorited: false,
+          favoriteStatusLoaded: true 
+        });
+      }
+    }).catch(err => {
+      console.error('检查收藏状态失败:', err);
+      // 失败时默认为未收藏
+      this.setData({ 
+        favorited: false,
+        favoriteStatusLoaded: true 
+      });
+    });
+  },
   handleFavorite() {
-    console.log('收藏按钮被点击，当前状态:', this.data.favorited);
+    const currentStatus = this.data.favorited;
+    console.log('收藏按钮被点击，当前状态:', currentStatus);
     wx.vibrateShort();
     
     const authManager = require('../../utils/auth.js');
@@ -167,7 +217,7 @@ Page({
     }
 
     const { item } = this.data;
-    console.log('开始收藏操作，物品ID:', this.itemId);
+    console.log('开始收藏操作，物品ID:', this.itemId, '操作类型:', currentStatus ? '取消收藏' : '收藏');
     
     wx.showLoading({ title: '处理中...' });
     wx.cloud.callFunction({
@@ -176,22 +226,29 @@ Page({
     }).then(res => {
       wx.hideLoading();
       console.log('收藏操作结果:', res);
-      if (res.result.code === 0) {
-        const favorited = res.result.data.favorited;
-        const newFavoritesCount = favorited ? item.counters.favorites + 1 : item.counters.favorites - 1;
+      if (res.result && res.result.code === 0) {
+        const newFavoritedStatus = res.result.data.favorited;
+        const newFavoritesCount = newFavoritedStatus ? item.counters.favorites + 1 : item.counters.favorites - 1;
         
+        // 确保状态更新正确
         this.setData({
-          favorited,
-          'item.counters.favorites': newFavoritesCount
+          favorited: newFavoritedStatus,
+          'item.counters.favorites': Math.max(0, newFavoritesCount) // 防止负数
+        });
+        
+        console.log('收藏状态更新:', {
+          之前: currentStatus,
+          现在: newFavoritedStatus,
+          收藏数量: Math.max(0, newFavoritesCount)
         });
         
         wx.showToast({
-          title: favorited ? '收藏成功' : '取消收藏',
+          title: newFavoritedStatus ? '收藏成功' : '取消收藏',
           icon: 'success'
         });
       } else {
         console.error('收藏操作失败:', res.result);
-        wx.showToast({ title: res.result.message || '操作失败', icon: 'none' });
+        wx.showToast({ title: (res.result && res.result.message) || '操作失败', icon: 'none' });
       }
     }).catch(err => {
       wx.hideLoading();

@@ -170,11 +170,14 @@ Page({
   },
 
   goToFavorites() {
+    console.log('点击了收藏按钮');
     if (!this.data.isLoggedIn) {
+      console.log('用户未登录，跳转到登录页');
       this.redirectToLogin('/pages/favorites/favorites');
       return;
     }
-    wx.switchTab({
+    console.log('用户已登录，跳转到收藏页面');
+    wx.navigateTo({
       url: '/pages/favorites/favorites'
     });
   },
