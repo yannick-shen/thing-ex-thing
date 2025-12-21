@@ -46,6 +46,8 @@ exports.main = async (event, context) => {
 
     // 查询收藏状态（仅在用户登录时）
     let favorited = false;
+    let commentCount = 0;
+    
     if (wxContext.OPENID) {
       console.log('查询收藏状态，userId:', wxContext.OPENID, 'itemId:', itemId);
       try {
@@ -59,6 +61,20 @@ exports.main = async (event, context) => {
         console.error('查询收藏状态失败:', err);
         // 收藏状态查询失败不应该影响主要功能
       }
+    }
+
+    // 查询评论数量
+    try {
+      console.log('查询评论数量，itemId:', itemId);
+      const commentRes = await db.collection('comments').where({
+        itemId: itemId,
+        status: 'active'
+      }).count();
+      commentCount = commentRes.total || 0;
+      console.log('评论数量:', commentCount);
+    } catch (err) {
+      console.error('查询评论数量失败:', err);
+      // 评论数量查询失败不应该影响主要功能
     }
 
     // 异步增加浏览计数
@@ -77,7 +93,10 @@ exports.main = async (event, context) => {
       console.error('设置异步更新失败:', err);
     }
 
-    console.log('返回成功结果，favorited:', favorited);
+    // 添加评论数量到物品数据
+    item.commentCount = commentCount;
+    
+    console.log('返回成功结果，favorited:', favorited, 'commentCount:', commentCount);
     return { 
       code: 0, 
       data: { 

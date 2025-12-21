@@ -56,7 +56,7 @@
           <view class="message-time">{{formatTime(item.createdAt)}}</view>
         </view>
         <view class="message-text">{{item.content}}</view>
-        <view class="message-item-info" bindtap="goToDetail" data-id="{{item.itemId}}">
+        <view class="message-item-info" bindtap="goToDetail" data-id="{{item.itemId}}" data-jump-path="{{item.jumpPath}}">
           <view class="item-title">{{item.itemTitle}}</view>
           <view class="item-image" wx:if="{{item.itemImage}}">
             <image src="{{item.itemImage}}" mode="aspectFill" />

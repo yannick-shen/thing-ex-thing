@@ -92,6 +92,13 @@
       </view>
     </scroll-view>
 
+    <!-- 评论入口 -->
+    <view class="detail-comment-entry" bindtap="goToComments" wx:if="{{detailItem}}">
+      <text class="comment-entry-icon">💬</text>
+      <text class="comment-entry-text">{{detailItem.commentCount || 0}} 条留言</text>
+      <text class="comment-entry-arrow">></text>
+    </view>
+
     <!-- 操作按钮 -->
     <view class="detail-actions">
       <button class="detail-btn-fav {{detailFavorited ? 'favorited' : ''}}" bindtap="handleDetailFavorite">

@@ -79,31 +79,35 @@ Page({
     }
   },
 
-  loadComments() {
-    // 模拟评论数据
-    const mockComments = [
-      {
-        id: '1',
-        username: '张三',
-        content: '这个物品还在吗？',
-        itemTitle: 'iPhone 12',
-        itemImage: '/assets/images/placeholder-item.png',
-        itemId: 'item_1',
-        createdAt: Date.now() - 3600000,
-        read: false
-      },
-      {
-        id: '2',
-        username: '李四',
-        content: '可以便宜点吗？',
-        itemTitle: '二手书',
-        itemImage: '/assets/images/placeholder-book.png',
-        itemId: 'item_2',
-        createdAt: Date.now() - 7200000,
-        read: true
+  async loadComments() {
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'get-comment-messages',
+        data: { page: 1, pageSize: 20 }
+      });
+      
+      if (result.result && result.result.success) {
+        const messages = result.result.data.messages.map(msg => ({
+          id: msg._id,
+          username: msg.fromUserName || '匿名用户',
+          content: msg.content,
+          itemTitle: msg.content.includes('《') ? 
+            msg.content.match(/《([^》]+)》/)?.[1] || '物品' : '物品',
+          itemImage: '/assets/images/placeholder-item.png',
+          itemId: msg.itemId,
+          createdAt: msg.createdAt,
+          read: msg.isRead,
+          jumpPath: msg.jumpPath,
+          type: msg.type
+        }));
+        
+        this.setData({ comments: messages });
       }
-    ];
-    this.setData({ comments: mockComments });
+    } catch (error) {
+      console.error('加载评论消息失败:', error);
+      // 如果加载失败，使用空数组
+      this.setData({ comments: [] });
+    }
   },
 
   loadSystemMessages() {
@@ -148,9 +152,14 @@ Page({
   },
 
   goToDetail(e) {
-    const itemId = e.currentTarget.dataset.id;
-    if (itemId) {
-      wx.navigateTo({ url: `/pages/detail/detail?id=${itemId}` });
+    const { id, jumpPath } = e.currentTarget.dataset;
+    
+    if (jumpPath) {
+      // 如果有跳转路径，直接跳转到评论页面
+      wx.navigateTo({ url: jumpPath });
+    } else if (id) {
+      // 否则跳转到物品详情页（兼容旧版本）
+      wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
     }
   },
 

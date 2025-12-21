@@ -1,0 +1,99 @@
+<view class="comment-page">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar">
+    <view class="nav-back" bindtap="goBack">‹</view>
+    <view class="nav-title">物品评论</view>
+    <view class="nav-placeholder"></view>
+  </view>
+
+  <!-- 物品信息精简版 -->
+  <view class="item-info" wx:if="{{itemInfo}}">
+    <view class="item-main">
+      <image class="item-image" src="{{itemInfo.images && itemInfo.images[0] ? itemInfo.images[0] : '/assets/images/placeholder-item.png'}}" mode="aspectFill" />
+      <view class="item-details">
+        <view class="item-title">{{itemInfo.title}}</view>
+        <view class="item-meta">
+          <text class="item-price" wx:if="{{itemInfo.mode === 'sale'}}">¥{{itemInfo.price}}</text>
+          <text class="item-price" wx:elif="{{itemInfo.mode === 'exchange'}}">交换</text>
+          <text class="item-price" wx:elif="{{itemInfo.mode === 'donate'}}">赠送</text>
+          <text class="item-price" wx:elif="{{itemInfo.mode === 'help'}}">求助</text>
+          <text class="item-time">{{formatCreateTime(itemInfo.createTime)}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 分隔线 -->
+  <view class="divider"></view>
+
+  <!-- 评论列表 -->
+  <scroll-view class="comments-container" scroll-y="true" bindscrolltolower="loadMoreComments">
+    <view wx:if="{{loading}}" class="loading">
+      <text>加载中...</text>
+    </view>
+    
+    <view wx:elif="{{comments.length === 0 && !loading}}" class="empty-comments">
+      <text class="empty-icon">💬</text>
+      <text class="empty-text">暂无留言</text>
+      <text class="empty-desc">快来发表第一条评论吧~</text>
+    </view>
+    
+    <view wx:else class="comments-list">
+      <view wx:for="{{comments}}" wx:key="_id" class="comment-item {{item._id === highlightedCommentId ? 'highlighted' : ''}}" bindtap="onCommentTap" data-comment="{{item}}">
+        <image class="comment-avatar" src="{{item.userAvatar || '/assets/images/default-avatar.png'}}" />
+        <view class="comment-content">
+          <view class="comment-header">
+            <text class="comment-user">{{item.userName}}</text>
+            <text class="comment-time">{{formatCommentTime(item.createdAt)}}</text>
+          </view>
+          <view class="comment-text" wx:if="{{item.replyToUserId}}">
+            <text class="reply-prefix">回复 @{{item.replyToUserName}}：</text>
+            <text>{{item.content}}</text>
+          </view>
+          <view class="comment-text" wx:else>{{item.content}}</view>
+          <view class="comment-actions">
+            <button class="comment-btn-reply" bindtap="onReply" data-comment="{{item}}" catchtap="stopPropagation">回复</button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 分隔线 -->
+  <view class="divider"></view>
+
+  <!-- 输入框区域 -->
+  <view class="input-area">
+    <view class="input-container">
+      <input 
+        class="comment-input" 
+        placeholder="{{isLoggedIn ? inputPlaceholder : '登录后可发表评论'}}"
+        value="{{commentText}}"
+        bindinput="{{isLoggedIn ? 'onCommentInput' : ''}}"
+        focus="{{inputFocused}}"
+        bindblur="onInputBlur"
+        maxlength="200"
+        disabled="{{!isLoggedIn}}"
+      />
+      <button 
+        wx:if="{{isLoggedIn}}"
+        class="send-btn {{hasContent ? 'active' : ''}}" 
+        bindtap="submitComment"
+        disabled="{{!hasContent || submitting}}"
+      >
+        {{submitting ? '发送中' : '发送'}}
+      </button>
+      <button 
+        wx:else
+        class="send-btn" 
+        bindtap="goToLogin"
+      >
+        去登录
+      </button>
+    </view>
+    <view wx:if="{{replyingTo}}" class="reply-indicator">
+      <text>正在回复 @{{replyingTo.userName}}</text>
+      <button class="cancel-reply" bindtap="cancelReply">×</button>
+    </view>
+  </view>
+</view>

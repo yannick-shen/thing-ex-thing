@@ -5,6 +5,7 @@
     "pages/auth/auth",
     "pages/publish/publish",
     "pages/detail/detail",
+    "pages/comment/comment",
 
     "pages/mine/mine",
     "pages/favorites/favorites",

@@ -1,0 +1,310 @@
+.comment-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa;
+}
+
+/* 导航栏 */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+}
+
+.nav-back {
+  font-size: 24px;
+  color: #333;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: #f8f9fa;
+}
+
+.nav-title {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.nav-placeholder {
+  width: 32px;
+}
+
+/* 物品信息 */
+.item-info {
+  background: #fff;
+  padding: 16px;
+}
+
+.item-main {
+  display: flex;
+  gap: 12px;
+}
+
+.item-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.item-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.item-price {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ff4757;
+}
+
+.item-time {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 分隔线 */
+.divider {
+  height: 8px;
+  background: #f8f9fa;
+}
+
+/* 评论列表容器 */
+.comments-container {
+  flex: 1;
+  background: #fff;
+  min-height: 0;
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+/* 空状态 */
+.empty-comments {
+  padding: 60px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.empty-desc {
+  font-size: 14px;
+  color: #999;
+}
+
+/* 评论列表 */
+.comments-list {
+  padding: 0 16px;
+}
+
+.comment-item {
+  display: flex;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-item.highlighted {
+  background: linear-gradient(90deg, #e6f7ff 0%, #f0f9ff 100%);
+  animation: highlight 3s ease-in-out;
+}
+
+@keyframes highlight {
+  0% {
+    background: linear-gradient(90deg, #e6f7ff 0%, #f0f9ff 100%);
+    box-shadow: 0 2px 8px rgba(22, 119, 255, 0.15);
+  }
+  100% {
+    background: #fff;
+    box-shadow: none;
+  }
+}
+
+.comment-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.comment-content {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.comment-user {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.comment-time {
+  font-size: 12px;
+  color: #999;
+}
+
+.comment-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+
+.reply-prefix {
+  color: #1677ff;
+  font-weight: 500;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.comment-btn-reply {
+  padding: 4px 12px;
+  background: #f8f9fa;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.comment-btn-reply:active {
+  background: #e6f7ff;
+  color: #1677ff;
+}
+
+/* 输入区域 */
+.input-area {
+  background: #fff;
+  padding: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8f9fa;
+  border-radius: 20px;
+  padding: 4px 16px;
+}
+
+.comment-input {
+  flex: 1;
+  height: 36px;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+}
+
+.send-btn {
+  height: 32px;
+  padding: 0 16px;
+  background: #e6e6e6;
+  color: #999;
+  border: none;
+  border-radius: 16px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.send-btn.active {
+  background: #1677ff;
+  color: #fff;
+}
+
+.send-btn[disabled] {
+  background: #e6e6e6;
+  color: #999;
+}
+
+/* 未登录时的登录按钮样式 */
+.send-btn:not(.active) {
+  background: #1677ff;
+  color: #fff;
+}
+
+.reply-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f0f9ff;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #1677ff;
+}
+
+.cancel-reply {
+  width: 20px;
+  height: 20px;
+  background: #ff4757;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

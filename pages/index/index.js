@@ -451,6 +451,16 @@ Page({
     });
   },
 
+  // 跳转到评论页面
+  goToComments() {
+    const { detailItem } = this.data;
+    if (detailItem && detailItem._id) {
+      wx.navigateTo({
+        url: `/pages/comment/comment?itemId=${detailItem._id}&title=${encodeURIComponent(detailItem.title)}`
+      });
+    }
+  },
+
   // 查找丢失的物品
   async findMissingItems() {
     wx.showLoading({ title: '查询中...' });
