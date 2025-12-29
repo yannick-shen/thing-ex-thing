@@ -15,6 +15,7 @@
     <view class="auth-section">
       <view class="auth-tips">
         <text class="tips-title">登录后享受完整功能</text>
+        <text class="register-hint">首次登录将自动为您创建账户</text>
         <view class="tips-list">
           <view class="tips-item">
             <text class="tips-icon">✓</text>
@@ -45,6 +46,8 @@
           <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>
         </view>
       </view>
+
+
 
       <!-- 微信登录按钮 -->
       <button 

@@ -33,7 +33,7 @@ class AuthManager {
   }
 
   // 登录
-  async login(loginCode) {
+  async login(loginCode, userProfile = null) {
     try {
       console.log('开始调用云函数 user-auth 进行登录...')
       
@@ -49,6 +49,12 @@ class AuthManager {
       if (loginCode) {
         callData.code = loginCode
         console.log('包含登录凭证:', loginCode)
+      }
+      
+      // 如果传入了用户信息，添加到调用参数中
+      if (userProfile) {
+        callData.userProfile = userProfile
+        console.log('包含用户信息:', userProfile)
       }
       
       console.log('调用参数:', callData)

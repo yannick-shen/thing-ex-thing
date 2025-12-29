@@ -64,8 +64,60 @@
   font-weight: 600;
   color: #333;
   display: block;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.register-hint {
+  font-size: 26rpx;
+  color: #1890ff;
+  display: block;
   margin-bottom: 30rpx;
   text-align: center;
+  background: #e6f7ff;
+  padding: 12rpx 20rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid #91d5ff;
+}
+
+/* 权限说明 */
+.auth-permission {
+  margin: 40rpx 0;
+}
+
+.permission-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.permission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15rpx;
+}
+
+.permission-item {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: #666;
+  background: #f8f9fa;
+  padding: 15rpx 20rpx;
+  border-radius: 12rpx;
+}
+
+.permission-icon {
+  margin-right: 12rpx;
+  font-size: 20rpx;
+}
+
+.permission-text {
+  flex: 1;
+  line-height: 1.4;
 }
 
 .tips-list {
@@ -199,4 +251,23 @@
   background: #f8f9fa;
   border-radius: 40rpx;
   display: inline-block;
+}
+
+/* 调试按钮样式 */
+.debug-btn {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background-color: #f8f9fa;
+  color: #666;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: 2rpx solid #ddd;
+  margin-top: 20rpx;
+  transition: all 0.3s ease;
+}
+
+.debug-btn:active {
+  transform: scale(0.98);
+  background-color: #e9ecef;
 }

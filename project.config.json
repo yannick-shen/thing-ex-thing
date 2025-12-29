@@ -38,5 +38,6 @@
     "minifyWXML": true,
     "showES6CompileOption": false,
     "useCompilerPlugins": false
-  }
+  },
+  "compileType": "miniprogram"
 }

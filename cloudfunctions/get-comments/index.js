@@ -7,7 +7,6 @@ cloud.init({
 
 const db = cloud.database()
 const _ = db.command
-const $ = _.aggregate
 
 // 云函数入口函数
 exports.main = async (event, context) => {
@@ -22,68 +21,27 @@ exports.main = async (event, context) => {
       }
     }
 
+    console.log('=== 开始获取评论 ===');
+    console.log('itemId:', itemId);
+    console.log('itemId类型:', typeof itemId);
+    console.log('page:', page, 'pageSize:', pageSize);
+
     // 计算跳过的数量
     const skip = (page - 1) * pageSize
 
-    // 构建聚合查询
-    const aggregateQuery = db.collection('comments').aggregate()
-      .match({
+    // 直接使用简单查询，避免聚合查询的复杂性
+    console.log('=== 执行查询 ===');
+    const queryResult = await db.collection('comments')
+      .where({
         itemId: itemId,
         status: 'active'
       })
-      .lookup({
-        from: 'users',
-        localField: 'userId',
-        foreignField: 'openid',
-        as: 'userInfo'
-      })
-      .lookup({
-        from: 'users',
-        localField: 'replyToUserId',
-        foreignField: 'openid',
-        as: 'replyToUserInfo'
-      })
-      .sort({
-        createdAt: 1 // 按时间升序排列，最早的评论在前
-      })
+      .orderBy('createdAt', 'asc')
       .skip(skip)
       .limit(pageSize)
-      .end()
+      .get()
 
-    const result = await aggregateQuery
-
-    // 处理返回的数据
-    const comments = result.data.map(comment => {
-      const processedComment = {
-        _id: comment._id,
-        itemId: comment.itemId,
-        userId: comment.userId,
-        userName: comment.userName,
-        userAvatar: comment.userAvatar,
-        content: comment.content,
-        replyToUserId: comment.replyToUserId,
-        replyToUserName: comment.replyToUserName,
-        replyToCommentId: comment.replyToCommentId,
-        createdAt: comment.createdAt,
-        updatedAt: comment.updatedAt,
-        status: comment.status
-      }
-
-      // 如果有用户信息，使用更准确的用户名和头像
-      if (comment.userInfo && comment.userInfo.length > 0) {
-        const userInfo = comment.userInfo[0]
-        processedComment.userName = userInfo.profile ? userInfo.profile.nickname : '匿名用户'
-        processedComment.userAvatar = userInfo.profile ? userInfo.profile.avatarUrl : ''
-      }
-
-      // 如果有被回复用户信息，使用更准确的用户名
-      if (comment.replyToUserInfo && comment.replyToUserInfo.length > 0) {
-        const replyToUserInfo = comment.replyToUserInfo[0]
-        processedComment.replyToUserName = replyToUserInfo.profile ? replyToUserInfo.profile.nickname : '匿名用户'
-      }
-
-      return processedComment
-    })
+    console.log('查询结果数量:', queryResult.data.length);
 
     // 获取总数
     const countResult = await db.collection('comments').where({
@@ -92,7 +50,83 @@ exports.main = async (event, context) => {
     }).count()
 
     const total = countResult.total
-    const hasMore = skip + comments.length < total
+    const hasMore = skip + queryResult.data.length < total
+
+    console.log('评论总数:', total, 'hasMore:', hasMore);
+
+    // 处理评论数据，添加用户信息
+    console.log('=== 处理评论数据 ===');
+    const comments = [];
+
+    for (let i = 0; i < queryResult.data.length; i++) {
+      const comment = queryResult.data[i];
+      
+      console.log(`处理评论${i + 1}:`, {
+        _id: comment._id,
+        userId: comment.userId,
+        content: comment.content.substring(0, 20) + '...'
+      });
+
+      // 获取评论用户信息
+      let userName = comment.userName || '匿名用户';
+      let userAvatar = comment.userAvatar || '';
+      
+      if (comment.userId) {
+        try {
+          const userResult = await db.collection('users').where({
+            openid: comment.userId
+          }).get();
+          
+          if (userResult.data.length > 0) {
+            const userInfo = userResult.data[0];
+            userName = userInfo.profile && userInfo.profile.nickname ? userInfo.profile.nickname : '匿名用户';
+            userAvatar = userInfo.profile && userInfo.profile.avatarUrl ? userInfo.profile.avatarUrl : '';
+            console.log(`找到用户信息: ${userName}`);
+          }
+        } catch (userError) {
+          console.error('获取用户信息失败:', userError);
+        }
+      }
+
+      // 获取被回复用户信息
+      let replyToUserName = '';
+      if (comment.replyToUserId && comment.replyToUserId !== comment.userId) {
+        try {
+          const replyUserResult = await db.collection('users').where({
+            openid: comment.replyToUserId
+          }).get();
+          
+          if (replyUserResult.data.length > 0) {
+            const replyUserInfo = replyUserResult.data[0];
+            replyToUserName = replyUserInfo.profile && replyUserInfo.profile.nickname ? replyUserInfo.profile.nickname : '匿名用户';
+          }
+        } catch (replyUserError) {
+          console.error('获取被回复用户信息失败:', replyUserError);
+        }
+      }
+
+      // 构建最终评论数据
+      const processedComment = {
+        _id: comment._id,
+        itemId: comment.itemId,
+        userId: comment.userId,
+        userName: userName,
+        userAvatar: userAvatar,
+        content: comment.content,
+        replyToUserId: comment.replyToUserId,
+        replyToUserName: replyToUserName || comment.replyToUserName || '匿名用户',
+        replyToCommentId: comment.replyToCommentId,
+        createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt,
+        status: comment.status
+      };
+
+      comments.push(processedComment);
+      console.log(`评论${i + 1}处理完成: ${userName}`);
+    }
+
+    console.log('=== 查询完成 ===');
+    console.log('最终返回评论数量:', comments.length);
 
     return {
       success: true,

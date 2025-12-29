@@ -11,10 +11,18 @@ const db = cloud.database()
 const userCache = new Map()
 
 // 处理登录的核心逻辑
-async function processLogin(openid, appid) {
+async function processLogin(openid, appid, userProfile = null) {
   try {
-    console.log('✅ openid获取成功:', openid)
-    console.log('✅ appid:', appid)
+      console.log('✅ openid获取成功:', openid)
+      console.log('✅ appid:', appid)
+      console.log('✅ userProfile:', userProfile)
+      console.log('✅ userProfile类型:', typeof userProfile)
+      if (userProfile) {
+        console.log('✅ userProfile.nickName:', userProfile.nickName)
+        console.log('✅ userProfile.avatarUrl:', userProfile.avatarUrl)
+      } else {
+        console.log('⚠️ userProfile 为空或null')
+      }
     
     // 检查用户是否已存在（优化查询性能）
     const userCollection = db.collection('users')
@@ -45,13 +53,14 @@ async function processLogin(openid, appid) {
     } else if (userResult.data.length === 0) {
       console.log('👤 创建新用户...')
       // 新用户，创建用户记录（自动激活）
+      const randomSuffix = Math.floor(Math.random() * 10000);
       const newUser = {
         openid: openid,
         appid: appid,
         createTime: db.serverDate(),
         updateTime: db.serverDate(),
         profile: {
-          nickname: '新用户',
+          nickname: `用户${randomSuffix}`,
           avatarUrl: '',
           phone: '',
           isPhoneBound: false
@@ -79,10 +88,12 @@ async function processLogin(openid, appid) {
       // 添加到缓存
       userCache.set(openid, user)
     } else {
-      console.log('🔄 用户已存在，更新登录时间...')
-      // 已存在用户，更新最后登录时间
+      console.log('🔄 用户已存在，检查是否需要更新用户信息...')
+      // 已存在用户，检查是否需要更新用户信息
       user = userResult.data[0]
       
+      // 简化逻辑：不依赖传入的用户信息，仅更新登录时间
+      console.log('更新用户登录时间...')
       await userCollection.doc(user._id).update({
         data: {
           updateTime: db.serverDate()
@@ -153,12 +164,14 @@ exports.main = async (event, context) => {
     case 'login':
       console.log('处理 login action，检查是否有传入的code')
       console.log('event.code:', event.code)
+      console.log('event.userProfile:', event.userProfile)
       
       // 先尝试获取wxContext
       const loginWxContext = cloud.getWXContext()
       console.log('登录获取的 wxContext:', loginWxContext)
       
       let { openid, appid } = loginWxContext
+      const userProfile = event.userProfile
       
       // 如果没有openid，但传入了code，尝试重新获取wxContext
       if (!openid && event.code) {
@@ -190,7 +203,7 @@ exports.main = async (event, context) => {
       
       console.log('✅ 获取到openid，继续登录流程')
       // 有openid，直接处理登录
-      return await processLogin(openid, appid)
+      return await processLogin(openid, appid, userProfile)
     case 'getUserInfo':
       return await getUserInfo(wxContext)
     case 'updateProfile':

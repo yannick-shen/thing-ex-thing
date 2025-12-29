@@ -42,11 +42,6 @@ Page({
         icon: 'none'
       });
     }
-
-    // 设置导航栏标题
-    if (title) {
-      wx.setNavigationBarTitle({ title });
-    }
   },
 
   onShow() {

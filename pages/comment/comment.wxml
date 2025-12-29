@@ -1,11 +1,4 @@
 <view class="comment-page">
-  <!-- 顶部导航栏 -->
-  <view class="nav-bar">
-    <view class="nav-back" bindtap="goBack">‹</view>
-    <view class="nav-title">物品评论</view>
-    <view class="nav-placeholder"></view>
-  </view>
-
   <!-- 物品信息精简版 -->
   <view class="item-info" wx:if="{{itemInfo}}">
     <view class="item-main">

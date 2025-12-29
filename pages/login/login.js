@@ -173,7 +173,7 @@ Page({
     this.setData({ isLogging: true });
     
     try {
-      wx.showLoading({ title: '正在获取微信授权...' });
+      wx.showLoading({ title: '正在登录...' });
       
       // 第一步：获取微信登录凭证
       console.log('获取微信登录凭证...');
@@ -183,15 +183,9 @@ Page({
       }
       console.log('微信登录凭证获取成功:', loginRes.code);
       
-      wx.showLoading({ title: '登录中...' });
-      
-      // 第二步：调用云函数登录
+      // 第二步：调用云函数登录（不传用户信息，让后端自动处理）
       console.log('调用 authManager.login()...');
-      
-      // 更新loading提示，让用户知道进度
-      wx.showLoading({ title: '正在验证身份...' });
-      
-      const loginResult = await authManager.login(loginRes.code);
+      const loginResult = await authManager.login(loginRes.code, null);
       console.log('登录结果:', loginResult);
 
       if (loginResult.success) {
@@ -200,12 +194,18 @@ Page({
         // 保存用户协议同意状态
         wx.setStorageSync('userAgreed', true);
         
-        // 立即隐藏loading，显示成功提示并立即跳转
+        // 立即隐藏loading，根据是否为新用户显示不同的成功提示
         wx.hideLoading();
+        
+        let successMessage = '登录成功';
+        if (loginResult.isNewUser) {
+          successMessage = '欢迎加入！账户已自动创建';
+        }
+        
         wx.showToast({
-          title: '登录成功',
+          title: successMessage,
           icon: 'success',
-          duration: 500  // 缩短到最小
+          duration: 1500  // 稍微延长显示时间，让用户看到不同的提示
         });
 
         // 立即跳转，不等toast结束
@@ -251,6 +251,64 @@ Page({
       this.setData({ isLogging: false });
       wx.hideLoading();
     }
+  },
+
+  // 获取用户信息
+  getUserProfile() {
+    return new Promise((resolve, reject) => {
+      // 首先尝试获取用户信息，看是否已经授权
+      wx.getUserInfo({
+        success: (res) => {
+          console.log('getUserInfo 成功:', res);
+          console.log('用户信息:', res.userInfo);
+          resolve(res.userInfo);
+        },
+        fail: (err) => {
+          console.log('getUserInfo 失败，尝试 getUserProfile:', err);
+          
+          // 如果 getUserInfo 失败，使用 getUserProfile
+          wx.getUserProfile({
+            desc: '用于完善用户资料，显示您的昵称和头像',
+            success: (profileRes) => {
+              console.log('getUserProfile 成功:', profileRes);
+              console.log('用户信息:', profileRes.userInfo);
+              resolve(profileRes.userInfo);
+            },
+            fail: (profileErr) => {
+              console.error('getUserProfile 也失败:', profileErr);
+              
+              // 检查具体的错误信息
+              const errMsg = profileErr.errMsg || '';
+              console.log('详细错误信息:', errMsg);
+              
+              if (errMsg.includes('cancel') || errMsg.includes('拒绝')) {
+                wx.showModal({
+                  title: '需要授权',
+                  content: '为了更好的体验，需要获取您的微信昵称和头像。您可以随时在设置中修改。',
+                  confirmText: '重新授权',
+                  cancelText: '跳过',
+                  success: (modalRes) => {
+                    if (modalRes.confirm) {
+                      console.log('用户选择重新授权');
+                      this.getUserProfile().then(resolve).catch(reject);
+                    } else {
+                      console.log('用户选择跳过授权');
+                      resolve({
+                        nickName: '匿名用户',
+                        avatarUrl: ''
+                      });
+                    }
+                  }
+                });
+              } else {
+                // 其他错误，直接拒绝
+                reject(profileErr);
+              }
+            }
+          });
+        }
+      });
+    });
   },
 
   // 获取微信登录凭证
@@ -378,5 +436,6 @@ Page({
       showCancel: false,
       confirmText: '我知道了'
     });
-  }
+  },
+
 });
