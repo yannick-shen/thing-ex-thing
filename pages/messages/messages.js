@@ -151,15 +151,58 @@ Page({
     return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
   },
 
-  goToDetail(e) {
-    const { id, jumpPath } = e.currentTarget.dataset;
-    
+  async goToDetail(e) {
+    const { id, jumpPath, messageId } = e.currentTarget.dataset;
+
+    // 标记消息为已读
+    if (messageId) {
+      await this.markAsRead(messageId);
+    }
+
     if (jumpPath) {
       // 如果有跳转路径，直接跳转到评论页面
       wx.navigateTo({ url: jumpPath });
     } else if (id) {
       // 否则跳转到物品详情页（兼容旧版本）
       wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
+    }
+  },
+
+  // 标记消息为已读
+  async markAsRead(messageId) {
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'mark-message-read',
+        data: { messageId }
+      });
+
+      if (result.result && result.result.success) {
+        // 更新本地消息列表中的已读状态
+        const comments = this.data.comments.map(msg => {
+          if (msg.id === messageId) {
+            return { ...msg, read: true };
+          }
+          return msg;
+        });
+
+        this.setData({ comments });
+
+        // 同时更新全局消息数量（通过发布事件或直接调用）
+        this.updateGlobalMessageCount();
+      }
+    } catch (error) {
+      console.error('标记消息已读失败:', error);
+    }
+  },
+
+  // 更新全局消息数量
+  updateGlobalMessageCount() {
+    // 获取当前页面栈中的profile页面
+    const pages = getCurrentPages();
+    const profilePage = pages.find(page => page.route === 'pages/profile/profile');
+
+    if (profilePage && profilePage.loadMessageCount) {
+      profilePage.loadMessageCount();
     }
   },
 

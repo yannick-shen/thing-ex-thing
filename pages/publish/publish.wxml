@@ -146,14 +146,42 @@
 
       <!-- 提交按钮 -->
       <view class="submit-section">
-        <button 
-          class="submit-btn {{isSubmitting ? 'submitting' : ''}}" 
-          formType="submit"
-          disabled="{{isSubmitting}}"
-        >
-          {{isSubmitting ? '发布中...' : '发布物品'}}
-        </button>
-        <view class="submit-tips">发布后将在地图上显示30天</view>
+        <!-- 编辑模式 -->
+        <block wx:if="{{isEditMode}}">
+          <button
+            class="submit-btn {{isSubmitting ? 'submitting' : ''}}"
+            formType="submit"
+            disabled="{{isSubmitting}}"
+          >
+            {{isSubmitting ? '保存中...' : '保存修改'}}
+          </button>
+          <button
+            class="secondary-btn"
+            bindtap="handlePublishAndOnline"
+            disabled="{{isSubmitting}}"
+          >
+            {{isSubmitting ? '处理中...' : '重新上架'}}
+          </button>
+        </block>
+
+        <!-- 新建模式 -->
+        <block wx:else>
+          <button
+            class="submit-btn {{isSubmitting ? 'submitting' : ''}}"
+            formType="submit"
+            disabled="{{isSubmitting}}"
+          >
+            {{isSubmitting ? '发布中...' : '发布物品'}}
+          </button>
+          <button
+            class="draft-btn"
+            bindtap="handleSaveAsDraft"
+            disabled="{{isSubmitting}}"
+          >
+            {{isSubmitting ? '保存中...' : '保存到草稿箱'}}
+          </button>
+          <view class="submit-tips">发布后将在地图上显示30天</view>
+        </block>
       </view>
     </form>
   </view>

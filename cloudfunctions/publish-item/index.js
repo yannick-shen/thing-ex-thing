@@ -164,7 +164,7 @@ exports.main = async (event, context) => {
       addressText,
       images,
       authorId: userId,
-      status: 'on',
+      status: event.status || 'on',
       auditStatus: 'pass',
       counters: { views: 0, favorites: 0, comments: 0 },
       createdAt: now,

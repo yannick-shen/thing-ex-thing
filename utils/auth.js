@@ -9,7 +9,27 @@ class AuthManager {
   isLoggedIn() {
     const userId = wx.getStorageSync('userId')
     const userInfo = wx.getStorageSync('userInfo')
-    return !!(userId && userInfo)
+
+    // 基本检查
+    if (!userId || !userInfo) {
+      return false
+    }
+
+    // 检查登录时间,超过24小时需要重新登录
+    const lastLoginTime = wx.getStorageSync('lastLoginTime')
+    if (!lastLoginTime) {
+      return false
+    }
+
+    const timeDiff = Date.now() - lastLoginTime
+    const maxAge = 24 * 60 * 60 * 1000  // 24小时
+
+    if (timeDiff > maxAge) {
+      console.log('登录已超过24小时,需要重新登录')
+      return false
+    }
+
+    return true
   }
 
   // 获取当前用户

@@ -20,7 +20,8 @@ page{background:#f7f8fa}
 .btn-fav{flex:1;background:#fff;color:#1677ff;border:1px solid #1677ff;border-radius:6px;font-size:15px;height:36px;display:flex;align-items:center;justify-content:center}
 .btn-fav.favorited{background:#1677ff;color:#fff}
 .btn-contact{flex:2;background:#1677ff;color:#fff;border-radius:6px;font-size:15px;height:36px;display:flex;align-items:center;justify-content:center}
-.btn-report{flex:1;background:#fff;color:#ff4d4f;border:1px solid #ff4d4f;border-radius:6px;font-size:15px;height:36px;display:flex;align-items:center;justify-content:center}
+.btn-unpublish{flex:1;background:#ff9800;color:#fff;border-radius:6px;font-size:15px;height:36px;display:flex;align-items:center;justify-content:center}
+.btn-view-comments{flex:2;background:#1677ff;color:#fff;border-radius:6px;font-size:15px;height:36px;display:flex;align-items:center;justify-content:center}
 .btn-hover{opacity:0.7;transform:scale(0.98)}
 .loading{padding:40px;text-align:center;color:#999}
 .report-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center}

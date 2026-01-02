@@ -1,0 +1,9 @@
+{
+  "name": "update-item",
+  "version": "1.0.0",
+  "description": "Update existing item",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

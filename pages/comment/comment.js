@@ -317,11 +317,6 @@ Page({
     // 可以在这里实现点击评论的扩展功能
   },
 
-  // 阻止事件冒泡
-  stopPropagation() {
-    return false;
-  },
-
   // 滚动到指定评论
   scrollToComment(targetCommentId) {
     // 查找目标评论在列表中的位置

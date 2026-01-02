@@ -36,11 +36,24 @@ exports.main = async (event, context) => {
 
     const item = itemRes.data;
     console.log('物品数据:', item);
-    
+
     // 检查物品状态 - 允许查看自己的任何状态物品
-    const canView = item.status === 'on' || item.authorId === wxContext.OPENID;
+    // 需要通过openid查询用户表获取_id，因为authorId存储的是_id而不是openid
+    let isOwnItem = false;
+    if (wxContext.OPENID) {
+      try {
+        const userRes = await db.collection('users').where({ openid: wxContext.OPENID }).limit(1).get();
+        if (userRes.data && userRes.data.length > 0) {
+          isOwnItem = userRes.data[0]._id === item.authorId;
+        }
+      } catch (err) {
+        console.error('查询用户信息失败:', err);
+      }
+    }
+
+    const canView = item.status === 'on' || isOwnItem;
     if (!canView) {
-      console.log('物品状态不允许查看，status:', item.status, 'authorId:', item.authorId, 'openid:', wxContext.OPENID);
+      console.log('物品状态不允许查看，status:', item.status, 'authorId:', item.authorId, 'openid:', wxContext.OPENID, 'isOwnItem:', isOwnItem);
       return { code: 403, message: 'item not available' };
     }
 

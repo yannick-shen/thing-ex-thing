@@ -45,7 +45,7 @@
           </view>
           <view class="comment-text" wx:else>{{item.content}}</view>
           <view class="comment-actions">
-            <button class="comment-btn-reply" bindtap="onReply" data-comment="{{item}}" catchtap="stopPropagation">回复</button>
+            <button class="comment-btn-reply" catchtap="onReply" data-comment="{{item}}">回复</button>
           </view>
         </view>
       </view>

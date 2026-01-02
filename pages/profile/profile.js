@@ -152,10 +152,23 @@ Page({
   },
 
   // 加载消息数量
-  loadMessageCount() {
-    // 模拟消息数量
-    const messageCount = Math.floor(Math.random() * 5);
-    this.setData({ messageCount });
+  async loadMessageCount() {
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'get-unread-messages-count',
+        data: {}
+      });
+
+      if (result.result && result.result.success) {
+        const unreadCount = result.result.data.unreadCount || 0;
+        this.setData({ messageCount: unreadCount });
+      } else {
+        this.setData({ messageCount: 0 });
+      }
+    } catch (error) {
+      console.error('加载消息数量失败:', error);
+      this.setData({ messageCount: 0 });
+    }
   },
 
   // 导航函数

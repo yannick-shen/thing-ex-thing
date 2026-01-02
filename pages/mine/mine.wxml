@@ -1,31 +1,23 @@
 <view class="mine-container">
 
   <!-- 物品分类标签 -->
-  <view class="tab-section">
+  <view class="tab-section fixed">
     <view class="tab-group">
-      <view 
-        class="tab-item {{currentTab === 'active' ? 'active' : ''}}" 
-        bindtap="switchTab" 
+      <view
+        class="tab-item {{currentTab === 'active' ? 'active' : ''}}"
+        bindtap="switchTab"
         data-tab="active"
       >
         <text class="tab-text">展示中</text>
         <view wx:if="{{stats.active > 0}}" class="tab-count">{{stats.active}}</view>
       </view>
-      <view 
-        class="tab-item {{currentTab === 'draft' ? 'active' : ''}}" 
-        bindtap="switchTab" 
+      <view
+        class="tab-item {{currentTab === 'draft' ? 'active' : ''}}"
+        bindtap="switchTab"
         data-tab="draft"
       >
         <text class="tab-text">草稿箱</text>
         <view wx:if="{{stats.draft > 0}}" class="tab-count">{{stats.draft}}</view>
-      </view>
-      <view 
-        class="tab-item {{currentTab === 'all' ? 'active' : ''}}" 
-        bindtap="switchTab" 
-        data-tab="all"
-      >
-        <text class="tab-text">全部</text>
-        <view wx:if="{{stats.published > 0}}" class="tab-count">{{stats.published}}</view>
       </view>
     </view>
   </view>
@@ -56,12 +48,13 @@
       </view>
 
     <!-- 物品项 -->
-    <view 
-      class="item-card" 
-      wx:for="{{items}}" 
+    <view
+      class="item-card"
+      wx:for="{{items}}"
       wx:key="id"
-      bindtap="goDetail" 
+      bindtap="goDetail"
       data-id="{{item.id}}"
+      data-status="{{item.status}}"
     >
       <view class="item-image">
         <image 
@@ -90,11 +83,14 @@
           <view class="stat">👁 {{item.counters.views}}</view>
           <view class="stat">❤️ {{item.counters.favorites}}</view>
           <view class="stat">💬 {{item.counters.comments}}</view>
-          <view class="delete-btn" bindtap="deleteItem" data-id="{{item.id}}" catchtap="true">
+          <view wx:if="{{item.status === 'draft' || item.status === 'off'}}" class="action-btns">
+            <view class="action-btn delete" catchtap="deleteItem" data-id="{{item.id}}">删除</view>
+            <view class="action-btn publish" catchtap="publishDraft" data-id="{{item.id}}">发布</view>
+          </view>
+          <view wx:else class="delete-btn" catchtap="deleteItem" data-id="{{item.id}}">
             <text class="delete-text">删除</text>
           </view>
         </view>
-        <view wx:if="{{item.status === 'draft' || item.status === 'off'}}" class="action-btn publish" bindtap="publishDraft" data-id="{{item.id}}" catchtap="true">发布</view>
       </view>
     </view>
 

@@ -32,10 +32,37 @@ exports.main = async (event, context) => {
     }
 
     const item = itemResult.data
-    const itemOwnerId = item.authorId || item._openid
+
+    // 获取物品发布者的 openid
+    let itemOwnerOpenid = null
+    if (item.authorId) {
+      // 根据 authorId 查询用户信息获取 openid
+      try {
+        const userResult = await db.collection('users').doc(item.authorId).get()
+        if (userResult.data && userResult.data.openid) {
+          itemOwnerOpenid = userResult.data.openid
+        }
+      } catch (queryError) {
+        // 如果 doc 查询失败,尝试使用 where 查询
+        const whereResult = await db.collection('users').where({
+          _id: item.authorId
+        }).get()
+
+        if (whereResult.data && whereResult.data.length > 0 && whereResult.data[0].openid) {
+          itemOwnerOpenid = whereResult.data[0].openid
+        }
+      }
+    }
+
+    if (!itemOwnerOpenid) {
+      return {
+        success: false,
+        message: '无法获取物品发布者信息'
+      }
+    }
 
     // 如果评论者就是物品发布者，不需要创建消息
-    if (commenterId === itemOwnerId) {
+    if (commenterId === itemOwnerOpenid) {
       return {
         success: true,
         message: '自己评论自己的物品，不需要创建消息'
@@ -51,7 +78,7 @@ exports.main = async (event, context) => {
       commentId: commentId,
       fromUserId: commenterId,
       fromUserName: commenterName,
-      toUserId: itemOwnerId,
+      toUserId: itemOwnerOpenid,
       isRead: false,
       createdAt: Date.now(),
       updatedAt: Date.now()

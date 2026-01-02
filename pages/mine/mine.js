@@ -177,9 +177,22 @@ Page({
 
   goDetail(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/detail/detail?id=${id}`
-    });
+    const status = e.currentTarget.dataset.status;
+
+    // 草稿状态的物品，跳转到编辑页面
+    if (status === 'draft' || status === 'off') {
+      // publish是tabBar页面，需要先缓存编辑参数
+      wx.setStorageSync('editItemId', id);
+      wx.setStorageSync('editMode', 'edit');
+      wx.switchTab({
+        url: '/pages/publish/publish'
+      });
+    } else {
+      // 正常上架物品，跳转到详情页
+      wx.navigateTo({
+        url: `/pages/detail/detail?id=${id}`
+      });
+    }
   },
 
   // 物品操作

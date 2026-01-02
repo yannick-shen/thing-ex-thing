@@ -65,11 +65,20 @@
 
 /* 标签区域 */
 .tab-section {
-  margin: 30rpx 30rpx 20rpx;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   background: white;
-  border-radius: 16rpx;
   padding: 20rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.08);
+  display: flex;
+  justify-content: center;
+}
+
+.tab-section.fixed {
+  position: fixed;
 }
 
 /* 功能入口 */
@@ -230,7 +239,7 @@
 .items-list {
   min-height: 400rpx;
   background: white;
-  margin: 0 30rpx;
+  margin: 110rpx 30rpx 30rpx;
   border-radius: 16rpx;
   box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
 }
@@ -395,7 +404,6 @@
   border: 1rpx solid #ffccc7;
   border-radius: 8rpx;
   transition: all 0.3s;
-  margin-left: auto;
 }
 
 .delete-btn:active {
@@ -408,23 +416,41 @@
   font-weight: 500;
 }
 
+/* 草稿物品操作按钮组 */
+.action-btns {
+  display: flex;
+  gap: 10rpx;
+  margin-left: auto;
+}
+
+.action-btn {
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.action-btn.delete {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border: 1rpx solid #ffccc7;
+}
+
+.action-btn.delete:active {
+  background: #ffccc7;
+}
+
 /* 发布按钮 */
 .action-btn.publish {
   background: #f0f9ff;
   color: #00b96b;
-  padding: 8rpx 16rpx;
-  border-radius: 12rpx;
-  font-size: 22rpx;
-  text-align: center;
-  margin-top: 8rpx;
-  align-self: flex-start;
 }
 
 .item-stats {
   display: flex;
   gap: 20rpx;
   align-items: center;
-  justify-content: space-between;
 }
 
 /* 加载状态 */

@@ -41,11 +41,15 @@
   </view>
 
   <view class="actions">
-    <button class="btn-fav {{favorited === true ? 'favorited' : ''}}" bindtap="handleFavorite" hover-class="btn-hover">
+    <!-- 如果是自己的物品,显示下架和评论按钮 -->
+    <button wx:if="{{isOwnItem}}" class="btn-unpublish" bindtap="handleUnpublish" hover-class="btn-hover">下架到草稿箱</button>
+    <button wx:if="{{isOwnItem}}" class="btn-view-comments" bindtap="handleViewComments" hover-class="btn-hover">查看评论</button>
+
+    <!-- 如果是别人的物品,显示收藏和联系按钮 -->
+    <button wx:if="{{!isOwnItem}}" class="btn-fav {{favorited === true ? 'favorited' : ''}}" bindtap="handleFavorite" hover-class="btn-hover">
       {{favorited ? '已收藏' : '收藏'}}
     </button>
-    <button class="btn-contact" bindtap="handleContact" hover-class="btn-hover">联系卖家</button>
-    <button class="btn-report" bindtap="handleReport" hover-class="btn-hover">举报</button>
+    <button wx:if="{{!isOwnItem}}" class="btn-contact" bindtap="handleContact" hover-class="btn-hover">联系卖家</button>
   </view>
 </view>
 

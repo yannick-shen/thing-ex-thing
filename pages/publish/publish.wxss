@@ -382,6 +382,47 @@
   opacity: 0.7;
 }
 
+.submit-btn[disabled] {
+  opacity: 0.7;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+.secondary-btn {
+  flex: 1;
+  height: 88rpx;
+  background: #1677ff;
+  color: white;
+  font-size: 32rpx;
+  font-weight: bold;
+  border-radius: 44rpx;
+  border: none;
+}
+
+.secondary-btn[disabled] {
+  opacity: 0.7;
+}
+
+.draft-btn {
+  width: 100%;
+  height: 88rpx;
+  background: #f0f0f0;
+  color: #333;
+  font-size: 32rpx;
+  font-weight: bold;
+  border-radius: 44rpx;
+  border: none;
+  margin-bottom: 20rpx;
+}
+
+.draft-btn[disabled] {
+  opacity: 0.7;
+}
+
 .submit-tips {
   font-size: 24rpx;
   color: #999;

@@ -4,6 +4,8 @@ const authManager = require('../../utils/auth.js');
 Page({
   data: {
     isLoggedIn: false,
+    isEditMode: false,
+    editItemId: null,
     formData: {
       title: '',
       desc: '',
@@ -15,12 +17,40 @@ Page({
     isSubmitting: false
   },
 
-  onLoad() {
+  onLoad(options) {
     // 检查登录状态但不跳转
     this.checkLoginStatus();
+
+    // 检查是否是编辑模式（从URL参数）
+    if (options.id && options.mode === 'edit') {
+      this.editItemId = options.id;
+      this.setData({ isEditMode: true, editItemId: options.id });
+      this.loadItemForEdit(options.id);
+    }
   },
 
   onShow() {
+    // 检查是否有缓存的编辑参数（从switchTab跳转过来）
+    const editItemId = wx.getStorageSync('editItemId');
+    const editMode = wx.getStorageSync('editMode');
+
+    if (editItemId && editMode === 'edit') {
+      // 重置编辑模式状态
+      this.editItemId = null;
+      this.setData({ isEditMode: false, editItemId: null, formData: { title: '', desc: '', mode: 'sale', price: '' }, images: [], location: null });
+
+      // 设置新的编辑模式
+      this.editItemId = editItemId;
+      this.setData({ isEditMode: true, editItemId });
+
+      // 清除缓存
+      wx.removeStorageSync('editItemId');
+      wx.removeStorageSync('editMode');
+
+      // 加载物品数据
+      this.loadItemForEdit(editItemId);
+    }
+
     // 每次显示页面时检查登录状态
     this.checkLoginStatus();
   },
@@ -226,6 +256,63 @@ Page({
     return true;
   },
 
+  // 加载物品数据用于编辑
+  async loadItemForEdit(itemId) {
+    wx.showLoading({ title: '加载中...' });
+
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'get-item-detail',
+        data: { itemId }
+      });
+
+      if (result.result && result.result.code === 0) {
+        const item = result.result.data.item;
+
+        if (!item) {
+          wx.hideLoading();
+          wx.showToast({
+            title: '物品不存在',
+            icon: 'none'
+          });
+          setTimeout(() => wx.navigateBack(), 1500);
+          return;
+        }
+
+        // 填充表单数据
+        this.setData({
+          'formData.title': item.title || '',
+          'formData.desc': item.desc || '',
+          'formData.mode': item.mode || 'sale',
+          'formData.price': item.price ? String(item.price) : '',
+          images: item.images || [],
+          location: {
+            latitude: item.lat,
+            longitude: item.lng,
+            name: item.addressText
+          }
+        });
+
+        wx.hideLoading();
+      } else {
+        wx.hideLoading();
+        wx.showToast({
+          title: result.result?.message || '加载失败',
+          icon: 'none'
+        });
+        setTimeout(() => wx.navigateBack(), 1500);
+      }
+    } catch (error) {
+      wx.hideLoading();
+      console.error('加载物品失败:', error);
+      wx.showToast({
+        title: '加载失败，请重试',
+        icon: 'none'
+      });
+      setTimeout(() => wx.navigateBack(), 1500);
+    }
+  },
+
   // 提交发布
   async onSubmit(e) {
     if (this.data.isSubmitting) return;
@@ -244,41 +331,43 @@ Page({
     if (!this.validateForm()) return;
 
     this.setData({ isSubmitting: true });
-    wx.showLoading({ title: '发布中...' });
+    wx.showLoading({ title: this.data.isEditMode ? '保存中...' : '发布中...' });
 
     try {
       // 上传图片到云存储
       const uploadResults = await this.uploadImages();
-      
-      // 调用云函数发布物品
-      const publishResult = await this.publishItem(uploadResults);
-      
+
+      // 根据是编辑还是新建调用不同方法
+      const result = this.data.isEditMode
+        ? await this.updateItem(uploadResults)
+        : await this.publishItem(uploadResults);
+
       wx.hideLoading();
-      
-      if (publishResult.code === 0) {
+
+      if (result.code === 0) {
         wx.showToast({
-          title: '发布成功',
+          title: this.data.isEditMode ? '保存成功' : '发布成功',
           icon: 'success'
         });
-        
+
         // 清空表单
         this.resetForm();
-        
+
         // 延迟返回
         setTimeout(() => {
           wx.navigateBack();
         }, 1500);
       } else {
         wx.showToast({
-          title: publishResult.message || '发布失败',
+          title: result.message || (this.data.isEditMode ? '保存失败' : '发布失败'),
           icon: 'none'
         });
       }
     } catch (error) {
       wx.hideLoading();
-      console.error('发布失败:', error);
+      console.error('操作失败:', error);
       wx.showToast({
-        title: '发布失败，请重试',
+        title: this.data.isEditMode ? '保存失败，请重试' : '发布失败，请重试',
         icon: 'none'
       });
     } finally {
@@ -289,7 +378,12 @@ Page({
   // 上传图片
   uploadImages() {
     return new Promise((resolve, reject) => {
-      const uploadPromises = this.data.images.map((path, index) => {
+      // 区分云存储URL和本地文件路径
+      const cloudImages = this.data.images.filter(path => path.startsWith('cloud://'));
+      const localImages = this.data.images.filter(path => !path.startsWith('cloud://'));
+
+      // 只上传本地图片
+      const uploadPromises = localImages.map((path, index) => {
         const ext = path.split('.').pop() || 'jpg';
         const cloudPath = `items/${Date.now()}_${index}_${Math.random().toString(36).slice(2)}.${ext}`;
         return wx.cloud.uploadFile({ cloudPath, filePath: path });
@@ -297,20 +391,45 @@ Page({
 
       Promise.all(uploadPromises)
         .then(results => {
-          const fileIDs = results.map(r => r.fileID);
-          resolve(fileIDs);
+          const uploadedFileIDs = results.map(r => r.fileID);
+          // 合并云存储图片和新上传的图片
+          const allFileIDs = [...cloudImages, ...uploadedFileIDs];
+          resolve(allFileIDs);
         })
         .catch(reject);
     });
   },
 
   // 调用发布云函数
-  publishItem(imageFileIDs) {
+  publishItem(imageFileIDs, isDraft = false) {
     const { formData, location } = this.data;
-    
+
     return wx.cloud.callFunction({
       name: 'publish-item',
       data: {
+        title: formData.title.trim(),
+        desc: formData.desc.trim(),
+        mode: formData.mode,
+        price: formData.mode === 'sale' ? Number(formData.price || 0) : 0,
+        images: imageFileIDs,
+        location: {
+          latitude: location.latitude,
+          longitude: location.longitude
+        },
+        addressText: location.name || '当前位置',
+        status: isDraft ? 'draft' : 'on'
+      }
+    }).then(res => res.result);
+  },
+
+  // 更新物品
+  updateItem(imageFileIDs) {
+    const { formData, location, editItemId } = this.data;
+
+    return wx.cloud.callFunction({
+      name: 'update-item',
+      data: {
+        itemId: editItemId,
         title: formData.title.trim(),
         desc: formData.desc.trim(),
         mode: formData.mode,
@@ -337,6 +456,142 @@ Page({
       images: [],
       location: null
     });
+  },
+
+  // 重新上架（先保存修改，然后上架）
+  async handlePublishAndOnline() {
+    const { editItemId } = this.data;
+
+    if (!editItemId) return;
+
+    wx.showModal({
+      title: '确认重新上架',
+      content: '确定要保存修改并将此物品重新上架吗？',
+      confirmText: '确定',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          this.setData({ isSubmitting: true });
+          wx.showLoading({ title: '处理中...' });
+
+          // 先保存修改
+          const formValues = this.data.formData;
+          const { formData, location } = this.data;
+
+          // 上传图片
+          this.uploadImages().then(uploadResults => {
+            // 更新物品
+            return this.updateItem(uploadResults);
+          }).then(result => {
+            if (result.code === 0) {
+              // 保存成功后上架
+              return wx.cloud.callFunction({
+                name: 'update-item-status',
+                data: {
+                  itemId: editItemId,
+                  status: 'on'
+                }
+              });
+            } else {
+              throw new Error(result.message || '保存失败');
+            }
+          }).then(res => {
+            wx.hideLoading();
+            this.setData({ isSubmitting: false });
+
+            if (res.result && res.result.code === 0) {
+              wx.showToast({
+                title: '重新上架成功',
+                icon: 'success'
+              });
+
+              setTimeout(() => {
+                wx.navigateBack();
+              }, 1500);
+            } else {
+              wx.showToast({
+                title: res.result?.message || '上架失败',
+                icon: 'none'
+              });
+            }
+          }).catch(err => {
+            wx.hideLoading();
+            this.setData({ isSubmitting: false });
+            console.error('操作失败:', err);
+            wx.showToast({
+              title: '操作失败，请重试',
+              icon: 'none'
+            });
+          });
+        }
+      }
+    });
+  },
+
+  // 保存到草稿箱
+  async handleSaveAsDraft() {
+    if (this.data.isSubmitting) return;
+
+    const { formData, location, images } = this.data;
+
+    // 基本验证
+    if (!formData.title.trim()) {
+      wx.showToast({
+        title: '请填写物品标题',
+        icon: 'none'
+      });
+      return;
+    }
+
+    if (!formData.desc.trim()) {
+      wx.showToast({
+        title: '请填写物品描述',
+        icon: 'none'
+      });
+      return;
+    }
+
+    this.setData({ isSubmitting: true });
+    wx.showLoading({ title: '保存中...' });
+
+    try {
+      // 上传图片
+      const uploadResults = await this.uploadImages();
+
+      // 发布为草稿状态
+      const publishResult = await this.publishItem(uploadResults, true);
+
+      wx.hideLoading();
+
+      if (publishResult.code === 0) {
+        wx.showToast({
+          title: '已保存到草稿箱',
+          icon: 'success'
+        });
+
+        // 清空表单
+        this.resetForm();
+
+        // 延迟返回
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 1500);
+      } else {
+        wx.showToast({
+          title: publishResult.message || '保存失败',
+          icon: 'none'
+        });
+      }
+    } catch (error) {
+      wx.hideLoading();
+      console.error('保存草稿失败:', error);
+      wx.showToast({
+        title: '保存失败，请重试',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({ isSubmitting: false });
+    }
   },
 
   // 页面分享

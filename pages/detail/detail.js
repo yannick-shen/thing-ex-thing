@@ -1,11 +1,11 @@
 const authManager = require('../../utils/auth.js');
 
 Page({
-  data: { 
-    item: null, 
+  data: {
+    item: null,
     favorited: null, // 使用null表示状态未确定，避免闪烁
     favoriteStatusLoaded: false, // 添加状态加载标识
-    createTime: '', 
+    createTime: '',
     currentImgIndex: 0,
     showReport: false,
     selectedReason: '',
@@ -13,6 +13,7 @@ Page({
     showLoginModal: false,
     loginTitle: '需要登录',
     loginContent: '登录后可以更好地使用此功能',
+    isOwnItem: false, // 是否是自己的物品
     reportReasons: [
       { value: 'spam', label: '垃圾广告' },
       { value: 'fake', label: '虚假信息' },
@@ -127,15 +128,22 @@ Page({
         const createTime = this.formatTime(item.createdAt);
         console.log('物品详情加载成功:', item);
         
-        this.setData({ 
-          item, 
-          createTime, 
+        this.setData({
+          item,
+          createTime,
           originalLat: item.lat,  // 保存原始纬度
           originalLng: item.lng   // 保存原始经度
         });
-        
+
+        // 判断是否是自己的物品
+        const currentUserId = wx.getStorageSync('userId');
+        const isOwnItem = currentUserId && item.authorId === currentUserId;
+
+        this.setData({ isOwnItem });
+        console.log('物品归属判断:', { isOwnItem, currentUserId, itemAuthorId: item.authorId });
+
         // 只有在非收藏页面进入时才需要检查收藏状态
-        if (!fromFavorites) {
+        if (!fromFavorites && !isOwnItem) {
           this.loadFavoriteStatus();
         }
       } else {
@@ -316,24 +324,87 @@ Page({
   handleContact() {
     console.log('联系卖家按钮被点击 - 开始执行');
     wx.vibrateShort();
-    
+
     // 检查是否是自己的物品
     const { item } = this.data;
     console.log('当前物品信息:', item);
-    
+
     const authManager = require('../../utils/auth.js');
     const currentUserId = authManager.getUserId();
     console.log('当前用户ID:', currentUserId, '物品作者ID:', item.authorId);
-    
+
     if (item.authorId === currentUserId) {
       console.log('用户点击的是自己的物品');
       wx.showToast({ title: '这是您发布的物品', icon: 'none' });
       return;
     }
-    
+
     // 这里可以实现联系功能，比如跳转到聊天页面
     console.log('显示联系功能开发中提示');
     wx.showToast({ title: '联系功能开发中', icon: 'none' });
+  },
+
+  // 下架到草稿箱
+  handleUnpublish() {
+    const { item } = this.data;
+
+    wx.showModal({
+      title: '确认下架',
+      content: '确定要将此物品下架到草稿箱吗？',
+      confirmText: '确定',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '处理中...' });
+
+          wx.cloud.callFunction({
+            name: 'update-item-status',
+            data: {
+              itemId: this.itemId,
+              status: 'draft'
+            }
+          }).then(res => {
+            wx.hideLoading();
+
+            if (res.result && res.result.code === 0) {
+              wx.showToast({
+                title: '已下架到草稿箱',
+                icon: 'success'
+              });
+
+              // 更新本地状态
+              this.setData({
+                'item.status': 'draft'
+              });
+
+              // 返回上一页
+              setTimeout(() => {
+                wx.navigateBack();
+              }, 1500);
+            } else {
+              wx.showToast({
+                title: res.result?.message || '下架失败',
+                icon: 'none'
+              });
+            }
+          }).catch(err => {
+            wx.hideLoading();
+            console.error('下架失败:', err);
+            wx.showToast({
+              title: '下架失败，请重试',
+              icon: 'none'
+            });
+          });
+        }
+      }
+    });
+  },
+
+  // 查看评论
+  handleViewComments() {
+    wx.navigateTo({
+      url: `/pages/comment/comment?itemId=${this.itemId}`
+    });
   },
   handleLocation() {
     const { item } = this.data;

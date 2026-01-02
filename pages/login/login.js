@@ -14,21 +14,21 @@ Page({
       version: wx.getSystemInfoSync().version,
       SDKVersion: wx.getSystemInfoSync().SDKVersion
     });
-    
+
     // 在手机端预览时强制清理可能的问题数据
     const platform = wx.getSystemInfoSync().platform;
     if (platform !== 'devtools') {
       console.log('手机端环境，检查并清理可能的问题数据');
       this.performPhoneEnvironmentCleanup();
     }
-    
+
     // 初始化跳转标志
     this.navigateToTargetCalled = false;
-    
+
     // 检查是否已经登录（更严格的验证）
     if (this.isActuallyLoggedIn()) {
       console.log('用户已登录，直接跳转');
-      
+
       // 延迟一点时间，确保页面完全加载
       setTimeout(() => {
         this.navigateToTarget();
