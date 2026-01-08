@@ -20,7 +20,9 @@ Page({
       { value: 'illegal', label: '违法违规' },
       { value: 'fraud', label: '诈骗信息' },
       { value: 'other', label: '其他' }
-    ]
+    ],
+    showContactDialog: false,
+    contactRemark: ''
   },
 
   onShow() {
@@ -322,26 +324,66 @@ Page({
     wx.switchTab({ url: '/pages/mine/mine' });
   },
   handleContact() {
-    console.log('联系卖家按钮被点击 - 开始执行');
-    wx.vibrateShort();
-
-    // 检查是否是自己的物品
-    const { item } = this.data;
-    console.log('当前物品信息:', item);
-
     const authManager = require('../../utils/auth.js');
-    const currentUserId = authManager.getUserId();
-    console.log('当前用户ID:', currentUserId, '物品作者ID:', item.authorId);
+
+    if (!authManager.isLoggedIn()) {
+      this.setData({ showLoginModal: true });
+      return;
+    }
+
+    const { item } = this.data;
+    const currentUser = authManager.getCurrentUser();
+    const currentUserId = currentUser ? currentUser.userId : null;
 
     if (item.authorId === currentUserId) {
-      console.log('用户点击的是自己的物品');
       wx.showToast({ title: '这是您发布的物品', icon: 'none' });
       return;
     }
 
-    // 这里可以实现联系功能，比如跳转到聊天页面
-    console.log('显示联系功能开发中提示');
-    wx.showToast({ title: '联系功能开发中', icon: 'none' });
+    // 显示联系申请弹窗
+    this.setData({ showContactDialog: true, contactRemark: '' });
+  },
+
+  hideContactDialog() {
+    this.setData({ showContactDialog: false, contactRemark: '' });
+  },
+
+  onContactRemarkInput(e) {
+    this.setData({ contactRemark: e.detail.value });
+  },
+
+  submitContactRequest() {
+    const { contactRemark } = this.data;
+
+    wx.showLoading({ title: '发送中...' });
+
+    wx.cloud.callFunction({
+      name: 'create-contact-request',
+      data: {
+        itemId: this.itemId,
+        remark: contactRemark.trim()
+      }
+    }).then(res => {
+      wx.hideLoading();
+      if (res.result && res.result.code === 0) {
+        wx.showToast({
+          title: '申请已发送',
+          icon: 'success'
+        });
+        this.hideContactDialog();
+      } else {
+        wx.showToast({
+          title: res.result?.message || '发送失败',
+          icon: 'none'
+        });
+      }
+    }).catch(err => {
+      wx.hideLoading();
+      wx.showToast({
+        title: '发送失败，请重试',
+        icon: 'none'
+      });
+    });
   },
 
   // 下架到草稿箱

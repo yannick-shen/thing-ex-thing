@@ -1,3 +1,5 @@
+<wxs src="./utils.wxs" module="utils" />
+
 <view class="messages-container">
   <!-- 未登录状态 -->
   <view wx:if="{{!isLoggedIn}}" class="login-required">
@@ -19,17 +21,33 @@
   <!-- 消息类型切换 -->
   <view class="tab-section">
     <view class="tab-group">
-      <view 
-        class="tab-item {{currentTab === 'comments' ? 'active' : ''}}" 
-        bindtap="switchTab" 
+      <view
+        class="tab-item {{currentTab === 'comments' ? 'active' : ''}}"
+        bindtap="switchTab"
         data-tab="comments"
       >
         <view class="tab-text">评论消息</view>
         <view wx:if="{{comments.length > 0}}" class="tab-badge">{{comments.length}}</view>
       </view>
-      <view 
-        class="tab-item {{currentTab === 'system' ? 'active' : ''}}" 
-        bindtap="switchTab" 
+      <view
+        class="tab-item {{currentTab === 'requests' ? 'active' : ''}}"
+        bindtap="switchTab"
+        data-tab="requests"
+      >
+        <view class="tab-text">联系申请</view>
+        <view wx:if="{{contactRequests.length > 0}}" class="tab-badge">{{contactRequests.length}}</view>
+      </view>
+      <view
+        class="tab-item {{currentTab === 'approved' ? 'active' : ''}}"
+        bindtap="switchTab"
+        data-tab="approved"
+      >
+        <view class="tab-text">联系成功</view>
+        <view wx:if="{{contactApprovedMessages.length > 0}}" class="tab-badge">{{contactApprovedMessages.length}}</view>
+      </view>
+      <view
+        class="tab-item {{currentTab === 'system' ? 'active' : ''}}"
+        bindtap="switchTab"
         data-tab="system"
       >
         <view class="tab-text">系统消息</view>
@@ -53,7 +71,7 @@
       <view class="message-content">
         <view class="message-header">
           <view class="message-user">{{item.username}}</view>
-          <view class="message-time">{{formatTime(item.createdAt)}}</view>
+          <view class="message-time">{{utils.formatTime(item.createdAt)}}</view>
         </view>
         <view class="message-text">{{item.content}}</view>
         <view class="message-item-info" bindtap="goToDetail" data-id="{{item.itemId}}" data-jump-path="{{item.jumpPath}}" data-message-id="{{item.id}}">
@@ -83,7 +101,7 @@
       <view class="message-content">
         <view class="message-header">
           <view class="message-user">{{item.title}}</view>
-          <view class="message-time">{{formatTime(item.createdAt)}}</view>
+          <view class="message-time">{{utils.formatTime(item.createdAt)}}</view>
         </view>
         <view class="message-text">{{item.content}}</view>
         <view wx:if="{{item.actionText}}" class="message-action">
@@ -91,6 +109,59 @@
             {{item.actionText}}
           </button>
         </view>
+      </view>
+      <view wx:if="{{!item.read}}" class="unread-dot"></view>
+    </view>
+  </view>
+
+  <!-- 联系申请列表 -->
+  <view wx:if="{{currentTab === 'requests'}}" class="message-list">
+    <view wx:if="{{contactRequests.length === 0}}" class="empty-state">
+      <view class="empty-icon">📨</view>
+      <view class="empty-text">暂无联系申请</view>
+      <view class="empty-desc">当有买家申请联系您时会在这里显示</view>
+    </view>
+
+    <view wx:for="{{contactRequests}}" wx:key="_id" class="message-item">
+      <view class="message-avatar">
+        <image src="{{item.buyerAvatar}}" mode="aspectFill" />
+      </view>
+      <view class="message-content">
+        <view class="message-header">
+          <view class="message-user">{{item.buyerName}}</view>
+          <view class="message-time">{{utils.formatTime(item.createTime)}}</view>
+        </view>
+        <view class="message-text">想联系您关于物品《{{item.itemTitle}}》</view>
+        <view wx:if="{{item.remark}}" class="message-remark">留言：{{item.remark}}</view>
+        <view class="request-actions">
+          <button wx:if="{{item.status === 'pending'}}" class="action-btn accept" bindtap="acceptContactRequest" data-id="{{item._id}}">同意</button>
+          <button wx:if="{{item.status === 'pending'}}" class="action-btn reject" bindtap="rejectContactRequest" data-id="{{item._id}}">拒绝</button>
+          <view wx:if="{{item.status === 'accepted'}}" class="status-text accepted">已同意</view>
+          <view wx:if="{{item.status === 'rejected'}}" class="status-text rejected">已拒绝</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 联系成功消息列表 -->
+  <view wx:if="{{currentTab === 'approved'}}" class="message-list">
+    <view wx:if="{{contactApprovedMessages.length === 0}}" class="empty-state">
+      <view class="empty-icon">✅</view>
+      <view class="empty-text">暂无联系成功消息</view>
+      <view class="empty-desc">当卖家同意您的联系申请时会在这里显示</view>
+    </view>
+
+    <view wx:for="{{contactApprovedMessages}}" wx:key="_id" class="message-item" bindtap="goToContactSuccess" data-id="{{item.requestId}}">
+      <view class="message-avatar">
+        <image src="{{item.sellerAvatar}}" mode="aspectFill" />
+      </view>
+      <view class="message-content">
+        <view class="message-header">
+          <view class="message-user">{{item.sellerName}}</view>
+          <view class="message-time">{{utils.formatTime(item.createTime)}}</view>
+        </view>
+        <view class="message-text">已同意您的联系请求 - 《{{item.itemTitle}}》</view>
+        <view class="message-action-text">点击查看联系方式</view>
       </view>
       <view wx:if="{{!item.read}}" class="unread-dot"></view>
     </view>

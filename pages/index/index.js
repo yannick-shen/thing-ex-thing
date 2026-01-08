@@ -445,9 +445,32 @@ Page({
 
   // 弹窗内联系卖家
   handleDetailContact() {
-    wx.showToast({
-      title: '功能开发中',
-      icon: 'none'
+    const authManager = require('../../utils/auth.js');
+
+    if (!authManager.isLoggedIn()) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+
+    const { detailItem } = this.data;
+    const currentUser = authManager.getCurrentUser();
+    const currentUserId = currentUser ? currentUser.userId : null;
+
+    if (!detailItem) {
+      return;
+    }
+
+    if (detailItem.authorId === currentUserId) {
+      wx.showToast({ title: '这是您发布的物品', icon: 'none' });
+      return;
+    }
+
+    // 跳转到物品详情页进行联系
+    wx.navigateTo({
+      url: `/pages/detail/detail?id=${detailItem._id}`
     });
   },
 

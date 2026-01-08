@@ -192,7 +192,7 @@
 }
 
 .message-time {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #999;
 }
 
@@ -261,6 +261,58 @@
   border-radius: 50%;
 }
 
+/* 联系申请相关样式 */
+.message-remark {
+  font-size: 26rpx;
+  color: #999;
+  background: #f8f9fa;
+  padding: 15rpx;
+  border-radius: 8rpx;
+  margin-top: 10rpx;
+  line-height: 1.4;
+}
+
+.request-actions {
+  display: flex;
+  gap: 15rpx;
+  margin-top: 15rpx;
+}
+
+.request-actions .action-btn {
+  flex: 1;
+  padding: 12rpx 0;
+  font-size: 26rpx;
+}
+
+.action-btn.accept {
+  background: #52c41a;
+}
+
+.action-btn.reject {
+  background: #ff4d4f;
+}
+
+.status-text {
+  font-size: 26rpx;
+  padding: 12rpx 0;
+  text-align: center;
+  flex: 1;
+}
+
+.status-text.accepted {
+  color: #52c41a;
+}
+
+.status-text.rejected {
+  color: #999;
+}
+
+.message-action-text {
+  font-size: 26rpx;
+  color: #1677ff;
+  margin-top: 10rpx;
+}
+
 /* 空状态 */
 .empty-state {
   text-align: center;
@@ -284,4 +336,5 @@
   color: #999;
   line-height: 1.4;
 }
+
 

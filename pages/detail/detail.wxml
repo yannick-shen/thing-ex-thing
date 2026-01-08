@@ -56,18 +56,38 @@
 <view wx:else class="loading">加载中...</view>
 
 <!-- 登录弹窗 -->
-<login-modal 
-  show="{{showLoginModal}}" 
+<login-modal
+  show="{{showLoginModal}}"
   title="{{loginTitle}}"
   content="{{loginContent}}"
   bindclose="hideLoginModal"
 />
 
+<!-- 联系申请弹窗 -->
+<view wx:if="{{showContactDialog}}" class="contact-overlay" catchtap="hideContactDialog">
+  <view class="contact-dialog" catchtap="stopPropagation">
+    <view class="contact-title">联系卖家</view>
+    <view class="contact-tips">给卖家留言，说明您的需求</view>
+    <textarea
+      class="contact-remark"
+      placeholder="例如：我对这个物品很感兴趣，什么时候方便聊聊？（选填）"
+      value="{{contactRemark}}"
+      bindinput="onContactRemarkInput"
+      maxlength="200"
+      auto-height
+    />
+    <view class="contact-actions">
+      <button class="btn-cancel" bindtap="hideContactDialog">取消</button>
+      <button class="btn-submit" bindtap="submitContactRequest">发送</button>
+    </view>
+  </view>
+</view>
+
 <view wx:if="{{showReport}}" class="report-overlay" catchtap="hideReportDialog">
   <view class="report-dialog" catchtap="stopPropagation">
     <view class="report-title">举报理由</view>
     <view class="report-reasons">
-      <view wx:for="{{reportReasons}}" wx:key="value" 
+      <view wx:for="{{reportReasons}}" wx:key="value"
             class="reason-item {{selectedReason === item.value ? 'selected' : ''}}"
             bindtap="selectReason" data-value="{{item.value}}">
         {{item.label}}

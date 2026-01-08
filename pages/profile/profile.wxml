@@ -13,32 +13,16 @@
 
     <!-- 已登录状态 -->
     <view wx:else class="user-info">
-      <view class="avatar">
-        <image wx:if="{{userInfo.profile.avatarUrl}}" 
-               src="{{userInfo.profile.avatarUrl}}" 
+      <view class="avatar" bindtap="changeAvatar">
+        <image wx:if="{{userInfo.profile.avatarUrl}}"
+               src="{{userInfo.profile.avatarUrl}}"
                class="avatar-image"
                mode="aspectFill" />
         <view wx:else class="avatar-placeholder">👤</view>
+        <view class="avatar-edit-hint">点击更换</view>
       </view>
       <view class="user-details">
-        <view class="username">{{userInfo.profile.nickname || '用户'}}</view>
-        <view class="user-desc">{{userInfo.profile.phone ? '已绑定手机' : '未绑定手机'}}</view>
-      </view>
-    </view>
-    
-    <!-- 统计信息 -->
-    <view wx:if="{{isLoggedIn}}" class="stats">
-      <view class="stat-item" bindtap="goToMyItems">
-        <view class="stat-number">{{userInfo.stats.publishedCount}}</view>
-        <view class="stat-label">发布</view>
-      </view>
-      <view class="stat-item" bindtap="goToFavorites">
-        <view class="stat-number">{{userInfo.stats.favoritesCount}}</view>
-        <view class="stat-label">收藏</view>
-      </view>
-      <view class="stat-item" bindtap="goToMessages">
-        <view class="stat-number">{{messageCount > 99 ? '99+' : messageCount}}</view>
-        <view class="stat-label">消息</view>
+        <view class="username" bindtap="editNickname">{{userInfo.profile.nickname || '用户'}} ✏️</view>
       </view>
     </view>
   </view>
@@ -64,19 +48,6 @@
           <view class="menu-desc">查看收藏的物品</view>
         </view>
         <view class="menu-badge" wx:if="{{stats.favorited > 0}}">{{stats.favorited}}</view>
-        <view class="menu-arrow">></view>
-      </view>
-    </view>
-
-    <!-- 互动功能 -->
-    <view class="menu-group">
-      <view class="menu-item" bindtap="goToMessages">
-        <view class="menu-icon">💬</view>
-        <view class="menu-info">
-          <view class="menu-title">消息中心</view>
-          <view class="menu-desc">{{messageCount > 0 ? '有' + messageCount + '条新消息' : '暂无新消息'}}</view>
-        </view>
-        <view class="menu-badge" wx:if="{{messageCount > 0}}">{{messageCount}}</view>
         <view class="menu-arrow">></view>
       </view>
     </view>

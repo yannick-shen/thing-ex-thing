@@ -13,6 +13,8 @@
     "pages/policy/policy",
     "pages/messages/messages",
     "pages/location-settings/location-settings",
+    "pages/contact-settings/contact-settings",
+    "pages/contact-success/contact-success",
     "pages/profile/profile"
   ],
   "window": {

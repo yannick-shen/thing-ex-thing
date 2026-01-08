@@ -46,19 +46,18 @@ Page({
   isActuallyLoggedIn() {
     const isLoggedIn = authManager.isLoggedIn();
     const user = authManager.getCurrentUser();
-    
+
     // 检查用户数据完整性
     if (!isLoggedIn || !user) {
       return false;
     }
-    
+
     // 检查必要字段
     if (!user.userId || !user.profile) {
-      console.log('用户数据不完整，清除无效数据');
       this.clearInvalidLoginData();
       return false;
     }
-    
+
     return true;
   },
 
@@ -84,6 +83,179 @@ Page({
     });
   },
 
+  // 更换头像
+  changeAvatar() {
+    if (!this.data.isLoggedIn) {
+      this.redirectToLogin('/pages/profile/profile');
+      return;
+    }
+
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const tempFilePath = res.tempFilePaths[0];
+
+        wx.showLoading({ title: '上传中...' });
+
+        wx.cloud.uploadFile({
+          cloudPath: `avatars/${this.data.userInfo.userId}.jpg`,
+          filePath: tempFilePath,
+          success: async (uploadRes) => {
+            const fileID = uploadRes.fileID;
+
+            try {
+              const updateRes = await wx.cloud.callFunction({
+                name: 'update-user-profile',
+                data: {
+                  avatarUrl: fileID
+                }
+              });
+
+              if (updateRes.result && updateRes.result.code === 0) {
+                this.setData({
+                  'userInfo.profile.avatarUrl': fileID
+                });
+
+                wx.hideLoading();
+                wx.showToast({
+                  title: '头像更新成功',
+                  icon: 'success'
+                });
+              } else {
+                throw new Error(updateRes.result?.message || '更新失败');
+              }
+            } catch (error) {
+              wx.hideLoading();
+              wx.showToast({
+                title: error.message || '更新失败，请重试',
+                icon: 'none',
+                duration: 3000
+              });
+            }
+          },
+          fail: () => {
+            wx.hideLoading();
+            wx.showToast({
+              title: '上传失败，请重试',
+              icon: 'none'
+            });
+          }
+        });
+      }
+    });
+  },
+
+  // 编辑昵称
+  editNickname() {
+    if (!this.data.isLoggedIn) {
+      this.redirectToLogin('/pages/profile/profile');
+      return;
+    }
+
+    const currentNickname = this.data.userInfo.profile.nickname || '';
+
+    wx.showModal({
+      title: '修改昵称',
+      editable: true,
+      placeholderText: '请输入昵称(4-20字符)',
+      content: currentNickname,
+      confirmText: '确定',
+      cancelText: '取消',
+      success: async (res) => {
+        if (res.confirm && res.content) {
+          const nickname = res.content.trim();
+
+          const validationResult = this.validateNickname(nickname);
+          if (!validationResult.valid) {
+            wx.showToast({
+              title: validationResult.message,
+              icon: 'none',
+              duration: 2000
+            });
+            return;
+          }
+
+          wx.showLoading({ title: '保存中...' });
+
+          try {
+            const updateRes = await wx.cloud.callFunction({
+              name: 'update-user-profile',
+              data: {
+                nickname: nickname
+              }
+            });
+
+            if (updateRes.result && updateRes.result.code === 0) {
+              this.setData({
+                'userInfo.profile.nickname': nickname
+              });
+
+              wx.hideLoading();
+              wx.showToast({
+                title: '昵称修改成功',
+                icon: 'success'
+              });
+            } else {
+              throw new Error(updateRes.result?.message || '修改失败');
+            }
+          } catch (error) {
+            wx.hideLoading();
+            wx.showToast({
+              title: error.message || '修改失败，请重试',
+              icon: 'none',
+              duration: 3000
+            });
+          }
+        }
+      }
+    });
+  },
+
+  // 验证昵称
+  validateNickname(nickname) {
+    // 计算字符长度(中文算2,其他算1)
+    let length = 0;
+    for (let i = 0; i < nickname.length; i++) {
+      const char = nickname[i];
+      if (char.match(/[\u4e00-\u9fa5]/)) {
+        length += 2;
+      } else {
+        length += 1;
+      }
+    }
+
+    if (length < 4 || length > 20) {
+      return {
+        valid: false,
+        message: '昵称长度应为4-20个字符'
+      };
+    }
+
+    // 检查字符类型
+    const validPattern = /^[\u4e00-\u9fa5a-zA-Z0-9_]+$/;
+    if (!validPattern.test(nickname)) {
+      return {
+        valid: false,
+        message: '昵称只能包含中文、英文、数字和下划线'
+      };
+    }
+
+    // 简单敏感词过滤
+    const sensitiveWords = ['官方', '客服', '管理员', '管理', '系统', '客服'];
+    for (const word of sensitiveWords) {
+      if (nickname.includes(word)) {
+        return {
+          valid: false,
+          message: '昵称不能包含敏感词汇'
+        };
+      }
+    }
+
+    return { valid: true };
+  },
+
   // 统一的登录跳转方法
   redirectToLogin(targetUrl) {
     wx.navigateTo({
@@ -103,7 +275,7 @@ Page({
       if (itemsResult.result && itemsResult.result.code === 0) {
         const items = itemsResult.result.data.items || [];
         const now = Date.now();
-        const activeItems = items.filter(item => 
+        const activeItems = items.filter(item =>
           item.status === 'on' && item.expireAt > now
         );
 
@@ -126,7 +298,6 @@ Page({
         });
       }
     } catch (error) {
-      console.error('获取统计数据失败:', error);
       // 使用本地缓存的统计
       this.loadCachedStats();
     }
@@ -166,7 +337,6 @@ Page({
         this.setData({ messageCount: 0 });
       }
     } catch (error) {
-      console.error('加载消息数量失败:', error);
       this.setData({ messageCount: 0 });
     }
   },
@@ -183,13 +353,10 @@ Page({
   },
 
   goToFavorites() {
-    console.log('点击了收藏按钮');
     if (!this.data.isLoggedIn) {
-      console.log('用户未登录，跳转到登录页');
       this.redirectToLogin('/pages/favorites/favorites');
       return;
     }
-    console.log('用户已登录，跳转到收藏页面');
     wx.navigateTo({
       url: '/pages/favorites/favorites'
     });
@@ -225,7 +392,7 @@ Page({
       this.redirectToLogin('/pages/profile/profile');
       return;
     }
-    
+
     wx.showModal({
       title: '联系客服',
       content: '您可以通过客服功能与我们联系',
@@ -234,14 +401,11 @@ Page({
         if (res.confirm) {
           // 使用客服消息功能
           wx.openCustomerServiceConversation({
-            success: () => {
-              console.log('打开客服会话成功');
-            },
-            fail: (err) => {
-              console.error('打开客服会话失败', err);
-              wx.showToast({ 
-                title: '客服功能暂未开通', 
-                icon: 'none' 
+            success: () => {},
+            fail: () => {
+              wx.showToast({
+                title: '客服功能暂未开通',
+                icon: 'none'
               });
             }
           });
@@ -260,17 +424,15 @@ Page({
       confirmColor: '#ff4d4f',
       success: (res) => {
         if (res.confirm) {
-          console.log('用户确认退出登录');
-          
           // 显示loading
           wx.showLoading({
             title: '正在退出...'
           });
-          
+
           try {
             // 清除用户信息
             authManager.logout();
-            
+
             // 更新页面状态
             this.setData({
               isLoggedIn: false,
@@ -282,26 +444,25 @@ Page({
               },
               messageCount: 0
             });
-            
+
             // 隐藏loading
             wx.hideLoading();
-            
+
             // 显示成功提示
             wx.showToast({
               title: '已退出登录',
               icon: 'success',
               duration: 1500
             });
-            
+
             // 可选：跳转到登录页面或首页
             setTimeout(() => {
               wx.switchTab({
                 url: '/pages/index/index'
               });
             }, 1000);
-            
+
           } catch (error) {
-            console.error('退出登录失败:', error);
             wx.hideLoading();
             wx.showToast({
               title: '退出失败，请重试',

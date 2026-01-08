@@ -1,0 +1,83 @@
+<view class="container">
+  <!-- 未登录状态 -->
+  <view wx:if="{{!isLoggedIn}}" class="login-required">
+    <view class="login-prompt">
+      <view class="login-icon">📱</view>
+      <view class="login-title">需要登录</view>
+      <view class="login-desc">登录后可以设置联系方式</view>
+    </view>
+  </view>
+
+  <!-- 已登录状态 -->
+  <view wx:else>
+    <!-- 顶部说明 -->
+    <view class="header-tips">
+      <view class="tips-title">设置微信联系方式</view>
+      <view class="tips-content">上传您的微信二维码，方便买家通过微信联系您</view>
+    </view>
+
+    <!-- 二维码展示区 -->
+    <view class="qr-section">
+      <view wx:if="{{qrCode}}" class="qr-code-wrapper">
+        <image class="qr-code" src="{{qrCode}}" mode="aspectFit" bindtap="previewQrCode" />
+        <view class="qr-label">当前二维码</view>
+      </view>
+
+      <view wx:else class="qr-placeholder">
+        <view class="placeholder-icon">📷</view>
+        <view class="placeholder-text">暂无二维码</view>
+        <view class="placeholder-desc">点击下方按钮上传微信二维码</view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="actions">
+      <button
+        wx:if="{{!qrCode}}"
+        class="btn-primary"
+        bindtap="chooseQrCode"
+        disabled="{{uploading}}"
+      >
+        {{uploading ? '上传中...' : '上传二维码'}}
+      </button>
+
+      <view wx:else class="button-group">
+        <button
+          class="btn-secondary"
+          bindtap="chooseQrCode"
+          disabled="{{uploading}}"
+        >
+          {{uploading ? '上传中...' : '更换二维码'}}
+        </button>
+        <button
+          class="btn-danger"
+          bindtap="deleteQrCode"
+          disabled="{{uploading}}"
+        >
+          删除二维码
+        </button>
+      </view>
+    </view>
+
+    <!-- 使用说明 -->
+    <view class="usage-guide">
+      <view class="guide-title">📖 使用说明</view>
+      <view class="guide-item">
+        <view class="guide-number">1</view>
+        <view class="guide-text">在微信中，进入"我" → "个人信息" → "我的二维码"</view>
+      </view>
+      <view class="guide-item">
+        <view class="guide-number">2</view>
+        <view class="guide-text">截屏保存二维码图片到手机相册</view>
+      </view>
+      <view class="guide-item">
+        <view class="guide-number">3</view>
+        <view class="guide-text">返回小程序，点击"上传二维码"按钮</view>
+      </view>
+      <view class="guide-item">
+        <view class="guide-number">4</view>
+        <view class="guide-text">选择刚才保存的二维码图片上传</view>
+      </view>
+    </view>
+  </view>
+</view>

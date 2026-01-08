@@ -5,6 +5,8 @@ Page({
     isLoggedIn: false,
     currentTab: 'comments',
     comments: [],
+    contactRequests: [],
+    contactApprovedMessages: [],
     systemMessages: []
   },
 
@@ -74,6 +76,10 @@ Page({
     this.setData({ currentTab: tab });
     if (tab === 'comments') {
       this.loadComments();
+    } else if (tab === 'requests') {
+      this.loadContactRequests();
+    } else if (tab === 'approved') {
+      this.loadContactApprovedMessages();
     } else {
       this.loadSystemMessages();
     }
@@ -135,6 +141,44 @@ Page({
     this.setData({ systemMessages: mockMessages });
   },
 
+  async loadContactRequests() {
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'get-contact-requests',
+        data: { page: 1, pageSize: 20 }
+      });
+
+      if (result.result && result.result.code === 0) {
+        const requests = result.result.data.requests;
+        this.setData({ contactRequests: requests });
+      } else {
+        this.setData({ contactRequests: [] });
+      }
+    } catch (error) {
+      console.error('加载联系申请失败:', error);
+      this.setData({ contactRequests: [] });
+    }
+  },
+
+  async loadContactApprovedMessages() {
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'get-contact-approved-messages',
+        data: { page: 1, pageSize: 20 }
+      });
+
+      if (result.result && result.result.code === 0) {
+        const messages = result.result.data.messages;
+        this.setData({ contactApprovedMessages: messages });
+      } else {
+        this.setData({ contactApprovedMessages: [] });
+      }
+    } catch (error) {
+      console.error('加载联系成功消息失败:', error);
+      this.setData({ contactApprovedMessages: [] });
+    }
+  },
+
   formatTime(timestamp) {
     if (!timestamp) return '';
     const date = new Date(timestamp);
@@ -144,6 +188,10 @@ Page({
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
+    if (diff < 0) {
+      // 未来时间，显示具体日期
+      return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
     if (minutes < 1) return '刚刚';
     if (minutes < 60) return `${minutes}分钟前`;
     if (hours < 24) return `${hours}小时前`;
@@ -208,7 +256,7 @@ Page({
 
   handleMessageAction(e) {
     const { type, id } = e.currentTarget.dataset;
-    
+
     switch (type) {
       case 'view_item':
         // 跳转到物品详情
@@ -220,6 +268,120 @@ Page({
       default:
         console.log('Unknown action type:', type);
     }
+  },
+
+  async acceptContactRequest(e) {
+    const requestId = e.currentTarget.dataset.id;
+
+    wx.showModal({
+      title: '同意联系',
+      content: '同意后，买家可以查看您的微信二维码',
+      confirmText: '同意',
+      cancelText: '取消',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '处理中...' });
+
+          try {
+            const result = await wx.cloud.callFunction({
+              name: 'accept-contact-request',
+              data: { requestId }
+            });
+
+            wx.hideLoading();
+
+            if (result.result && result.result.code === 0) {
+              wx.showToast({
+                title: '已同意',
+                icon: 'success'
+              });
+              this.loadContactRequests();
+            } else if (result.result?.message && result.result.message.includes('请先设置联系方式')) {
+              wx.showModal({
+                title: '提示',
+                content: '您还未设置联系方式，是否前往设置？',
+                confirmText: '前往设置',
+                cancelText: '取消',
+                success: (modalRes) => {
+                  if (modalRes.confirm) {
+                    wx.navigateTo({
+                      url: '/pages/contact-settings/contact-settings'
+                    });
+                  }
+                }
+              });
+            } else {
+              wx.showToast({
+                title: result.result?.message || '操作失败',
+                icon: 'none'
+              });
+            }
+          } catch (error) {
+            wx.hideLoading();
+            wx.showToast({
+              title: '操作失败',
+              icon: 'none'
+            });
+          }
+        }
+      }
+    });
+  },
+
+  async rejectContactRequest(e) {
+    const requestId = e.currentTarget.dataset.id;
+
+    wx.showModal({
+      title: '拒绝联系',
+      content: '确定要拒绝这个联系申请吗？',
+      confirmText: '拒绝',
+      cancelText: '取消',
+      confirmColor: '#ff4d4f',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '处理中...' });
+
+          try {
+            const result = await wx.cloud.callFunction({
+              name: 'reject-contact-request',
+              data: { requestId }
+            });
+
+            wx.hideLoading();
+
+            if (result.result && result.result.code === 0) {
+              wx.showToast({
+                title: '已拒绝',
+                icon: 'success'
+              });
+              this.loadContactRequests();
+            } else {
+              wx.showToast({
+                title: result.result?.message || '操作失败',
+                icon: 'none'
+              });
+            }
+          } catch (error) {
+            wx.hideLoading();
+            wx.showToast({
+              title: '操作失败',
+              icon: 'none'
+            });
+          }
+        }
+      }
+    });
+  },
+
+  goToContactSuccess(e) {
+    const requestId = e.currentTarget.dataset.id;
+
+    // 标记消息为已读
+    this.markAsRead(requestId);
+
+    wx.navigateTo({
+      url: `/pages/contact-success/contact-success?requestId=${requestId}`
+    });
   },
 
 

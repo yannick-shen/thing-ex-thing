@@ -1,0 +1,219 @@
+.container {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20rpx);
+}
+
+/* 登录提示 */
+.login-required {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 0 40rpx;
+}
+
+.login-prompt {
+  text-align: center;
+  background: white;
+  border-radius: 20rpx;
+  padding: 80rpx 60rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 600rpx;
+}
+
+.login-icon {
+  font-size: 120rpx;
+  margin-bottom: 40rpx;
+}
+
+.login-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.login-desc {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* 顶部说明 */
+.header-tips {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40rpx 30rpx;
+  color: white;
+}
+
+.tips-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 12rpx;
+}
+
+.tips-content {
+  font-size: 26rpx;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* 二维码区域 */
+.qr-section {
+  padding: 40rpx 30rpx;
+}
+
+.qr-code-wrapper {
+  background: white;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
+}
+
+.qr-code {
+  width: 400rpx;
+  height: 400rpx;
+  border-radius: 12rpx;
+  background: #f5f5f5;
+}
+
+.qr-label {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.qr-placeholder {
+  background: white;
+  border-radius: 20rpx;
+  padding: 80rpx 40rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
+}
+
+.placeholder-icon {
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
+}
+
+.placeholder-text {
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.placeholder-desc {
+  font-size: 26rpx;
+  color: #999;
+  line-height: 1.4;
+}
+
+/* 操作按钮 */
+.actions {
+  padding: 0 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.btn-primary::after {
+  border: none;
+}
+
+.button-group {
+  display: flex;
+  gap: 20rpx;
+}
+
+.button-group .btn-secondary,
+.button-group .btn-danger {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  font-size: 30rpx;
+}
+
+.btn-secondary {
+  background: white;
+  color: #1677ff;
+  border: 2rpx solid #1677ff;
+  border-radius: 12rpx;
+}
+
+.btn-secondary::after {
+  border: none;
+}
+
+.btn-danger {
+  background: white;
+  color: #ff4d4f;
+  border: 2rpx solid #ff4d4f;
+  border-radius: 12rpx;
+}
+
+.btn-danger::after {
+  border: none;
+}
+
+/* 使用说明 */
+.usage-guide {
+  margin: 0 30rpx;
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
+}
+
+.guide-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 25rpx;
+}
+
+.guide-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20rpx;
+}
+
+.guide-item:last-child {
+  margin-bottom: 0;
+}
+
+.guide-number {
+  width: 40rpx;
+  height: 40rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: bold;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.guide-text {
+  flex: 1;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.6;
+  padding-top: 4rpx;
+}

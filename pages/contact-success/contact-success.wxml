@@ -1,0 +1,83 @@
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-icon">⏳</view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 成功页面 -->
+  <view wx:else class="success-content">
+    <!-- 顶部祝贺 -->
+    <view class="header">
+      <view class="success-icon">✅</view>
+      <view class="success-title">联系申请已同意</view>
+      <view class="success-desc">卖家已同意您的联系请求</view>
+    </view>
+
+    <!-- 物品信息 -->
+    <view wx:if="{{request}}" class="item-card">
+      <view class="item-title">《{{request.itemTitle}}》</view>
+      <view class="item-info">
+        <view class="info-item">
+          <text class="info-label">昵称：</text>
+          <text class="info-value">{{sellerName}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 二维码展示 -->
+    <view class="qr-section">
+      <view class="section-title">📱 卖家微信二维码</view>
+      <view class="qr-code-wrapper">
+        <image
+          wx:if="{{sellerQrCode}}"
+          class="qr-code"
+          src="{{sellerQrCode}}"
+          mode="aspectFit"
+          bindtap="previewQrCode"
+        />
+        <view wx:else class="qr-error">二维码加载失败</view>
+      </view>
+    </view>
+
+    <!-- 操作步骤 -->
+    <view class="steps-section">
+      <view class="section-title">📖 操作步骤</view>
+      <view class="steps-list">
+        <view class="step-item">
+          <view class="step-number">1</view>
+          <view class="step-text">点击下方"保存到相册"按钮</view>
+        </view>
+        <view class="step-item">
+          <view class="step-number">2</view>
+          <view class="step-text">打开微信 → 点击右上角"+" → 选择"扫一扫"</view>
+        </view>
+        <view class="step-item">
+          <view class="step-number">3</view>
+          <view class="step-text">点击右上角相册图标 → 选择刚保存的二维码</view>
+        </view>
+        <view class="step-item">
+          <view class="step-number">4</view>
+          <view class="step-text">识别成功后即可添加卖家为好友</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 温馨提示 -->
+    <view class="tips-section">
+      <view class="tips-title">💡 温馨提示</view>
+      <view class="tips-list">
+        <view class="tip-item">• 请在24小时内完成添加，过期可能需要重新申请</view>
+        <view class="tip-item">• 添加好友时，建议在验证信息中说明物品信息</view>
+        <view class="tip-item">• 交易请在微信内完成，注意保护个人信息和财产安全</view>
+        <view class="tip-item">• 如遇到虚假交易或诈骗，请及时举报</view>
+      </view>
+    </view>
+
+    <!-- 底部按钮 -->
+    <view class="bottom-actions">
+      <button class="btn-save" bindtap="saveQrCode">保存到相册</button>
+      <button class="btn-back" bindtap="wx.navigateBack">返回</button>
+    </view>
+  </view>
+</view>

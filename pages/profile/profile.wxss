@@ -52,7 +52,6 @@
 .user-info {
   display: flex;
   align-items: center;
-  margin-bottom: 40rpx;
 }
 
 .avatar {
@@ -65,6 +64,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .avatar-image {
@@ -77,6 +77,20 @@
   font-size: 60rpx;
 }
 
+.avatar-edit-hint {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 20rpx;
+  padding: 6rpx 0;
+  text-align: center;
+  border-bottom-left-radius: 60rpx;
+  border-bottom-right-radius: 60rpx;
+}
+
 .user-details {
   flex: 1;
 }
@@ -84,38 +98,6 @@
 .username {
   font-size: 36rpx;
   font-weight: bold;
-  margin-bottom: 10rpx;
-}
-
-.user-desc {
-  font-size: 26rpx;
-  opacity: 0.9;
-}
-
-/* 统计信息 */
-.stats {
-  display: flex;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16rpx;
-  padding: 30rpx;
-  backdrop-filter: blur(10rpx);
-}
-
-.stat-item {
-  flex: 1;
-  text-align: center;
-  cursor: pointer;
-}
-
-.stat-number {
-  font-size: 40rpx;
-  font-weight: bold;
-  margin-bottom: 5rpx;
-}
-
-.stat-label {
-  font-size: 24rpx;
-  opacity: 0.8;
 }
 
 /* 功能菜单 */

@@ -2,7 +2,15 @@
   <!-- 功能设置 -->
   <view class="setting-section">
     <view class="section-title">⚙️ 功能设置</view>
-    
+
+    <view class="setting-item" bindtap="goToContactSettings">
+      <view class="setting-info">
+        <view class="setting-label">联系方式</view>
+        <view class="setting-desc">设置微信二维码</view>
+      </view>
+      <view class="setting-arrow">></view>
+    </view>
+
     <view class="setting-item">
       <view class="setting-info">
         <view class="setting-label">消息通知</view>
@@ -10,7 +18,7 @@
       </view>
       <switch checked="{{notificationEnabled}}" bindchange="onNotificationChange" />
     </view>
-    
+
     <view class="setting-item" bindtap="viewLocationSetting">
       <view class="setting-info">
         <view class="setting-label">位置权限</view>

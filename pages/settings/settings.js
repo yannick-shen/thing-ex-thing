@@ -48,6 +48,11 @@ Page({
     wx.navigateTo({ url: '/pages/location-settings/location-settings' });
   },
 
+  // 联系方式设置
+  goToContactSettings() {
+    wx.navigateTo({ url: '/pages/contact-settings/contact-settings' });
+  },
+
   // 查看用户协议
   viewAgreement() {
     wx.navigateTo({ url: '/pages/policy/policy?type=agreement' });
