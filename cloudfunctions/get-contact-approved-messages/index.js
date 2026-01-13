@@ -45,12 +45,31 @@ exports.main = async (event, context) => {
       })
       .count();
 
+    // 转换头像链接为临时链接
+    const messages = await Promise.all(messagesRes.data.map(async (msg) => {
+      const processedMsg = { ...msg };
+      if (processedMsg.sellerAvatar && processedMsg.sellerAvatar.startsWith('cloud://')) {
+        try {
+          const tempUrlResult = await cloud.getTempFileURL({
+            fileList: [processedMsg.sellerAvatar],
+            maxAge: 7200  // 设置临时链接有效期为2小时（7200秒）
+          });
+          if (tempUrlResult.fileList && tempUrlResult.fileList.length > 0) {
+            processedMsg.sellerAvatar = tempUrlResult.fileList[0].tempFileURL;
+          }
+        } catch (err) {
+          console.warn('获取临时链接失败:', processedMsg.sellerAvatar, err);
+        }
+      }
+      return processedMsg;
+    }));
+
     return {
       code: 0,
       message: '获取成功',
       data: {
-        messages: messagesRes.data,
-        total: messagesRes.data.length,
+        messages: messages,
+        total: messages.length,
         unreadCount: countRes.total,
         hasMore: false
       }

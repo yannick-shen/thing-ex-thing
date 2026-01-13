@@ -40,10 +40,73 @@ exports.main = async (event, context) => {
       .where(queryCondition)
       .count()
 
-    // 处理消息数据，添加跳转路径
+    // 收集所有发送者的 openid
+    const senderOpenids = [...new Set(messagesResult.data.map(msg => msg.fromUserId))]
+
+    // 批量查询用户信息
+    let usersMap = {}
+    if (senderOpenids.length > 0) {
+      try {
+        // 分批查询用户（每次最多查询20个）
+        const batchSize = 20
+        for (let i = 0; i < senderOpenids.length; i += batchSize) {
+          const batch = senderOpenids.slice(i, i + batchSize)
+          const usersResult = await db.collection('users')
+            .where({
+              openid: db.command.in(batch)
+            })
+            .field({
+              openid: true,
+              'profile.avatarUrl': true
+            })
+            .get()
+
+          // 构建用户映射
+          if (usersResult.data && usersResult.data.length > 0) {
+            usersResult.data.forEach(user => {
+              usersMap[user.openid] = user
+            })
+          }
+        }
+      } catch (error) {
+        console.error('批量查询用户失败:', error)
+      }
+    }
+
+    // 批量获取头像的临时链接
+    const avatarCloudPaths = Object.values(usersMap)
+      .map(user => user.profile?.avatarUrl)
+      .filter(avatar => avatar && avatar.startsWith('cloud://'))
+
+    let tempUrlsMap = {}
+    if (avatarCloudPaths.length > 0) {
+      try {
+        // 分批获取临时链接（每次最多50个）
+        const batchSize = 50
+        for (let i = 0; i < avatarCloudPaths.length; i += batchSize) {
+          const batch = avatarCloudPaths.slice(i, i + batchSize)
+          const tempUrlResult = await cloud.getTempFileURL({
+            fileList: batch,
+            maxAge: 7200
+          })
+
+          if (tempUrlResult.fileList && tempUrlResult.fileList.length > 0) {
+            tempUrlResult.fileList.forEach(fileInfo => {
+              if (fileInfo.tempFileURL) {
+                tempUrlsMap[fileInfo.fileID] = fileInfo.tempFileURL
+              }
+            })
+          }
+        }
+      } catch (error) {
+        console.error('批量获取临时链接失败:', error)
+      }
+    }
+
+    // 处理消息数据，添加跳转路径和头像
     const messages = messagesResult.data.map(message => {
       let jumpPath = ''
-      
+
       // 根据消息类型和内容生成跳转路径
       if (message.type === 'comment' && message.itemId) {
         jumpPath = `/pages/comment/comment?itemId=${message.itemId}`
@@ -51,11 +114,23 @@ exports.main = async (event, context) => {
         jumpPath = `/pages/comment/comment?itemId=${message.itemId}&commentId=${message.commentId}`
       }
 
-      return {
+      // 获取用户头像
+      const user = usersMap[message.fromUserId]
+      let avatar = ''
+      if (user && user.profile && user.profile.avatarUrl) {
+        const originalAvatar = user.profile.avatarUrl
+        // 使用临时链接
+        avatar = tempUrlsMap[originalAvatar] || originalAvatar
+      }
+
+      const processedMessage = {
         ...message,
+        fromUserAvatar: avatar,
         jumpPath,
         formattedTime: formatTime(message.createdAt)
       }
+
+      return processedMessage;
     })
 
     const total = countResult.total

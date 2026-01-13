@@ -378,12 +378,25 @@ Page({
   // 上传图片
   uploadImages() {
     return new Promise((resolve, reject) => {
-      // 区分云存储URL和本地文件路径
-      const cloudImages = this.data.images.filter(path => path.startsWith('cloud://'));
-      const localImages = this.data.images.filter(path => !path.startsWith('cloud://'));
+      const images = this.data.images || [];
 
-      // 只上传本地图片
-      const uploadPromises = localImages.map((path, index) => {
+      if (images.length === 0) {
+        resolve([]);
+        return;
+      }
+
+      // 区分云存储路径和需要上传的路径
+      const cloudImages = images.filter(path => path && path.startsWith('cloud://'));
+      const imagesToUpload = images.filter(path => path && !path.startsWith('cloud://'));
+
+      // 如果没有需要上传的图片，直接返回云存储图片
+      if (imagesToUpload.length === 0) {
+        resolve(cloudImages);
+        return;
+      }
+
+      // 上传非云存储图片
+      const uploadPromises = imagesToUpload.map((path, index) => {
         const ext = path.split('.').pop() || 'jpg';
         const cloudPath = `items/${Date.now()}_${index}_${Math.random().toString(36).slice(2)}.${ext}`;
         return wx.cloud.uploadFile({ cloudPath, filePath: path });
@@ -505,6 +518,13 @@ Page({
                 icon: 'success'
               });
 
+              // 清空表单数据
+              this.resetForm();
+              this.setData({
+                isEditMode: false,
+                editItemId: null
+              });
+
               setTimeout(() => {
                 wx.navigateBack();
               }, 1500);
@@ -558,12 +578,14 @@ Page({
       // 上传图片
       const uploadResults = await this.uploadImages();
 
-      // 发布为草稿状态
-      const publishResult = await this.publishItem(uploadResults, true);
+      // 根据是编辑还是新建调用不同方法
+      const result = this.data.isEditMode
+        ? await this.updateItem(uploadResults)
+        : await this.publishItem(uploadResults, true);
 
       wx.hideLoading();
 
-      if (publishResult.code === 0) {
+      if (result.code === 0) {
         wx.showToast({
           title: '已保存到草稿箱',
           icon: 'success'
@@ -578,7 +600,7 @@ Page({
         }, 1500);
       } else {
         wx.showToast({
-          title: publishResult.message || '保存失败',
+          title: result.message || '保存失败',
           icon: 'none'
         });
       }

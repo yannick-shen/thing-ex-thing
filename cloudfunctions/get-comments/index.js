@@ -60,7 +60,7 @@ exports.main = async (event, context) => {
 
     for (let i = 0; i < queryResult.data.length; i++) {
       const comment = queryResult.data[i];
-      
+
       console.log(`处理评论${i + 1}:`, {
         _id: comment._id,
         userId: comment.userId,
@@ -70,21 +70,40 @@ exports.main = async (event, context) => {
       // 获取评论用户信息
       let userName = comment.userName || '匿名用户';
       let userAvatar = comment.userAvatar || '';
-      
+
       if (comment.userId) {
         try {
           const userResult = await db.collection('users').where({
             openid: comment.userId
           }).get();
-          
+
           if (userResult.data.length > 0) {
             const userInfo = userResult.data[0];
             userName = userInfo.profile && userInfo.profile.nickname ? userInfo.profile.nickname : '匿名用户';
             userAvatar = userInfo.profile && userInfo.profile.avatarUrl ? userInfo.profile.avatarUrl : '';
-            console.log(`找到用户信息: ${userName}`);
+            console.log(`找到用户信息: ${userName}, 头像URL: ${userAvatar}`);
           }
         } catch (userError) {
           console.error('获取用户信息失败:', userError);
+        }
+      }
+
+      // 如果头像URL是云存储路径，转换为临时链接
+      if (userAvatar && userAvatar.startsWith('cloud://')) {
+        try {
+          const tempUrlResult = await cloud.getTempFileURL({
+            fileList: [userAvatar],
+            maxAge: 7200  // 设置临时链接有效期为2小时（7200秒）
+          });
+          console.log(`评论${i+1}头像临时链接结果:`, tempUrlResult);
+          if (tempUrlResult.fileList && tempUrlResult.fileList.length > 0 && tempUrlResult.fileList[0].tempFileURL) {
+            userAvatar = tempUrlResult.fileList[0].tempFileURL;
+            console.log(`评论${i+1}头像临时链接生成成功: ${userAvatar}`);
+          } else {
+            console.warn(`评论${i+1}头像临时链接结果为空`);
+          }
+        } catch (err) {
+          console.warn(`评论${i+1}获取头像临时链接失败:`, userAvatar, err);
         }
       }
 

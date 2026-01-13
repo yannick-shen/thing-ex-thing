@@ -38,10 +38,6 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 验证 replyToUserId 和 replierId 是否都是 openid 格式
-    // 评论数据中的 userId 应该已经是 openid
-    // 所以直接使用即可
-
     // 构建消息数据
     const messageData = {
       type: 'reply',

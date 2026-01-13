@@ -1,0 +1,70 @@
+<view class="container">
+  <view class="header">
+    <text class="title">图片临时链接测试</text>
+  </view>
+
+  <view class="form">
+    <view class="form-item">
+      <text class="label">物品ID:</text>
+      <input class="input" type="text" value="{{itemId}}" bindinput="onItemIdInput" placeholder="请输入物品ID" />
+    </view>
+    <button class="btn" bindtap="runTest" disabled="{{loading}}">
+      {{loading ? '测试中...' : '开始测试'}}
+    </button>
+  </view>
+
+  <view wx:if="{{testResult}}" class="result">
+    <view class="result-header">
+      <text class="result-title">测试结果</text>
+      <button class="btn-small" bindtap="copyResult">复制结果</button>
+    </view>
+
+    <view class="result-content">
+      <view class="result-item">
+        <text class="result-label">原始图片URL:</text>
+        <text class="result-value" selectable="true">{{testResult.originalImage || 'N/A'}}</text>
+      </view>
+
+      <view class="result-item">
+        <text class="result-label">临时链接:</text>
+        <text class="result-value" selectable="true">{{testResult.tempFileURL || 'N/A'}}</text>
+      </view>
+
+      <view class="result-item">
+        <text class="result-label">FileID:</text>
+        <text class="result-value" selectable="true">{{testResult.fileID || 'N/A'}}</text>
+      </view>
+
+      <view class="result-item">
+        <text class="result-label">有效期:</text>
+        <text class="result-value">{{testResult.maxAge ? (testResult.maxAge / 60) + '分钟' : 'N/A'}}</text>
+      </view>
+
+      <view class="result-item">
+        <text class="result-label">状态:</text>
+        <text class="result-value status-{{testResult.status}}">{{testResult.status || 'N/A'}}</text>
+      </view>
+
+      <view wx:if="{{testResult.errMsg}}" class="result-item error">
+        <text class="result-label">错误信息:</text>
+        <text class="result-value error-msg" selectable="true">{{testResult.errMsg}}</text>
+      </view>
+
+      <view wx:if="{{testResult.error}}" class="result-item error">
+        <text class="result-label">错误:</text>
+        <text class="result-value error-msg" selectable="true">{{testResult.error}}</text>
+      </view>
+
+      <view wx:if="{{testResult.errorDetail}}" class="result-item error">
+        <text class="result-label">错误详情:</text>
+        <text class="result-value error-detail" selectable="true">{{testResult.errorDetail}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{testResult.tempFileURL}}" class="image-preview">
+      <text class="preview-label">图片预览:</text>
+      <image src="{{testResult.tempFileURL}}" mode="aspectFit" class="preview-image"
+             binderror="onImageError" bindload="onImageLoad" />
+    </view>
+  </view>
+</view>

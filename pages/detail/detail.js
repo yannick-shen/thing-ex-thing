@@ -118,43 +118,66 @@ Page({
   },
 
   loadItemDetail(fromFavorites = false) {
-    wx.cloud.callFunction({ 
-      name: 'get-item-detail', 
-      data: { itemId: this.itemId } 
+    wx.cloud.callFunction({
+      name: 'get-item-detail',
+      data: { itemId: this.itemId }
     }).then(res => {
       wx.hideLoading();
       console.log('物品详情云函数返回结果:', res);
-      
+
       if (res.result && res.result.code === 0) {
         const item = res.result.data.item;
         const createTime = this.formatTime(item.createdAt);
         console.log('物品详情加载成功:', item);
-        
-        this.setData({
-          item,
-          createTime,
-          originalLat: item.lat,  // 保存原始纬度
-          originalLng: item.lng   // 保存原始经度
-        });
+        console.log('物品图片数组:', item.images);
+        console.log('图片数组长度:', item.images ? item.images.length : 0);
 
-        // 判断是否是自己的物品
-        const currentUserId = wx.getStorageSync('userId');
-        const isOwnItem = currentUserId && item.authorId === currentUserId;
+        // 检查图片URL格式
+        if (item.images && item.images.length > 0) {
+          console.log('第一张图片URL:', item.images[0]);
+          console.log('第一张图片是否是临时链接:', item.images[0].startsWith('http'));
+        }
 
-        this.setData({ isOwnItem });
-        console.log('物品归属判断:', { isOwnItem, currentUserId, itemAuthorId: item.authorId });
-
-        // 只有在非收藏页面进入时才需要检查收藏状态
-        if (!fromFavorites && !isOwnItem) {
-          this.loadFavoriteStatus();
+        // 如果图片是cloud://开头（临时链接生成失败），尝试下载
+        if (item.images && item.images.length > 0 && item.images[0] && item.images[0].startsWith('cloud://')) {
+          console.log('检测到cloud://格式的图片，开始下载');
+          this.downloadCloudImages(item.images).then(localImages => {
+            console.log('图片下载完成:', localImages);
+            item.images = localImages;
+            this.setData({
+              item,
+              createTime,
+              originalLat: item.lat,
+              originalLng: item.lng
+            });
+            this.checkOwnershipAndLoadFavorite(fromFavorites, item);
+          }).catch(err => {
+            console.error('下载图片失败:', err);
+            // 下载失败也显示原图片
+            this.setData({
+              item,
+              createTime,
+              originalLat: item.lat,
+              originalLng: item.lng
+            });
+            this.checkOwnershipAndLoadFavorite(fromFavorites, item);
+          });
+        } else {
+          this.setData({
+            item,
+            createTime,
+            originalLat: item.lat,  // 保存原始纬度
+            originalLng: item.lng   // 保存原始经度
+          });
+          this.checkOwnershipAndLoadFavorite(fromFavorites, item);
         }
       } else {
         console.error('云函数返回错误:', res);
         const errorMsg = res.result ? res.result.message : '加载失败';
         console.error('错误详情:', JSON.stringify(res.result, null, 2));
-        
-        wx.showToast({ 
-          title: errorMsg, 
+
+        wx.showToast({
+          title: errorMsg,
           icon: 'none',
           duration: 5000
         });
@@ -163,13 +186,54 @@ Page({
       wx.hideLoading();
       console.error('调用物品详情云函数失败:', err);
       console.error('错误详情:', JSON.stringify(err));
-      
-      wx.showToast({ 
-        title: '获取详情失败，请重试', 
+
+      wx.showToast({
+        title: '获取详情失败，请重试',
         icon: 'none',
         duration: 3000
       });
     });
+  },
+
+  // 检查所有权并加载收藏状态
+  checkOwnershipAndLoadFavorite(fromFavorites, item) {
+    // 判断是否是自己的物品
+    const currentUserId = wx.getStorageSync('userId');
+    const isOwnItem = currentUserId && item.authorId === currentUserId;
+
+    this.setData({ isOwnItem });
+    console.log('物品归属判断:', { isOwnItem, currentUserId, itemAuthorId: item.authorId });
+
+    // 只有在非收藏页面进入时才需要检查收藏状态
+    if (!fromFavorites && !isOwnItem) {
+      this.loadFavoriteStatus();
+    }
+  },
+
+  // 下载云存储图片到本地
+  async downloadCloudImages(images) {
+    const localImages = [];
+    for (let i = 0; i < images.length; i++) {
+      const image = images[i];
+      if (image && image.startsWith('cloud://')) {
+        try {
+          console.log(`下载第${i+1}张图片:`, image);
+          const res = await wx.cloud.downloadFile({
+            fileID: image
+          });
+          console.log(`第${i+1}张图片下载成功:`, res.tempFilePath);
+          localImages.push(res.tempFilePath);
+        } catch (err) {
+          console.error(`第${i+1}张图片下载失败:`, err);
+          console.error(`错误详情:`, JSON.stringify(err, null, 2));
+          // 下载失败使用占位图
+          localImages.push('/assets/images/placeholder-empty.png');
+        }
+      } else {
+        localImages.push(image);
+      }
+    }
+    return localImages;
   },
 
   // 加载收藏状态

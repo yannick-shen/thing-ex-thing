@@ -1,5 +1,5 @@
 const cloud = require('wx-server-sdk');
-cloud.init({ env: 'cloud1-3gsbomiw03ea5416' });
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
 // 位置模糊处理：在原位置基础上生成稳定的偏移（基于种子值，确保同一位置每次偏移相同）
@@ -94,7 +94,7 @@ exports.main = async (event, context) => {
     const { title, desc, mode, price, tradeMethod, images = [], location, addressText = '' } = event || {};
     const wxContext = cloud.getWXContext();
     const openid = wxContext.OPENID;
-    
+
     if (!title || !desc || !location || !Array.isArray(images) || images.length === 0) {
       return { code: 400, message: 'missing fields' };
     }

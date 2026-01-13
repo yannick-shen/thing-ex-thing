@@ -91,13 +91,16 @@ Page({
         name: 'get-comment-messages',
         data: { page: 1, pageSize: 20 }
       });
-      
+
       if (result.result && result.result.success) {
-        const messages = result.result.data.messages.map(msg => ({
+        const messages = result.result.data.messages;
+
+        const processedMessages = messages.map(msg => ({
           id: msg._id,
           username: msg.fromUserName || '匿名用户',
+          avatar: msg.fromUserAvatar || '',
           content: msg.content,
-          itemTitle: msg.content.includes('《') ? 
+          itemTitle: msg.content.includes('《') ?
             msg.content.match(/《([^》]+)》/)?.[1] || '物品' : '物品',
           itemImage: '/assets/images/placeholder-item.png',
           itemId: msg.itemId,
@@ -106,12 +109,11 @@ Page({
           jumpPath: msg.jumpPath,
           type: msg.type
         }));
-        
-        this.setData({ comments: messages });
+
+        this.setData({ comments: processedMessages });
       }
     } catch (error) {
       console.error('加载评论消息失败:', error);
-      // 如果加载失败，使用空数组
       this.setData({ comments: [] });
     }
   },

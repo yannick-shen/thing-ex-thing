@@ -15,7 +15,8 @@
     "pages/location-settings/location-settings",
     "pages/contact-settings/contact-settings",
     "pages/contact-success/contact-success",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/test-image/test-image"
   ],
   "window": {
     "navigationBarTitleText": "闲置地图",

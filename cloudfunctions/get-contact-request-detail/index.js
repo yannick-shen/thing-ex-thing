@@ -42,7 +42,8 @@ exports.main = async (event, context) => {
         try {
           // 获取云存储文件的临时下载链接（有效期2小时）
           const result = await cloud.getTempFileURL({
-            fileList: [qrCodeFileID]
+            fileList: [qrCodeFileID],
+            maxAge: 7200  // 设置临时链接有效期为2小时（7200秒）
           });
           if (result.fileList && result.fileList.length > 0) {
             sellerQrCode = result.fileList[0].tempFileURL;

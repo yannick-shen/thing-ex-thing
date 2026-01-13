@@ -1,0 +1,9 @@
+{
+  "name": "test-image-temp-url",
+  "version": "1.0.0",
+  "description": "测试图片临时链接",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
