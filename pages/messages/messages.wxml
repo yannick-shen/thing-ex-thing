@@ -27,7 +27,7 @@
         data-tab="comments"
       >
         <view class="tab-text">评论消息</view>
-        <view wx:if="{{comments.length > 0}}" class="tab-badge">{{comments.length}}</view>
+        <view wx:if="{{commentsUnreadCount > 0}}" class="tab-badge">{{commentsUnreadCount}}</view>
       </view>
       <view
         class="tab-item {{currentTab === 'requests' ? 'active' : ''}}"
@@ -35,7 +35,7 @@
         data-tab="requests"
       >
         <view class="tab-text">联系申请</view>
-        <view wx:if="{{contactRequests.length > 0}}" class="tab-badge">{{contactRequests.length}}</view>
+        <view wx:if="{{requestsUnreadCount > 0}}" class="tab-badge">{{requestsUnreadCount}}</view>
       </view>
       <view
         class="tab-item {{currentTab === 'approved' ? 'active' : ''}}"
@@ -43,7 +43,6 @@
         data-tab="approved"
       >
         <view class="tab-text">联系成功</view>
-        <view wx:if="{{contactApprovedMessages.length > 0}}" class="tab-badge">{{contactApprovedMessages.length}}</view>
       </view>
       <view
         class="tab-item {{currentTab === 'system' ? 'active' : ''}}"
@@ -51,7 +50,7 @@
         data-tab="system"
       >
         <view class="tab-text">系统消息</view>
-        <view wx:if="{{systemMessages.length > 0}}" class="tab-badge">{{systemMessages.length}}</view>
+        <view wx:if="{{systemUnreadCount > 0}}" class="tab-badge">{{systemUnreadCount}}</view>
       </view>
     </view>
   </view>
@@ -164,7 +163,6 @@
         <view class="message-text">已同意您的联系请求 - 《{{item.itemTitle}}》</view>
         <view class="message-action-text">点击查看联系方式</view>
       </view>
-      <view wx:if="{{!item.read}}" class="unread-dot"></view>
     </view>
   </view>
 

@@ -36,7 +36,22 @@ Page({
 
       if (result.result && result.result.code === 0) {
         const user = result.result.data.user;
-        const qrCode = user.contactInfo && user.contactInfo.qrCode || '';
+        let qrCode = user.contactInfo && user.contactInfo.qrCode || '';
+
+        // 获取临时链接避免缓存
+        if (qrCode && qrCode.startsWith('cloud://')) {
+          try {
+            const tempUrlResult = await wx.cloud.getTempFileURL({
+              fileList: [qrCode],
+              maxAge: 7200
+            });
+            if (tempUrlResult.fileList && tempUrlResult.fileList.length > 0) {
+              qrCode = tempUrlResult.fileList[0].tempFileURL;
+            }
+          } catch (tempError) {
+            console.warn('获取临时链接失败，使用原路径:', tempError);
+          }
+        }
 
         this.setData({ qrCode });
       }
@@ -68,13 +83,30 @@ Page({
         throw new Error('用户未登录');
       }
 
-      // 使用固定的文件名，覆盖旧文件
+      // 使用带时间戳的文件名，避免缓存
+      const timestamp = Date.now();
       const uploadRes = await wx.cloud.uploadFile({
-        cloudPath: `contact-qr/${userId}.jpg`,
+        cloudPath: `contact-qr/${userId}_${timestamp}.jpg`,
         filePath: filePath
       });
 
       const fileID = uploadRes.fileID;
+
+      // 获取临时链接避免缓存
+      let displayUrl = fileID;
+      if (fileID.startsWith('cloud://')) {
+        try {
+          const tempUrlResult = await wx.cloud.getTempFileURL({
+            fileList: [fileID],
+            maxAge: 7200
+          });
+          if (tempUrlResult.fileList && tempUrlResult.fileList.length > 0) {
+            displayUrl = tempUrlResult.fileList[0].tempFileURL;
+          }
+        } catch (tempError) {
+          console.warn('获取临时链接失败，使用原路径:', tempError);
+        }
+      }
 
       const updateRes = await wx.cloud.callFunction({
         name: 'update-contact-info',
@@ -84,7 +116,7 @@ Page({
       });
 
       if (updateRes.result && updateRes.result.code === 0) {
-        this.setData({ qrCode: fileID });
+        this.setData({ qrCode: displayUrl });
         wx.showToast({
           title: '上传成功',
           icon: 'success'

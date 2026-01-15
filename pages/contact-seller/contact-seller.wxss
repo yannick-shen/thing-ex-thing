@@ -1,0 +1,217 @@
+page {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.container {
+  padding: 16px;
+  padding-bottom: 80px;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.loading-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.loading-text {
+  font-size: 14px;
+  color: #999;
+}
+
+/* 内容区域 */
+.content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 物品卡片 */
+.item-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.item-images {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 12px;
+  padding-bottom: 4px;
+}
+
+.item-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: #f5f5f5;
+}
+
+.item-info {
+  padding-top: 4px;
+}
+
+.item-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.item-price {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ff4d4f;
+  margin-bottom: 8px;
+}
+
+.item-seller {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.seller-label {
+  color: #999;
+}
+
+.seller-name {
+  color: #333;
+  font-weight: 500;
+}
+
+.seller-label {
+  color: #999;
+}
+
+.seller-name {
+  color: #333;
+  font-weight: 500;
+}
+
+.item-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #999;
+}
+
+.meta-item {
+  flex-shrink: 0;
+}
+
+/* 表单卡片 */
+.form-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.form-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.form-tips {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 12px;
+}
+
+.form-remark {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.remark-count {
+  text-align: right;
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* 底部按钮 */
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 12px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.btn-cancel {
+  flex: 1;
+  height: 44px;
+  line-height: 44px;
+  text-align: center;
+  background: #f5f5f5;
+  color: #333;
+  border: none;
+  border-radius: 22px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.btn-cancel:active {
+  background: #e8e8e8;
+}
+
+.btn-submit {
+  flex: 2;
+  height: 44px;
+  line-height: 44px;
+  text-align: center;
+  background: #1677ff;
+  color: #fff;
+  border: none;
+  border-radius: 22px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.btn-submit:active {
+  background: #0958d9;
+}
+
+.btn-submit.disabled {
+  background: #b8d4ff;
+  color: rgba(255, 255, 255, 0.7);
+}

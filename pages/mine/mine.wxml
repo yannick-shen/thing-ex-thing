@@ -57,16 +57,10 @@
       data-status="{{item.status}}"
     >
       <view class="item-image">
-        <image 
-          src="{{item.images && item.images.length > 0 ? item.images[0] : '/assets/images/placeholder-empty.png'}}" 
-          mode="aspectFill" 
+        <image
+          src="{{item.images && item.images.length > 0 ? item.images[0] : '/assets/images/placeholder-empty.png'}}"
+          mode="aspectFill"
         />
-        <view class="status-tag {{item.status}}">
-          <text wx:if="{{item.status === 'on'}}">展示中</text>
-          <text wx:elif="{{item.status === 'draft'}}">草稿</text>
-          <text wx:elif="{{item.status === 'off'}}">已下架</text>
-          <text wx:else>未知</text>
-        </view>
       </view>
       <view class="item-content">
         <view class="item-title">{{item.title}}</view>

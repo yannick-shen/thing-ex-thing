@@ -6,6 +6,7 @@
     "pages/publish/publish",
     "pages/detail/detail",
     "pages/comment/comment",
+    "pages/contact-seller/contact-seller",
 
     "pages/mine/mine",
     "pages/favorites/favorites",

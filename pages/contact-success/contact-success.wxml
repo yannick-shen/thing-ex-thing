@@ -77,7 +77,7 @@
     <!-- 底部按钮 -->
     <view class="bottom-actions">
       <button class="btn-save" bindtap="saveQrCode">保存到相册</button>
-      <button class="btn-back" bindtap="wx.navigateBack">返回</button>
+      <button class="btn-back" bindtap="goBack">返回</button>
     </view>
   </view>
 </view>

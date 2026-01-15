@@ -49,7 +49,7 @@
     <button wx:if="{{!isOwnItem}}" class="btn-fav {{favorited === true ? 'favorited' : ''}}" bindtap="handleFavorite" hover-class="btn-hover">
       {{favorited ? '已收藏' : '收藏'}}
     </button>
-    <button wx:if="{{!isOwnItem}}" class="btn-contact" bindtap="handleContact" hover-class="btn-hover">联系卖家</button>
+    <button wx:if="{{!isOwnItem}}" class="btn-contact" bindtap="handleContact" hover-class="btn-hover">联系 TA</button>
   </view>
 </view>
 
@@ -62,26 +62,6 @@
   content="{{loginContent}}"
   bindclose="hideLoginModal"
 />
-
-<!-- 联系申请弹窗 -->
-<view wx:if="{{showContactDialog}}" class="contact-overlay" catchtap="hideContactDialog">
-  <view class="contact-dialog" catchtap="stopPropagation">
-    <view class="contact-title">联系卖家</view>
-    <view class="contact-tips">给卖家留言，说明您的需求</view>
-    <textarea
-      class="contact-remark"
-      placeholder="例如：我对这个物品很感兴趣，什么时候方便聊聊？（选填）"
-      value="{{contactRemark}}"
-      bindinput="onContactRemarkInput"
-      maxlength="200"
-      auto-height
-    />
-    <view class="contact-actions">
-      <button class="btn-cancel" bindtap="hideContactDialog">取消</button>
-      <button class="btn-submit" bindtap="submitContactRequest">发送</button>
-    </view>
-  </view>
-</view>
 
 <view wx:if="{{showReport}}" class="report-overlay" catchtap="hideReportDialog">
   <view class="report-dialog" catchtap="stopPropagation">

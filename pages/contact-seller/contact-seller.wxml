@@ -1,0 +1,69 @@
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-icon">⏳</view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 主内容 -->
+  <view wx:else class="content">
+    <!-- 物品信息卡片 -->
+    <view class="item-card">
+      <view class="item-images" wx:if="{{item.images && item.images.length > 0}}">
+        <image
+          wx:for="{{item.images}}"
+          wx:key="index"
+          class="item-image"
+          src="{{item}}"
+          mode="aspectFill"
+          bindtap="previewImage"
+          data-index="{{index}}"
+        />
+      </view>
+
+      <view class="item-info">
+        <view class="item-title">{{item.title}}</view>
+        <view class="item-price">
+          <text wx:if="{{item.mode === 'sale'}}">¥{{item.price}}</text>
+          <text wx:if="{{item.mode === 'exchange'}}">交换</text>
+          <text wx:if="{{item.mode === 'donate'}}">赠送</text>
+        </view>
+
+        <view class="item-seller">
+          <text class="seller-label">发布者：</text>
+          <text class="seller-name">{{item.authorName || '未知'}}</text>
+        </view>
+
+        <view class="item-meta">
+          <text class="meta-item">{{item.tradeMethod === 'face' ? '面交' : '快递'}}</text>
+          <text class="meta-item">{{item.locationText || '未知位置'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 联系表单 -->
+    <view class="form-card">
+      <view class="form-title">联系 TA</view>
+      <view class="form-tips">给卖家留言，说明您的需求</view>
+
+      <textarea
+        class="form-remark"
+        value="{{remark}}"
+        bindinput="onRemarkInput"
+        placeholder="简单描述您的需求，如：想了解物品详情、约时间看货等..."
+        maxlength="200"
+        auto-height
+        show-confirm-bar="{{false}}"
+      />
+      <view class="remark-count">{{remark.length}}/200</view>
+    </view>
+
+    <!-- 底部按钮 -->
+    <view class="bottom-actions">
+      <button class="btn-cancel" bindtap="cancel">取消</button>
+      <button class="btn-submit {{submitting ? 'disabled' : ''}}" bindtap="submitContactRequest" disabled="{{submitting}}">
+        {{submitting ? '发送中...' : '发送申请'}}
+      </button>
+    </view>
+  </view>
+</view>

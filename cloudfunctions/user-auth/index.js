@@ -1,11 +1,23 @@
 // 云函数入口文件
 const cloud = require('wx-server-sdk')
+const nicknamePool = require('./nickname-pool.js')
 
 cloud.init({
   env: 'cloud1-3gsbomiw03ea5416'
 })
 
 const db = cloud.database()
+
+// 生成随机昵称
+function generateRandomNickname() {
+  const random = (arr) => arr[Math.floor(Math.random() * arr.length)]
+
+  const adjective = random(nicknamePool.adjectives)
+  const noun = random(nicknamePool.nouns)
+  const suffix = random(nicknamePool.suffixes)
+
+  return adjective + noun + suffix
+}
 
 // 简单的用户缓存（减少重复数据库查询）
 const userCache = new Map()
@@ -53,14 +65,13 @@ async function processLogin(openid, appid, userProfile = null) {
     } else if (userResult.data.length === 0) {
       console.log('👤 创建新用户...')
       // 新用户，创建用户记录（自动激活）
-      const randomSuffix = Math.floor(Math.random() * 10000);
       const newUser = {
         openid: openid,
         appid: appid,
         createTime: db.serverDate(),
         updateTime: db.serverDate(),
         profile: {
-          nickname: `用户${randomSuffix}`,
+          nickname: generateRandomNickname(),
           avatarUrl: '',
           phone: '',
           isPhoneBound: false

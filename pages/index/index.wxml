@@ -1,8 +1,40 @@
+<!-- 搜索胶囊 -->
 <view class="search-capsule" catchtap="openSearch">
   <view class="capsule">
     <text class="capsule-text">搜索标题或描述</text>
   </view>
 </view>
+
+<!-- 聚合物品列表弹窗 -->
+<view wx:if="{{showClusterList}}" class="overlay cluster-overlay" catchtouchmove="prevent">
+  <view class="cluster-panel" catchtap="prevent">
+    <view class="cluster-header">
+      <text class="cluster-title">附近物品</text>
+      <text class="cluster-close" bindtap="hideClusterList">×</text>
+    </view>
+    <scroll-view class="cluster-list" scroll-y="true">
+      <view
+        wx:for="{{clusterItems}}"
+        wx:key="id"
+        class="cluster-item"
+        bindtap="selectClusterItem"
+        data-id="{{item.id}}"
+      >
+        <image class="cluster-item-img" src="{{item.tempImage || (item.images && item.images.length > 0 ? item.images[0] : '/assets/images/placeholder-item.png')}}" mode="aspectFill" />
+        <view class="cluster-item-info">
+          <view class="cluster-item-title">{{item.title}}</view>
+          <view class="cluster-item-price mode-{{item.mode}}">
+            <text wx:if="{{item.mode === 'sale'}}">¥{{item.price}}</text>
+            <text wx:if="{{item.mode === 'exchange'}}">交换</text>
+            <text wx:if="{{item.mode === 'donate'}}">赠送</text>
+            <text wx:if="{{item.mode === 'help'}}">求助</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+
 <view wx:if="{{searchKeyword}}" class="filter-tag" catchtap="clearSearch">已筛选:{{searchKeyword}}</view>
 
 <!-- 图例 -->
@@ -25,13 +57,11 @@
   </view>
 </view>
 
-<!-- 调试按钮（生产环境可删除） -->
-<view class="debug-btn" bindtap="findMissingItems" bindlongpress="openDebugConsole">
-  调试
-</view>
+<!-- 地图 -->
 <map id="map" longitude="{{center.longitude}}" latitude="{{center.latitude}}" scale="{{scale}}" style="width: 100%; height: 100vh;" show-location="true" enable-scroll="true" enable-zoom="true" bindregionchange="onRegionChange" bindmarkertap="onMarkerTap" markers="{{markers}}">
 </map>
 
+<!-- 按钮组 -->
 <view class="button-group">
   <view class="fab location" bindtap="relocate">
     <text class="button-icon">📍</text>
@@ -61,6 +91,7 @@
     <!-- 物品信息 -->
     <scroll-view class="detail-content" scroll-y="true">
       <view class="detail-title">{{detailItem.title}}</view>
+
       <view class="detail-price-row">
         <text wx:if="{{detailItem.mode === 'sale'}}" class="detail-price">¥{{detailItem.price}}</text>
         <text wx:if="{{detailItem.mode === 'exchange'}}" class="detail-price">交换</text>
@@ -71,7 +102,9 @@
           <text class="detail-stat-item">{{detailItem.counters.favorites}} 收藏</text>
         </view>
       </view>
+
       <view class="detail-desc">{{detailItem.desc}}</view>
+
       <view class="detail-meta">
         <text class="detail-meta-item">发布时间: {{detailCreateTime}}</text>
       </view>
@@ -104,15 +137,31 @@
       <button class="detail-btn-fav {{detailFavorited ? 'favorited' : ''}}" bindtap="handleDetailFavorite">
         {{detailFavorited ? '已收藏' : '收藏'}}
       </button>
-      <button class="detail-btn-contact" bindtap="handleDetailContact">联系卖家</button>
+      <button class="detail-btn-contact" bindtap="handleDetailContact">联系 TA</button>
     </view>
   </view>
 </view>
 
+<!-- 搜索面板 -->
 <view wx:if="{{showSearch}}" class="overlay" catchtouchmove="prevent">
   <view class="search-panel">
     <input class="search-input" placeholder="请输入关键词" value="{{tmpKeyword}}" bindinput="onInput" confirm-type="search" bindconfirm="applySearch" />
-    
+
+    <view class="mode-section">
+      <text class="mode-title">物品类型</text>
+      <view class="mode-options">
+        <view
+          wx:for="{{modeOptions}}"
+          wx:key="value"
+          class="mode-option {{selectedMode === item.value ? 'active' : ''}}"
+          bindtap="selectMode"
+          data-mode="{{item.value}}"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+
     <view wx:if="{{searchHistory.length > 0}}" class="history-section">
       <view class="history-header">
         <text class="history-title">搜索历史</text>
@@ -132,3 +181,7 @@
   </view>
 </view>
 
+<!-- 调试按钮（生产环境可删除） -->
+<view class="debug-btn" bindtap="findMissingItems" bindlongpress="openDebugConsole">
+  调试
+</view>

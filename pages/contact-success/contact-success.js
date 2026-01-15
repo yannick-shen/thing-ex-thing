@@ -106,5 +106,9 @@ Page({
         urls: [this.data.sellerQrCode]
       });
     }
+  },
+
+  goBack() {
+    wx.navigateBack();
   }
 });

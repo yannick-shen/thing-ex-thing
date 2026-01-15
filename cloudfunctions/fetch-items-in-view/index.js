@@ -4,7 +4,7 @@ const db = cloud.database();
 
 exports.main = async (event, context) => {
   try {
-    const { center, radiusKm = 2, keyword = '' } = event || {};
+    const { center, radiusKm = 2, keyword = '', mode = '' } = event || {};
     if (!center || typeof center.latitude !== 'number' || typeof center.longitude !== 'number') {
       return { code: 400, message: 'invalid center' };
     }
@@ -27,13 +27,16 @@ exports.main = async (event, context) => {
       const reg = db.RegExp({ regexp: keyword, options: 'i' });
       where._or = [{ title: reg }, { desc: reg }];
     }
+    if (mode) {
+      where.mode = _.eq(mode);
+    }
 
     const res = await db.collection('items').where(where).limit(500).get();
-    const items = (res.data || []).map(it => ({ 
-      id: it._id, 
-      lat: it.lat, 
-      lng: it.lng, 
-      title: it.title, 
+    const items = (res.data || []).map(it => ({
+      id: it._id,
+      lat: it.lat,
+      lng: it.lng,
+      title: it.title,
       desc: it.desc,
       mode: it.mode || 'sale'  // 添加交易类型，默认为出售
     }));

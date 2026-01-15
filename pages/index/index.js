@@ -16,6 +16,16 @@ Page({
     showSearch: false,
     searchKeyword: '',
     tmpKeyword: '',
+    selectedMode: 'all',
+    modeOptions: [
+      { value: 'all', label: '全部' },
+      { value: 'sale', label: '出售' },
+      { value: 'exchange', label: '交换' },
+      { value: 'donate', label: '赠送' },
+      { value: 'help', label: '求助' }
+    ],
+    clusterItems: [], // 聚合点的物品列表
+    showClusterList: false, // 是否显示聚合列表
     // 详情弹窗相关
     showDetailModal: false,
     detailItem: null,
@@ -23,6 +33,31 @@ Page({
     detailCreateTime: '',
     detailImgIndex: 0
   },
+
+  // 显示聚合点物品列表
+  showClusterList(markerId) {
+    const marker = this.data.markers[markerId];
+    console.log('showClusterList:', markerId, marker);
+    if (!marker || !marker.items) return;
+
+    this.setData({
+      clusterItems: marker.items,
+      showClusterList: true
+    });
+  },
+
+  // 关闭聚合列表
+  hideClusterList() {
+    this.setData({ showClusterList: false });
+  },
+
+  // 选择聚合列表中的物品
+  selectClusterItem(e) {
+    const itemId = e.currentTarget.dataset.id;
+    this.hideClusterList();
+    this.showDetailModal(itemId);
+  },
+
   loadTimer: null, // 节流定时器
   onLoad() {
     this.mapCtx = wx.createMapContext('map');
@@ -68,15 +103,17 @@ Page({
       this.loadMarkers();
     });
   },
+
   onRegionChange(e) {
     if (e.type === 'end') {
       // 节流：避免频繁调用
       if (this.loadTimer) clearTimeout(this.loadTimer);
       this.loadTimer = setTimeout(() => {
         this.updateCenterAndLoad();
-      }, 500); // 500ms 内只触发一次
+      }, 300);
     }
   },
+
   updateCenterAndLoad() {
     this.mapCtx.getCenterLocation({
       success: (res) => {
@@ -85,31 +122,52 @@ Page({
       }
     });
   },
+
   // 模拟数据加载与轻量聚合（按网格）
   loadMarkers() {
-    const { center, scale, searchKeyword } = this.data;
+    const { center, scale, searchKeyword, selectedMode } = this.data;
     const radiusKm = 2;
-    
+
     // 防止重复请求：如果正在加载则跳过
     if (this.isLoading) {
       console.log('正在加载中，跳过本次请求');
       return;
     }
     this.isLoading = true;
-    
+
     // 云函数查询视野内数据（后端已根据状态/审核/过期过滤）
-    wx.cloud.callFunction({ name: 'fetch-items-in-view', data: { center, radiusKm, keyword: searchKeyword } }).then(res => {
+    wx.cloud.callFunction({ name: 'fetch-items-in-view', data: { center, radiusKm, keyword: searchKeyword, mode: selectedMode === 'all' ? '' : selectedMode } }).then(res => {
       this.isLoading = false;
       const items = res.result?.data?.items || [];
-      const clustered = gridCluster(items, scale);
-      // 保存原始数据用于点击跳转
-      this.currentItems = {};
-      clustered.forEach((c, idx) => {
-        if (c.count === 1 && c.id) {
-          this.currentItems[idx] = { id: c.id };
+
+      // 为聚合列表中的物品图片生成临时链接
+      const processItems = async (items) => {
+        for (const item of items) {
+          if (item.images && item.images.length > 0) {
+            try {
+              const tempUrl = await wx.cloud.getTempFileURL({ fileList: [item.images[0]] });
+              if (tempUrl.fileList && tempUrl.fileList.length > 0) {
+                item.tempImage = tempUrl.fileList[0].tempFileURL;
+              }
+            } catch (err) {
+              console.warn('获取图片临时链接失败:', err);
+              item.tempImage = item.images[0];
+            }
+          }
         }
-      });
-      this.setData({ markers: clustered.map((c, idx) => {
+        return items;
+      };
+
+      processItems(items).then(processedItems => {
+        const clustered = gridCluster(processedItems, scale);
+        // 保存原始数据用于点击跳转
+        this.currentItems = {};
+        clustered.forEach((c, idx) => {
+          if (c.count === 1 && c.id) {
+            this.currentItems[idx] = { id: c.id };
+          }
+        });
+        this.setData({ markers: clustered.map((c, idx) => {
         const marker = { id: idx, latitude: c.lat, longitude: c.lng, width: 24, height: 24 };
         
         // 单个标记点根据交易类型设置颜色
@@ -128,10 +186,12 @@ Page({
         } else {
           // 聚合点显示数量，使用默认颜色
           marker.callout = { content: String(c.count), color: '#fff', fontSize: 12, borderRadius: 12, bgColor: '#1677ff', padding: 4, display: 'ALWAYS' };
+          marker.items = c.items;
         }
-        
+
         return marker;
       }) });
+      });
     }).catch(err => {
       this.isLoading = false;
       console.warn('云函数调用失败，使用本地模拟数据:', err);
@@ -156,22 +216,26 @@ Page({
         } else {
           // 聚合点显示数量，使用默认颜色
           marker.callout = { content: String(c.count), color: '#fff', fontSize: 12, borderRadius: 12, bgColor: '#1677ff', padding: 4, display: 'ALWAYS' };
+          marker.items = c.items;
         }
-        
+
         return marker;
       }) });
     });
   },
+
   onMarkerTap(e) {
     const markerId = e.markerId;
     const marker = this.data.markers[markerId];
-    
-    // 如果是聚合簇（显示数字而不是圆点），不跳转
+    console.log('点击标记点:', markerId, marker);
+
+    // 如果是聚合簇（显示数字而不是圆点），显示聚合列表
     if (marker && marker.callout && marker.callout.bgColor) {
-      wx.showToast({ title: '请放大地图查看', icon: 'none' });
+      console.log('是聚合点，显示列表');
+      this.showClusterList(markerId);
       return;
     }
-    
+
     // 显示详情弹窗
     if (this.currentItems && this.currentItems[markerId]) {
       const itemId = this.currentItems[markerId].id;
@@ -310,6 +374,7 @@ Page({
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     }
   },
+
   openSearch() { this.setData({ showSearch: true, tmpKeyword: this.data.searchKeyword }); },
   closeSearch() { this.setData({ showSearch: false }); },
   onInput(e) { this.setData({ tmpKeyword: e.detail.value }); },
@@ -321,6 +386,10 @@ Page({
     this.setData({ showSearch: false, searchKeyword: keyword }, () => this.loadMarkers());
   },
   clearSearch() { this.setData({ searchKeyword: '' }, () => this.loadMarkers()); },
+  selectMode(e) {
+    const mode = e.currentTarget.dataset.mode;
+    this.setData({ selectedMode: mode }, () => this.loadMarkers());
+  },
   
   // 重新定位到当前位置
   relocate() {
@@ -468,9 +537,9 @@ Page({
       return;
     }
 
-    // 跳转到物品详情页进行联系
+    // 直接跳转到联系对方页面
     wx.navigateTo({
-      url: `/pages/detail/detail?id=${detailItem._id}`
+      url: `/pages/contact-seller/contact-seller?itemId=${detailItem._id}`
     });
   },
 
@@ -550,13 +619,11 @@ Page({
     }
   },
 
-
-
-
   loadSearchHistory() {
     const history = wx.getStorageSync('searchHistory') || [];
     this.setData({ searchHistory: history.slice(0, 10) });
   },
+
   saveSearchHistory(keyword) {
     let history = wx.getStorageSync('searchHistory') || [];
     history = history.filter(item => item !== keyword);
@@ -565,10 +632,12 @@ Page({
     wx.setStorageSync('searchHistory', history);
     this.setData({ searchHistory: history });
   },
+
   selectHistory(e) {
     const keyword = e.currentTarget.dataset.keyword;
     this.setData({ tmpKeyword: keyword, showSearch: false, searchKeyword: keyword }, () => this.loadMarkers());
   },
+
   clearHistory() {
     wx.showModal({
       title: '确认清空',
@@ -601,14 +670,14 @@ function gridCluster(items, scale) {
   }
   const clusters = [];
   buckets.forEach((arr, key) => {
-    if (arr.length <= 50) {
+    if (arr.length <= 1) {
       // 不聚合，返回原始点
       clusters.push(...arr.map(a => ({ lat: a.lat, lng: a.lng, count: 1, id: a.id, mode: a.mode })));
     } else {
       // 聚合为簇：用平均位置
       const lat = arr.reduce((s, a) => s + a.lat, 0) / arr.length;
       const lng = arr.reduce((s, a) => s + a.lng, 0) / arr.length;
-      clusters.push({ lat, lng, count: arr.length });
+      clusters.push({ lat, lng, count: arr.length, items: arr });
     }
   });
   return clusters;

@@ -3,11 +3,21 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
 exports.main = async (event, context) => {
-  const { page, pageSize } = event;
+  const { page, pageSize, markAsRead: messageIdToMark } = event;
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
 
   try {
+    // 如果提供了 messageIdToMark，先标记为已读
+    if (messageIdToMark) {
+      await db.collection('messages').doc(messageIdToMark).update({
+        data: {
+          read: true,
+          updateTime: Date.now()
+        }
+      });
+    }
+
     // 获取用户信息
     const userRes = await db.collection('users').where({
       openid: openid

@@ -7,7 +7,11 @@ Page({
     comments: [],
     contactRequests: [],
     contactApprovedMessages: [],
-    systemMessages: []
+    systemMessages: [],
+    commentsUnreadCount: 0,
+    requestsUnreadCount: 0,
+    approvedUnreadCount: 0,
+    systemUnreadCount: 0
   },
 
   onLoad() {
@@ -110,11 +114,17 @@ Page({
           type: msg.type
         }));
 
-        this.setData({ comments: processedMessages });
+        // 计算未读数量
+        const unreadCount = processedMessages.filter(msg => !msg.read).length;
+
+        this.setData({
+          comments: processedMessages,
+          commentsUnreadCount: unreadCount
+        });
       }
     } catch (error) {
       console.error('加载评论消息失败:', error);
-      this.setData({ comments: [] });
+      this.setData({ comments: [], commentsUnreadCount: 0 });
     }
   },
 
@@ -140,7 +150,13 @@ Page({
         read: true
       }
     ];
-    this.setData({ systemMessages: mockMessages });
+    // 计算未读数量
+    const unreadCount = mockMessages.filter(msg => !msg.read).length;
+
+    this.setData({
+      systemMessages: mockMessages,
+      systemUnreadCount: unreadCount
+    });
   },
 
   async loadContactRequests() {
@@ -152,13 +168,25 @@ Page({
 
       if (result.result && result.result.code === 0) {
         const requests = result.result.data.requests;
-        this.setData({ contactRequests: requests });
+        // 计算未处理数量（pending 状态）
+        const unreadCount = requests.filter(req => req.status === 'pending').length;
+
+        this.setData({
+          contactRequests: requests,
+          requestsUnreadCount: unreadCount
+        });
       } else {
-        this.setData({ contactRequests: [] });
+        this.setData({
+          contactRequests: [],
+          requestsUnreadCount: 0
+        });
       }
     } catch (error) {
       console.error('加载联系申请失败:', error);
-      this.setData({ contactRequests: [] });
+      this.setData({
+        contactRequests: [],
+        requestsUnreadCount: 0
+      });
     }
   },
 
@@ -171,13 +199,20 @@ Page({
 
       if (result.result && result.result.code === 0) {
         const messages = result.result.data.messages;
-        this.setData({ contactApprovedMessages: messages });
+
+        this.setData({
+          contactApprovedMessages: messages
+        });
       } else {
-        this.setData({ contactApprovedMessages: [] });
+        this.setData({
+          contactApprovedMessages: []
+        });
       }
     } catch (error) {
       console.error('加载联系成功消息失败:', error);
-      this.setData({ contactApprovedMessages: [] });
+      this.setData({
+        contactApprovedMessages: []
+      });
     }
   },
 
@@ -204,9 +239,35 @@ Page({
   async goToDetail(e) {
     const { id, jumpPath, messageId } = e.currentTarget.dataset;
 
-    // 标记消息为已读
     if (messageId) {
-      await this.markAsRead(messageId);
+      // 更新本地消息为已读
+      const comments = this.data.comments.map(msg => {
+        if (msg.id === messageId) {
+          return { ...msg, read: true };
+        }
+        return msg;
+      });
+
+      // 减少未读计数
+      const msg = this.data.comments.find(m => m.id === messageId);
+      if (msg && !msg.read) {
+        this.setData({
+          comments,
+          commentsUnreadCount: Math.max(0, this.data.commentsUnreadCount - 1)
+        });
+      } else {
+        this.setData({ comments });
+      }
+
+      // 异步调用云函数标记数据库中的消息为已读
+      wx.cloud.callFunction({
+        name: 'mark-message-read',
+        data: { messageId }
+      }).catch(error => {
+        console.error('标记消息已读失败:', error);
+      });
+
+      this.updateGlobalMessageCount();
     }
 
     if (jumpPath) {
@@ -215,33 +276,6 @@ Page({
     } else if (id) {
       // 否则跳转到物品详情页（兼容旧版本）
       wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
-    }
-  },
-
-  // 标记消息为已读
-  async markAsRead(messageId) {
-    try {
-      const result = await wx.cloud.callFunction({
-        name: 'mark-message-read',
-        data: { messageId }
-      });
-
-      if (result.result && result.result.success) {
-        // 更新本地消息列表中的已读状态
-        const comments = this.data.comments.map(msg => {
-          if (msg.id === messageId) {
-            return { ...msg, read: true };
-          }
-          return msg;
-        });
-
-        this.setData({ comments });
-
-        // 同时更新全局消息数量（通过发布事件或直接调用）
-        this.updateGlobalMessageCount();
-      }
-    } catch (error) {
-      console.error('标记消息已读失败:', error);
     }
   },
 
@@ -376,13 +410,10 @@ Page({
   },
 
   goToContactSuccess(e) {
-    const requestId = e.currentTarget.dataset.id;
-
-    // 标记消息为已读
-    this.markAsRead(requestId);
+    const messageId = e.currentTarget.dataset.id;
 
     wx.navigateTo({
-      url: `/pages/contact-success/contact-success?requestId=${requestId}`
+      url: `/pages/contact-success/contact-success?requestId=${messageId}`
     });
   },
 
