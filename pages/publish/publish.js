@@ -14,7 +14,8 @@ Page({
     },
     images: [],
     location: null,
-    isSubmitting: false
+    isSubmitting: false,
+    locationWarning: false  // 位置警告标志（方案C）
   },
 
   onLoad(options) {
@@ -150,9 +151,22 @@ Page({
   async chooseLocation() {
     const result = await locationUtil.openLocationSelector();
     if (result.success) {
+      // 检测是否使用了默认坐标（方案C）
+      // 只要显示"选中位置"就警告，无论后面是否有地址
+      const isRisk = result.location.name === '选中位置';
+
       this.setData({
-        location: result.location
+        location: result.location,
+        locationWarning: isRisk
       });
+
+      if (isRisk) {
+        wx.showToast({
+          title: '建议从地址列表中选择具体位置',
+          icon: 'none',
+          duration: 2000
+        });
+      }
     }
   },
 

@@ -140,26 +140,8 @@ Page({
       this.isLoading = false;
       const items = res.result?.data?.items || [];
 
-      // 为聚合列表中的物品图片生成临时链接
-      const processItems = async (items) => {
-        for (const item of items) {
-          if (item.images && item.images.length > 0) {
-            try {
-              const tempUrl = await wx.cloud.getTempFileURL({ fileList: [item.images[0]] });
-              if (tempUrl.fileList && tempUrl.fileList.length > 0) {
-                item.tempImage = tempUrl.fileList[0].tempFileURL;
-              }
-            } catch (err) {
-              console.warn('获取图片临时链接失败:', err);
-              item.tempImage = item.images[0];
-            }
-          }
-        }
-        return items;
-      };
-
-      processItems(items).then(processedItems => {
-        const clustered = gridCluster(processedItems, scale);
+      // 云函数已处理图片临时链接，直接聚合
+      const clustered = gridCluster(items, scale);
         // 保存原始数据用于点击跳转
         this.currentItems = {};
         clustered.forEach((c, idx) => {
@@ -190,8 +172,7 @@ Page({
         }
 
         return marker;
-      }) });
-      });
+      })       });
     }).catch(err => {
       this.isLoading = false;
       console.warn('云函数调用失败，使用本地模拟数据:', err);

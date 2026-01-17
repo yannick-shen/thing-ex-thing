@@ -99,12 +99,19 @@
           <view class="location-selector" bindtap="chooseLocation">
             <view class="location-info">
               <view wx:if="{{location}}" class="location-detail">
-                <view class="location-name">{{location.name}}</view>
+                <view class="location-name">
+                  {{location.name}}
+                  <text wx:if="{{locationWarning}}" class="warning-icon">⚠️</text>
+                </view>
                 <view class="location-address" wx:if="{{location.address}}">{{location.address}}</view>
               </view>
               <view wx:else class="location-placeholder">选择交易位置</view>
             </view>
             <view class="location-arrow">></view>
+          </view>
+          <!-- 位置警告提示（方案C） -->
+          <view wx:if="{{locationWarning}}" class="location-warning-text">
+            ⚠️ 当前可能使用了默认坐标，建议点击上方重新选择具体位置
           </view>
         </view>
       </view>

@@ -276,6 +276,26 @@
   margin-left: 20rpx;
 }
 
+/* 位置警告样式（方案C） */
+.warning-icon {
+  color: #ffa502;
+  margin-left: 10rpx;
+  font-size: 28rpx;
+}
+
+.location-warning-text {
+  font-size: 24rpx;
+  color: #ffa502;
+  margin-top: 15rpx;
+  padding: 20rpx;
+  background: rgba(255, 165, 2, 0.1);
+  border-radius: 8rpx;
+  border-left: 4rpx solid #ffa502;
+  line-height: 1.5;
+}
+
+
+
 
 
 /* 图片上传 */

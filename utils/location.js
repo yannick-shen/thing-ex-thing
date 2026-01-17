@@ -131,7 +131,7 @@ class LocationManager {
   // 打开位置选择器
   async openLocationSelector() {
     const status = await this.checkLocationStatus();
-    
+
     if (!status.authorized) {
       const result = await this.requestLocationPermission();
       if (!result.success) {
@@ -142,13 +142,17 @@ class LocationManager {
     return new Promise((resolve) => {
       wx.chooseLocation({
         success: (res) => {
+          // 检测是否使用了默认坐标（方案C）
+          const isDefaultLocation = res.name === '选中位置' && res.address;
+
           resolve({
             success: true,
             location: {
               latitude: res.latitude,
               longitude: res.longitude,
               name: res.name || '选中位置',
-              address: res.address
+              address: res.address,
+              isDefaultLocation: isDefaultLocation  // 标记是否使用默认坐标
             }
           });
         },
