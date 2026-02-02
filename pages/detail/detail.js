@@ -26,7 +26,6 @@ Page({
   onShow() {
     // 每次显示页面时重新检查收藏状态
     if (this.data.item) {
-      console.log('页面显示，重新检查收藏状态');
       this.loadFavoriteStatus();
     }
   },
@@ -38,7 +37,6 @@ Page({
       return;
     }
     this.itemId = itemId;
-    console.log('页面加载，物品ID:', itemId);
     
     // 检查来源页面，如果是从收藏页面进入，直接设置已收藏状态
     const pages = getCurrentPages();
@@ -46,7 +44,6 @@ Page({
     const fromFavorites = prevPage && prevPage.route === 'pages/favorites/favorites';
     
     if (fromFavorites) {
-      console.log('从收藏页面进入，直接设置已收藏状态');
       this.setData({
         favorited: true,
         favoriteStatusLoaded: true
@@ -55,10 +52,8 @@ Page({
     
     // 检查是否是模拟数据
     if (itemId.startsWith('mock_')) {
-      console.log('这是模拟数据，使用模拟详情');
       this.loadMockDetail(itemId, fromFavorites);
     } else {
-      console.log('这是真实数据，从云函数加载');
       this.loadDetail(fromFavorites);
     }
   },
@@ -109,38 +104,77 @@ Page({
 
   loadDetail(fromFavorites = false) {
     wx.showLoading({ title: '加载中...' });
-    console.log('开始加载物品详情，ID:', this.itemId);
-    
     // 直接获取物品详情，跳过测试步骤
     this.loadItemDetail(fromFavorites);
   },
 
   loadItemDetail(fromFavorites = false) {
+    // 检查缓存
+    const cacheKey = `item_detail_${this.itemId}`;
+    const cached = wx.getStorageSync(cacheKey);
+
+    if (cached && (Date.now() - cached.timestamp < 5 * 60 * 1000)) {
+      wx.hideLoading();
+
+      const item = cached.item;
+      const favorited = cached.favorited || false;
+      const createTime = this.formatTime(item.createdAt);
+
+      // 如果图片是cloud://开头，尝试下载
+      if (item.images && item.images.length > 0 && item.images[0] && item.images[0].startsWith('cloud://')) {
+        this.downloadCloudImages(item.images).then(localImages => {
+          item.images = localImages;
+          this.setData({
+            item,
+            createTime,
+            originalLat: item.lat,
+            originalLng: item.lng
+          });
+          this.checkOwnershipAndLoadFavorite(fromFavorites, item, favorited);
+        }).catch(err => {
+          this.setData({
+            item,
+            createTime,
+            originalLat: item.lat,
+            originalLng: item.lng
+          });
+          this.checkOwnershipAndLoadFavorite(fromFavorites, item, favorited);
+        });
+      } else {
+        this.setData({
+          item,
+          createTime,
+          favorited: favorited,
+          originalLat: item.lat,
+          originalLng: item.lng
+        });
+        this.checkOwnershipAndLoadFavorite(fromFavorites, item, favorited);
+      }
+      return;
+    }
+
+    // 缓存不存在或已过期，调用云函数
     wx.cloud.callFunction({
       name: 'get-item-detail',
       data: { itemId: this.itemId }
     }).then(res => {
       wx.hideLoading();
-      console.log('物品详情云函数返回结果:', res);
 
       if (res.result && res.result.code === 0) {
         const item = res.result.data.item;
+        const favorited = res.result.data.favorited || false;
         const createTime = this.formatTime(item.createdAt);
-        console.log('物品详情加载成功:', item);
-        console.log('物品图片数组:', item.images);
-        console.log('图片数组长度:', item.images ? item.images.length : 0);
 
-        // 检查图片URL格式
-        if (item.images && item.images.length > 0) {
-          console.log('第一张图片URL:', item.images[0]);
-          console.log('第一张图片是否是临时链接:', item.images[0].startsWith('http'));
-        }
+        // 缓存数据
+        wx.setStorageSync(cacheKey, {
+          item,
+          favorited,
+          timestamp: Date.now()
+        });
 
         // 如果图片是cloud://开头（临时链接生成失败），尝试下载
         if (item.images && item.images.length > 0 && item.images[0] && item.images[0].startsWith('cloud://')) {
-          console.log('检测到cloud://格式的图片，开始下载');
           this.downloadCloudImages(item.images).then(localImages => {
-            console.log('图片下载完成:', localImages);
             item.images = localImages;
             this.setData({
               item,
@@ -148,9 +182,8 @@ Page({
               originalLat: item.lat,
               originalLng: item.lng
             });
-            this.checkOwnershipAndLoadFavorite(fromFavorites, item);
+            this.checkOwnershipAndLoadFavorite(fromFavorites, item, favorited);
           }).catch(err => {
-            console.error('下载图片失败:', err);
             // 下载失败也显示原图片
             this.setData({
               item,
@@ -158,21 +191,20 @@ Page({
               originalLat: item.lat,
               originalLng: item.lng
             });
-            this.checkOwnershipAndLoadFavorite(fromFavorites, item);
+            this.checkOwnershipAndLoadFavorite(fromFavorites, item, favorited);
           });
         } else {
           this.setData({
             item,
             createTime,
-            originalLat: item.lat,  // 保存原始纬度
-            originalLng: item.lng   // 保存原始经度
+            favorited: favorited,
+            originalLat: item.lat,
+            originalLng: item.lng
           });
-          this.checkOwnershipAndLoadFavorite(fromFavorites, item);
+          this.checkOwnershipAndLoadFavorite(fromFavorites, item, favorited);
         }
       } else {
-        console.error('云函数返回错误:', res);
         const errorMsg = res.result ? res.result.message : '加载失败';
-        console.error('错误详情:', JSON.stringify(res.result, null, 2));
 
         wx.showToast({
           title: errorMsg,
@@ -182,8 +214,6 @@ Page({
       }
     }).catch(err => {
       wx.hideLoading();
-      console.error('调用物品详情云函数失败:', err);
-      console.error('错误详情:', JSON.stringify(err));
 
       wx.showToast({
         title: '获取详情失败，请重试',
@@ -194,13 +224,18 @@ Page({
   },
 
   // 检查所有权并加载收藏状态
-  checkOwnershipAndLoadFavorite(fromFavorites, item) {
+  checkOwnershipAndLoadFavorite(fromFavorites, item, favorited = null) {
     // 判断是否是自己的物品
     const currentUserId = wx.getStorageSync('userId');
     const isOwnItem = currentUserId && item.authorId === currentUserId;
 
     this.setData({ isOwnItem });
-    console.log('物品归属判断:', { isOwnItem, currentUserId, itemAuthorId: item.authorId });
+
+    // 如果已从缓存获取收藏状态，直接设置
+    if (favorited !== null) {
+      this.setData({ favorited });
+      return;
+    }
 
     // 只有在非收藏页面进入时才需要检查收藏状态
     if (!fromFavorites && !isOwnItem) {
@@ -215,15 +250,11 @@ Page({
       const image = images[i];
       if (image && image.startsWith('cloud://')) {
         try {
-          console.log(`下载第${i+1}张图片:`, image);
           const res = await wx.cloud.downloadFile({
             fileID: image
           });
-          console.log(`第${i+1}张图片下载成功:`, res.tempFilePath);
           localImages.push(res.tempFilePath);
         } catch (err) {
-          console.error(`第${i+1}张图片下载失败:`, err);
-          console.error(`错误详情:`, JSON.stringify(err, null, 2));
           // 下载失败使用占位图
           localImages.push('/assets/images/placeholder-empty.png');
         }
@@ -236,60 +267,50 @@ Page({
 
   // 加载收藏状态
   loadFavoriteStatus() {
-    console.log('开始检查收藏状态');
     const authManager = require('../../utils/auth.js');
     if (!authManager.isLoggedIn()) {
-      console.log('用户未登录，设置为未收藏');
-      this.setData({ 
+      this.setData({
         favorited: false,
-        favoriteStatusLoaded: true 
+        favoriteStatusLoaded: true
       });
       return;
     }
 
     wx.cloud.callFunction({
       name: 'get-my-favorites',
-      data: {}
+      data: { itemId: this.itemId }
     }).then(res => {
-      console.log('获取收藏列表结果:', res);
       if (res.result && res.result.code === 0) {
-        const favorites = res.result.data.items || [];
-        const isFavorited = favorites.some(fav => fav._id === this.itemId || fav.id === this.itemId);
-        console.log('当前物品收藏状态:', isFavorited);
-        this.setData({ 
-          favorited: isFavorited,
-          favoriteStatusLoaded: true 
+        const favorited = res.result.data.favorited || false;
+        this.setData({
+          favorited: favorited,
+          favoriteStatusLoaded: true
         });
       } else {
-        console.log('获取收藏列表失败，设置为未收藏');
-        this.setData({ 
+        this.setData({
           favorited: false,
-          favoriteStatusLoaded: true 
+          favoriteStatusLoaded: true
         });
       }
     }).catch(err => {
-      console.error('检查收藏状态失败:', err);
       // 失败时默认为未收藏
-      this.setData({ 
+      this.setData({
         favorited: false,
-        favoriteStatusLoaded: true 
+        favoriteStatusLoaded: true
       });
     });
   },
   handleFavorite() {
     const currentStatus = this.data.favorited;
-    console.log('收藏按钮被点击，当前状态:', currentStatus);
     wx.vibrateShort();
     
     const authManager = require('../../utils/auth.js');
     if (!authManager.isLoggedIn()) {
-      console.log('用户未登录，显示登录弹窗');
       this.setData({ showLoginModal: true });
       return;
     }
 
     const { item } = this.data;
-    console.log('开始收藏操作，物品ID:', this.itemId, '操作类型:', currentStatus ? '取消收藏' : '收藏');
     
     wx.showLoading({ title: '处理中...' });
     wx.cloud.callFunction({
@@ -297,34 +318,28 @@ Page({
       data: { itemId: this.itemId }
     }).then(res => {
       wx.hideLoading();
-      console.log('收藏操作结果:', res);
       if (res.result && res.result.code === 0) {
         const newFavoritedStatus = res.result.data.favorited;
         const newFavoritesCount = newFavoritedStatus ? item.counters.favorites + 1 : item.counters.favorites - 1;
-        
+
+        // 标记收藏页面需要刷新
+        wx.setStorageSync('refreshFavorites', true);
+
         // 确保状态更新正确
         this.setData({
           favorited: newFavoritedStatus,
           'item.counters.favorites': Math.max(0, newFavoritesCount) // 防止负数
         });
-        
-        console.log('收藏状态更新:', {
-          之前: currentStatus,
-          现在: newFavoritedStatus,
-          收藏数量: Math.max(0, newFavoritesCount)
-        });
-        
+
         wx.showToast({
           title: newFavoritedStatus ? '收藏成功' : '取消收藏',
           icon: 'success'
         });
       } else {
-        console.error('收藏操作失败:', res.result);
         wx.showToast({ title: (res.result && res.result.message) || '操作失败', icon: 'none' });
       }
     }).catch(err => {
       wx.hideLoading();
-      console.error('收藏操作失败:', err);
       wx.showToast({ title: '操作失败，请重试', icon: 'none' });
     });
   },
@@ -335,7 +350,6 @@ Page({
     });
   },
   handleReport() {
-    console.log('举报按钮被点击');
     wx.vibrateShort();
     this.setData({ showReport: true });
   },
@@ -374,7 +388,6 @@ Page({
       }
     }).catch(err => {
       wx.hideLoading();
-      console.error(err);
       wx.showToast({ title: '举报失败，请重试', icon: 'none' });
     });
   },
@@ -436,6 +449,9 @@ Page({
                 icon: 'success'
               });
 
+              // 标记首页需要刷新
+              wx.setStorageSync('refreshMarkers', true);
+
               // 更新本地状态
               this.setData({
                 'item.status': 'draft'
@@ -466,8 +482,15 @@ Page({
 
   // 查看评论
   handleViewComments() {
+    const { item } = this.data;
     wx.navigateTo({
-      url: `/pages/comment/comment?itemId=${this.itemId}`
+      url: `/pages/comment/comment?itemId=${this.itemId}`,
+      success: (res) => {
+        // 通过 eventChannel 传递物品信息，避免重复调用云函数
+        if (item) {
+          res.eventChannel.emit('transferItem', item);
+        }
+      }
     });
   },
   handleLocation() {

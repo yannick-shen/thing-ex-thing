@@ -9,14 +9,19 @@ Page({
 
   onLoad(options) {
     console.log('登录页面加载，参数:', options);
+
+    // 使用新API获取系统信息
+    const appBaseInfo = wx.getAppBaseInfo();
+    const deviceInfo = wx.getDeviceInfo();
+
     console.log('当前环境检查:', {
-      platform: wx.getSystemInfoSync().platform,
-      version: wx.getSystemInfoSync().version,
-      SDKVersion: wx.getSystemInfoSync().SDKVersion
+      platform: appBaseInfo.platform,
+      version: appBaseInfo.version,
+      SDKVersion: appBaseInfo.SDKVersion
     });
 
     // 在手机端预览时强制清理可能的问题数据
-    const platform = wx.getSystemInfoSync().platform;
+    const platform = appBaseInfo.platform;
     if (platform !== 'devtools') {
       console.log('手机端环境，检查并清理可能的问题数据');
       this.performPhoneEnvironmentCleanup();

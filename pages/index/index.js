@@ -1,5 +1,4 @@
 const app = getApp();
-
 // 不同交易类型的颜色配置
 const MODE_COLORS = {
   sale: '#FF4757',     // 出售 - 红色
@@ -64,7 +63,17 @@ Page({
     this.initLocation();
     this.loadSearchHistory();
   },
-  onShow() { },
+  onShow() {
+    // 只在标记为true时刷新标记点
+    const refreshMarkers = wx.getStorageSync('refreshMarkers');
+    
+    if (refreshMarkers) {
+      console.log('[index.onShow] >>> 调用 loadMarkers');
+      this.loadMarkers();
+      wx.removeStorageSync('refreshMarkers');
+    }
+
+  },
   initLocation() {
     // 使用location工具管理位置权限
     const locationUtil = require('../../utils/location.js');
@@ -125,12 +134,13 @@ Page({
 
   // 模拟数据加载与轻量聚合（按网格）
   loadMarkers() {
+    
     const { center, scale, searchKeyword, selectedMode } = this.data;
     const radiusKm = 2;
 
     // 防止重复请求：如果正在加载则跳过
     if (this.isLoading) {
-      console.log('正在加载中，跳过本次请求');
+      //console.log('正在加载中，跳过本次请求');
       return;
     }
     this.isLoading = true;
@@ -254,21 +264,46 @@ Page({
   // 刷新物品详情
   async refreshItemDetail(itemId, showLoading = false) {
     try {
-      // 获取物品详情
-      const res = await wx.cloud.callFunction({ 
-        name: 'get-item-detail', 
-        data: { itemId } 
-      });
+      // 检查登录状态
+      const authManager = require('../../utils/auth.js');
+      const isLoggedIn = authManager.isLoggedIn();
       
+      // 获取物品详情和收藏状态
+      const requests = [
+        wx.cloud.callFunction({
+          name: 'get-item-detail',
+          data: { itemId }
+        })
+      ];
+      
+      // 只有登录用户才请求收藏状态
+      let favorited = false;
+      if (isLoggedIn) {
+        requests.push(
+          wx.cloud.callFunction({
+            name: 'get-my-favorites',
+            data: { itemId }
+          })
+        );
+      }
+      
+      const results = await Promise.all(requests);
+      const detailRes = results[0];
+
       if (showLoading) {
         wx.hideLoading();
       }
-      
-      if (res.result.code === 0) {
-        const item = res.result.data.item;
-        const favorited = res.result.data.favorited || false;
-        const createTime = this.formatTime(item.createdAt);
+
+      if (detailRes.result.code === 0) {
+        const item = detailRes.result.data.item;
         
+        // 如果有收藏状态结果，解析它
+        if (results.length > 1 && results[1] && results[1].result && results[1].result.code === 0) {
+          favorited = results[1].result.data.favorited || false;
+        }
+        
+        const createTime = this.formatTime(item.createdAt);
+
         // 缓存数据
         const cacheKey = `item_detail_${itemId}`;
         wx.setStorageSync(cacheKey, {
@@ -529,7 +564,11 @@ Page({
     const { detailItem } = this.data;
     if (detailItem && detailItem._id) {
       wx.navigateTo({
-        url: `/pages/comment/comment?itemId=${detailItem._id}&title=${encodeURIComponent(detailItem.title)}`
+        url: `/pages/comment/comment?itemId=${detailItem._id}&title=${encodeURIComponent(detailItem.title)}`,
+        success: (res) => {
+          // 通过 eventChannel 传递物品信息，避免重复调用云函数
+          res.eventChannel.emit('transferItem', detailItem);
+        }
       });
     }
   },

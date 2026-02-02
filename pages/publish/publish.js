@@ -364,6 +364,11 @@ Page({
           icon: 'success'
         });
 
+        // 标记首页需要刷新
+        wx.setStorageSync('refreshMarkers', true);
+        // 标记我的发布需要刷新
+        wx.setStorageSync('refreshMyItems', true);
+
         // 清空表单
         this.resetForm();
 

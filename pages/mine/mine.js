@@ -1,5 +1,6 @@
 Page({
   data: {
+    userInfoDirty: true, // 首次加载标记
     stats: {
       published: 0,
       active: 0,
@@ -11,12 +12,17 @@ Page({
   },
 
   onLoad() {
-    this.loadMyItems();
+    // 只做初始化，不拉数据，统一走 onShow 机制
   },
 
   onShow() {
-    // 每次显示页面时刷新数据
-    this.loadMyItems();
+    const needRefresh = this.data.userInfoDirty || wx.getStorageSync('refreshMyItems');
+
+    if (needRefresh) {
+      this.loadMyItems();
+      this.setData({ userInfoDirty: false });
+      wx.removeStorageSync('refreshMyItems');
+    }
   },
 
   // 加载我的物品
@@ -52,6 +58,9 @@ Page({
       items = [];
     }
 
+    // 缓存原始数据用于 tab 切换筛选
+    this.allItems = items;
+
     // 为每个物品添加格式化的时间和统一的ID字段
     items = items.map(item => ({
       ...item,
@@ -60,10 +69,10 @@ Page({
     }));
 
     const now = Date.now();
-    const activeItems = items.filter(item => 
+    const activeItems = items.filter(item =>
       item.status === 'on' && item.expireAt > now
     );
-    const draftItems = items.filter(item => 
+    const draftItems = items.filter(item =>
       item.status === 'draft' || item.status === 'off' || item.expireAt <= now
     );
 
@@ -149,11 +158,14 @@ Page({
   // 切换标签页
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab;
-    this.setData({ currentTab: tab });
-    
-    // 重新筛选物品
-    // 这里需要重新获取所有物品，然后根据当前标签筛选
-    this.loadMyItems();
+    this.setData({
+      currentTab: tab
+    }, () => {
+      // 在 currentTab 更新完成后筛选物品
+      this.setData({
+        items: this.getFilteredItems(this.allItems)
+      });
+    });
   },
 
   // 导航函数
@@ -222,6 +234,7 @@ Page({
                 title: '发布成功',
                 icon: 'success'
               });
+              wx.setStorageSync('refreshMyItems', true);
               this.loadMyItems();
             } else {
               wx.hideLoading();
@@ -268,6 +281,7 @@ Page({
                 title: '发布成功',
                 icon: 'success'
               });
+              wx.setStorageSync('refreshMyItems', true);
               this.loadMyItems();
             } else {
               wx.showToast({
@@ -310,12 +324,18 @@ Page({
             });
 
             wx.hideLoading();
-            
+
             if (result.result && result.result.code === 0) {
               wx.showToast({
                 title: '删除成功',
                 icon: 'success'
               });
+
+              // 标记首页需要刷新
+              wx.setStorageSync('refreshMarkers', true);
+              // 标记我的发布需要刷新
+              wx.setStorageSync('refreshMyItems', true);
+
               this.loadMyItems();
             } else {
               wx.showToast({

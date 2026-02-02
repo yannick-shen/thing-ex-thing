@@ -12,8 +12,14 @@
   <!-- 已登录状态或跳过登录状态 -->
   <view wx:else>
     <view class="list">
-      <view wx:for="{{items}}" wx:key="_id" class="item-card" bindtap="goDetail" data-id="{{item._id}}">
-        <image src="{{item.images[0]}}" mode="aspectFill" class="item-img" />
+      <view wx:for="{{items}}" wx:key="_id" wx:for-index="index" class="item-card" bindtap="goDetail" data-id="{{item._id}}">
+        <image
+          src="{{item.images && item.images.length > 0 ? item.images[0] : '/assets/images/placeholder-empty.png'}}"
+          mode="aspectFill"
+          class="item-img"
+          binderror="onImageError"
+          data-index="{{index}}"
+        />
         <view class="item-info">
           <view class="item-title">{{item.title}}</view>
           <view class="item-desc">{{item.desc}}</view>

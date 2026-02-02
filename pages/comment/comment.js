@@ -26,7 +26,7 @@ Page({
     
     // 检查登录状态
     const isLoggedIn = authManager.isLoggedIn();
-    this.setData({ 
+    this.setData({
       itemId,
       targetCommentId: commentId || null,
       isLoggedIn
@@ -34,7 +34,15 @@ Page({
     
     // 无论是否登录都可以查看评论和物品信息
     if (itemId) {
-      this.loadItemInfo(itemId);
+      // 监听 eventChannel，获取传递的物品信息
+      const eventChannel = this.getOpenerEventChannel();
+      if (eventChannel) {
+        eventChannel.on('transferItem', (item) => {
+          // 使用传递的物品信息，避免重复调用云函数
+          this.setData({ itemInfo: item });
+        });
+      }
+      
       this.loadComments();
     } else {
       wx.showToast({
@@ -51,33 +59,6 @@ Page({
     
     if (this.data.itemId) {
       this.loadComments(true);
-    }
-  },
-
-  // 加载物品信息
-  async loadItemInfo(itemId) {
-    try {
-      const result = await wx.cloud.callFunction({
-        name: 'get-item-detail',
-        data: { itemId }
-      });
-      
-      if (result.result && result.result.code === 0) {
-        this.setData({
-          itemInfo: result.result.data.item
-        });
-      } else {
-        wx.showToast({
-          title: '物品不存在',
-          icon: 'none'
-        });
-      }
-    } catch (error) {
-      console.error('加载物品信息失败:', error);
-      wx.showToast({
-        title: '加载失败',
-        icon: 'none'
-      });
     }
   },
 
