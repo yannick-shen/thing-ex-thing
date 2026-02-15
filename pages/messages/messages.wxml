@@ -7,7 +7,7 @@
       <view class="login-icon">💬</view>
       <view class="login-title">需要登录才能查看消息</view>
       <view class="login-desc">登录后可以查看评论、系统通知等消息</view>
-      <button class="login-btn" bindtap="goToLogin">立即登录</button>
+      <button class="login-btn btn-primary" bindtap="goToLogin">立即登录</button>
     </view>
   </view>
 
@@ -105,7 +105,7 @@
         </view>
         <view class="message-text">{{item.content}}</view>
         <view wx:if="{{item.actionText}}" class="message-action">
-          <button class="action-btn" bindtap="handleMessageAction" data-id="{{item.id}}" data-type="{{item.actionType}}">
+          <button class="btn-small btn-primary" bindtap="handleMessageAction" data-id="{{item.id}}" data-type="{{item.actionType}}">
             {{item.actionText}}
           </button>
         </view>
@@ -134,8 +134,8 @@
         <view class="message-text">想联系您关于物品《{{item.itemTitle}}》</view>
         <view wx:if="{{item.remark}}" class="message-remark">留言：{{item.remark}}</view>
         <view class="request-actions">
-          <button wx:if="{{item.status === 'pending'}}" class="action-btn accept" bindtap="acceptContactRequest" data-id="{{item._id}}">同意</button>
-          <button wx:if="{{item.status === 'pending'}}" class="action-btn reject" bindtap="rejectContactRequest" data-id="{{item._id}}">拒绝</button>
+          <button wx:if="{{item.status === 'pending'}}" class="btn-small btn-primary" bindtap="acceptContactRequest" data-id="{{item._id}}">同意</button>
+          <button wx:if="{{item.status === 'pending'}}" class="btn-small btn-danger" bindtap="rejectContactRequest" data-id="{{item._id}}">拒绝</button>
           <view wx:if="{{item.status === 'accepted'}}" class="status-text accepted">已同意</view>
           <view wx:if="{{item.status === 'rejected'}}" class="status-text rejected">已拒绝</view>
         </view>

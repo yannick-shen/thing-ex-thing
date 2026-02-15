@@ -34,7 +34,7 @@
         <text>微信快速登录</text>
       </button>
       
-      <view class="cancel-btn" bindtap="close">暂不登录</view>
+      <view class="btn-secondary btn-small"  bindtap="close">暂不登录</view>
     </view>
   </view>
 </view>

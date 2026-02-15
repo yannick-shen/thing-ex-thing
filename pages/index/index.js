@@ -1,11 +1,14 @@
 const app = getApp();
-// 不同交易类型的颜色配置
-const MODE_COLORS = {
-  sale: '#FF4757',     // 出售 - 红色
-  exchange: '#3742FA', // 交换 - 蓝色  
-  donate: '#2ED573',   // 赠送 - 绿色
-  help: '#FFA502'      // 求助 - 橙色
+// 不同交易类型的图标配置
+const MODE_ICONS = {
+  sale: '/assets/icons/marker-sale.png',
+  exchange: '/assets/icons/marker-exchange.png',
+  donate: '/assets/icons/marker-donate.png',
+  help: '/assets/icons/marker-help.png',
+  default: '/assets/icons/marker.png'
 };
+// 聚合图标
+const CLUSTER_ICON = '/assets/icons/marker-cluster.png';
 
 Page({
   data: {
@@ -160,24 +163,16 @@ Page({
           }
         });
         this.setData({ markers: clustered.map((c, idx) => {
-        const marker = { id: idx, latitude: c.lat, longitude: c.lng, width: 24, height: 24 };
-        
-        // 单个标记点根据交易类型设置颜色
+        const marker = { id: idx, latitude: c.lat, longitude: c.lng, width: 32, height: 32 };
+
+        // 单个标记点使用自定义图标
         if (c.count === 1) {
-          const color = MODE_COLORS[c.mode] || MODE_COLORS.sale;
-          // 使用不同颜色的圆点作为标记
-          marker.callout = { 
-            content: '●', 
-            color: color, 
-            fontSize: 16, 
-            display: 'ALWAYS',
-            textAlign: 'center',
-            anchorX: 0,
-            anchorY: 0
-          };
+          const icon = MODE_ICONS[c.mode] || MODE_ICONS.default;
+          marker.iconPath = icon;
         } else {
-          // 聚合点显示数量，使用默认颜色
-          marker.callout = { content: String(c.count), color: '#fff', fontSize: 12, borderRadius: 12, bgColor: '#1677ff', padding: 4, display: 'ALWAYS' };
+          // 聚合点使用聚合图标
+          marker.iconPath = CLUSTER_ICON;
+          marker.callout = { content: String(c.count), color: '#fff', fontSize: 10, borderRadius: 10, bgColor: '#1677ff', padding: 2, display: 'ALWAYS' };
           marker.items = c.items;
         }
 
@@ -189,24 +184,16 @@ Page({
       const raw = mockFetchItems(center, radiusKm, searchKeyword);
       const clustered = gridCluster(raw, scale);
       this.setData({ markers: clustered.map((c, idx) => {
-        const marker = { id: idx, latitude: c.lat, longitude: c.lng, width: 24, height: 24 };
-        
-        // 单个标记点根据交易类型设置颜色
+        const marker = { id: idx, latitude: c.lat, longitude: c.lng, width: 32, height: 32 };
+
+        // 单个标记点使用自定义图标
         if (c.count === 1) {
-          const color = MODE_COLORS[c.mode] || MODE_COLORS.sale;
-          // 使用不同颜色的圆点作为标记
-          marker.callout = { 
-            content: '●', 
-            color: color, 
-            fontSize: 16, 
-            display: 'ALWAYS',
-            textAlign: 'center',
-            anchorX: 0,
-            anchorY: 0
-          };
+          const icon = MODE_ICONS[c.mode] || MODE_ICONS.default;
+          marker.iconPath = icon;
         } else {
-          // 聚合点显示数量，使用默认颜色
-          marker.callout = { content: String(c.count), color: '#fff', fontSize: 12, borderRadius: 12, bgColor: '#1677ff', padding: 4, display: 'ALWAYS' };
+          // 聚合点使用聚合图标
+          marker.iconPath = CLUSTER_ICON;
+          marker.callout = { content: String(c.count), color: '#fff', fontSize: 10, borderRadius: 10, bgColor: '#1677ff', padding: 2, display: 'ALWAYS' };
           marker.items = c.items;
         }
 

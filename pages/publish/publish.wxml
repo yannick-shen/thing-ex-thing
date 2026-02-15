@@ -5,7 +5,7 @@
       <view class="login-icon">🔒</view>
       <view class="login-title">需要登录才能发布物品</view>
       <view class="login-desc">登录后可以发布闲置物品，让更多人看到</view>
-      <button class="login-btn" bindtap="goToLogin">立即登录</button>
+      <button class="login-btn btn-primary" bindtap="goToLogin">立即登录</button>
     </view>
   </view>
 
@@ -76,7 +76,7 @@
         </view>
 
         <view class="form-item {{formData.mode === 'sale' ? 'required' : ''}}">
-          <view class="label">价格（元）{{formData.mode === 'sale' ? '*' : ''}}</view>
+          <view class="label">价格（元）</view>
           <input 
             name="price" 
             class="input-field" 
@@ -155,38 +155,42 @@
       <view class="submit-section">
         <!-- 编辑模式 -->
         <block wx:if="{{isEditMode}}">
-          <button
-            class="submit-btn {{isSubmitting ? 'submitting' : ''}}"
-            formType="submit"
-            disabled="{{isSubmitting}}"
-          >
-            {{isSubmitting ? '保存中...' : '保存修改'}}
-          </button>
-          <button
-            class="secondary-btn"
-            bindtap="handlePublishAndOnline"
-            disabled="{{isSubmitting}}"
-          >
-            {{isSubmitting ? '处理中...' : '重新上架'}}
-          </button>
+          <view class="button-row">
+            <button
+              class="btn-primary"
+              formType="submit"
+              disabled="{{isSubmitting}}"
+            >
+              {{isSubmitting ? '保存中...' : '保存修改'}}
+            </button>
+            <button
+              class="btn-secondary"
+              bindtap="handlePublishAndOnline"
+              disabled="{{isSubmitting}}"
+            >
+              {{isSubmitting ? '处理中...' : '重新上架'}}
+            </button>
+          </view>
         </block>
 
         <!-- 新建模式 -->
         <block wx:else>
-          <button
-            class="submit-btn {{isSubmitting ? 'submitting' : ''}}"
-            formType="submit"
-            disabled="{{isSubmitting}}"
-          >
-            {{isSubmitting ? '发布中...' : '发布物品'}}
-          </button>
-          <button
-            class="draft-btn"
-            bindtap="handleSaveAsDraft"
-            disabled="{{isSubmitting}}"
-          >
-            {{isSubmitting ? '保存中...' : '保存到草稿箱'}}
-          </button>
+          <view class="button-row">
+            <button
+              class="btn-primary"
+              formType="submit"
+              disabled="{{isSubmitting}}"
+            >
+              {{isSubmitting ? '发布中...' : '发布物品'}}
+            </button>
+            <button
+              class="btn-secondary"
+              bindtap="handleSaveAsDraft"
+              disabled="{{isSubmitting}}"
+            >
+              {{isSubmitting ? '保存中...' : '保存到草稿箱'}}
+            </button>
+          </view>
           <view class="submit-tips">发布后将在地图上显示30天</view>
         </block>
       </view>

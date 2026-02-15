@@ -8,7 +8,7 @@
         <view class="login-title">登录后享受完整功能</view>
         <view class="login-desc">发布物品、收藏喜欢的宝贝、管理个人资料</view>
       </view>
-      <button class="login-btn" bindtap="goToLogin">立即登录</button>
+      <button class="login-btn btn-primary" bindtap="goToLogin">立即登录</button>
     </view>
 
     <!-- 已登录状态 -->

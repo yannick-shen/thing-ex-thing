@@ -129,26 +129,26 @@ Page({
   },
 
   loadSystemMessages() {
-    // 模拟系统消息
+    // 模拟系统消息（暂时屏蔽）
     const mockMessages = [
-      {
-        id: '1',
-        title: '系统通知',
-        content: '您的物品"iPhone 12"已成功发布，将在地图上展示30天',
-        actionText: '查看详情',
-        actionType: 'view_item',
-        createdAt: Date.now() - 86400000,
-        read: false
-      },
-      {
-        id: '2',
-        title: '活动通知',
-        content: '新版本已发布，修复了若干问题并优化了用户体验',
-        actionText: '立即更新',
-        actionType: 'update_app',
-        createdAt: Date.now() - 172800000,
-        read: true
-      }
+      // {
+      //   id: '1',
+      //   title: '系统通知',
+      //   content: '您的物品"iPhone 12"已成功发布，将在地图上展示30天',
+      //   actionText: '查看详情',
+      //   actionType: 'view_item',
+      //   createdAt: Date.now() - 86400000,
+      //   read: false
+      // },
+      // {
+      //   id: '2',
+      //   title: '活动通知',
+      //   content: '新版本已发布，修复了若干问题并优化了用户体验',
+      //   actionText: '立即更新',
+      //   actionType: 'update_app',
+      //   createdAt: Date.now() - 172800000,
+      //   read: true
+      // }
     ];
     // 计算未读数量
     const unreadCount = mockMessages.filter(msg => !msg.read).length;

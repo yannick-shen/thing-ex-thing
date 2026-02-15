@@ -7,22 +7,22 @@
 
 <!-- 聚合物品列表弹窗 -->
 <view wx:if="{{showClusterList}}" class="overlay cluster-overlay" catchtouchmove="prevent">
-  <view class="cluster-panel" catchtap="prevent">
-    <view class="cluster-header">
-      <text class="cluster-title">附近物品</text>
-      <text class="cluster-close" bindtap="hideClusterList">×</text>
+  <view class="card cluster-panel" catchtap="prevent">
+    <view class="flex-between">
+      <text class="text-title">附近物品</text>
+      <text class="text-muted" bindtap="hideClusterList">×</text>
     </view>
     <scroll-view class="cluster-list" scroll-y="true">
       <view
         wx:for="{{clusterItems}}"
         wx:key="id"
-        class="cluster-item"
+        class="card-item"
         bindtap="selectClusterItem"
         data-id="{{item.id}}"
       >
         <image class="cluster-item-img" src="{{item.tempImage || (item.images && item.images.length > 0 ? item.images[0] : '/assets/images/placeholder-item.png')}}" mode="aspectFill" />
-        <view class="cluster-item-info">
-          <view class="cluster-item-title">{{item.title}}</view>
+        <view class="cluster-item-info flex-column gap-sm">
+          <text class="text-title">{{item.title}}</text>
           <view class="cluster-item-price mode-{{item.mode}}">
             <text wx:if="{{item.mode === 'sale'}}">¥{{item.price}}</text>
             <text wx:if="{{item.mode === 'exchange'}}">交换</text>
@@ -38,22 +38,22 @@
 <view wx:if="{{searchKeyword}}" class="filter-tag" catchtap="clearSearch">已筛选:{{searchKeyword}}</view>
 
 <!-- 图例 -->
-<view class="legend">
-  <view class="legend-item">
+<view class="legend flex-row gap-md">
+  <view class="legend-item flex-row gap-sm">
     <text class="legend-dot" style="color: #FF4757;">●</text>
-    <text class="legend-text">出售</text>
+    <text class="text-small">出售</text>
   </view>
-  <view class="legend-item">
+  <view class="legend-item flex-row gap-sm">
     <text class="legend-dot" style="color: #3742FA;">●</text>
-    <text class="legend-text">交换</text>
+    <text class="text-small">交换</text>
   </view>
-  <view class="legend-item">
+  <view class="legend-item flex-row gap-sm">
     <text class="legend-dot" style="color: #2ED573;">●</text>
-    <text class="legend-text">赠送</text>
+    <text class="text-small">赠送</text>
   </view>
-  <view class="legend-item">
+  <view class="legend-item flex-row gap-sm">
     <text class="legend-dot" style="color: #FFA502;">●</text>
-    <text class="legend-text">求助</text>
+    <text class="text-small">求助</text>
   </view>
 </view>
 
@@ -64,22 +64,18 @@
 <!-- 按钮组 -->
 <view class="button-group">
   <view class="fab location" bindtap="relocate">
-    <text class="button-icon">📍</text>
-  </view>
-  <view class="fab publish" bindtap="goPublish">
-    <text class="button-icon">+</text>
+    <image class="button-icon" src="/assets/icons/locate.png" />
   </view>
 </view>
 
 <!-- 物品详情弹窗 -->
-<view wx:if="{{showDetailModal}}" class="detail-modal" 
+<view wx:if="{{showDetailModal}}" class="detail-modal"
       catchtap="hideDetailModal">
-  <view class="detail-panel" catchtap="stopPropagation">
-    <!-- 关闭按钮 -->
-    <view class="detail-close" bindtap="hideDetailModal">×</view>
-    
+  <view class="card detail-panel" catchtap="stopPropagation">
     <!-- 图片轮播 -->
     <view class="detail-swiper" wx:if="{{detailItem && detailItem.images.length > 0}}">
+      <!-- 关闭按钮浮在图片上方 -->
+      <text class="text-muted detail-close-btn" bindtap="hideDetailModal" style="position: absolute; top: 8px; right: 8px; z-index: 10; background: transparent; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">×</text>
       <swiper class="detail-img-swiper" indicator-dots="true" bindchange="onDetailSwiperChange">
         <swiper-item wx:for="{{detailItem.images}}" wx:key="index" wx:for-item="img">
           <image src="{{img}}" mode="aspectFill" class="detail-swiper-img" bindtap="previewDetailImage" data-index="{{index}}" />
@@ -90,65 +86,67 @@
 
     <!-- 物品信息 -->
     <scroll-view class="detail-content" scroll-y="true">
-      <view class="detail-title">{{detailItem.title}}</view>
+      <text class="text-title">{{detailItem.title}}</text>
 
-      <view class="detail-price-row">
-        <text wx:if="{{detailItem.mode === 'sale'}}" class="detail-price">¥{{detailItem.price}}</text>
-        <text wx:if="{{detailItem.mode === 'exchange'}}" class="detail-price">交换</text>
-        <text wx:if="{{detailItem.mode === 'donate'}}" class="detail-price">赠送</text>
-        <text wx:if="{{detailItem.mode === 'help'}}" class="detail-price">求助</text>
-        <view class="detail-stats">
-          <text class="detail-stat-item">{{detailItem.counters.views}} 浏览</text>
-          <text class="detail-stat-item">{{detailItem.counters.favorites}} 收藏</text>
+      <view class="flex-between">
+        <view class="flex-row gap-md">
+          <text wx:if="{{detailItem.mode === 'sale'}}" class="text-title">¥{{detailItem.price}}</text>
+          <text wx:if="{{detailItem.mode === 'exchange'}}" class="text-title">交换</text>
+          <text wx:if="{{detailItem.mode === 'donate'}}" class="text-title">赠送</text>
+          <text wx:if="{{detailItem.mode === 'help'}}" class="text-title">求助</text>
+        </view>
+        <view class="flex-row gap-md">
+          <text class="text-small">{{detailItem.counters.views}} 浏览</text>
+          <text class="text-small">{{detailItem.counters.favorites}} 收藏</text>
         </view>
       </view>
 
-      <view class="detail-desc">{{detailItem.desc}}</view>
+      <text class="text-body">{{detailItem.desc}}</text>
 
-      <view class="detail-meta">
-        <text class="detail-meta-item">发布时间: {{detailCreateTime}}</text>
-      </view>
+      <text class="text-muted">发布时间: {{detailCreateTime}}</text>
 
       <!-- 位置信息 -->
       <view class="detail-location">
-        <view class="detail-location-title">📍 交易位置</view>
-        <map class="detail-location-map" 
-             latitude="{{detailItem.lat}}" 
-             longitude="{{detailItem.lng}}" 
+        <text class="text-small">📍 交易位置</text>
+        <map class="detail-location-map"
+             latitude="{{detailItem.lat}}"
+             longitude="{{detailItem.lng}}"
              scale="16"
              show-location="false"
              enable-scroll="false"
              enable-zoom="true"
              markers="{{[{id:0, latitude:detailItem.lat, longitude:detailItem.lng, width:24, height:24}]}}">
         </map>
-        <text class="detail-address">{{detailItem.addressText || '当前位置'}}</text>
+        <text class="text-body">{{detailItem.addressText || '当前位置'}}</text>
       </view>
     </scroll-view>
 
     <!-- 评论入口 -->
-    <view class="detail-comment-entry" bindtap="goToComments" wx:if="{{detailItem}}">
-      <text class="comment-entry-icon">💬</text>
-      <text class="comment-entry-text">{{detailItem.commentCount || 0}} 条留言</text>
-      <text class="comment-entry-arrow">></text>
+    <view class="card-item" bindtap="goToComments" wx:if="{{detailItem}}">
+      <view class="flex-row gap-sm">
+        <text class="text-muted">💬</text>
+        <text class="text-body">{{detailItem.commentCount || 0}} 条留言</text>
+        <text class="text-muted">></text>
+      </view>
     </view>
 
     <!-- 操作按钮 -->
-    <view class="detail-actions">
-      <button class="detail-btn-fav {{detailFavorited ? 'favorited' : ''}}" bindtap="handleDetailFavorite">
+    <view class="flex-row gap-md detail-actions">
+      <button class="btn-primary {{detailFavorited ? '' : ''}}" bindtap="handleDetailFavorite">
         {{detailFavorited ? '已收藏' : '收藏'}}
       </button>
-      <button class="detail-btn-contact" bindtap="handleDetailContact">联系 TA</button>
+      <button class="btn-secondary" bindtap="handleDetailContact">联系 TA</button>
     </view>
   </view>
 </view>
 
 <!-- 搜索面板 -->
 <view wx:if="{{showSearch}}" class="overlay" catchtouchmove="prevent">
-  <view class="search-panel">
-    <input class="search-input" placeholder="请输入关键词" value="{{tmpKeyword}}" bindinput="onInput" confirm-type="search" bindconfirm="applySearch" />
+  <view class="card search-panel">
+    <input class="input" placeholder="请输入关键词" value="{{tmpKeyword}}" bindinput="onInput" confirm-type="search" bindconfirm="applySearch" />
 
     <view class="mode-section">
-      <text class="mode-title">物品类型</text>
+      <text class="text-title">类型</text>
       <view class="mode-options">
         <view
           wx:for="{{modeOptions}}"
@@ -162,10 +160,10 @@
       </view>
     </view>
 
-    <view wx:if="{{searchHistory.length > 0}}" class="history-section">
-      <view class="history-header">
-        <text class="history-title">搜索历史</text>
-        <text class="history-clear" bindtap="clearHistory">清空</text>
+      <view wx:if="{{searchHistory.length > 0}}" class="history-section">
+      <view class="flex-between">
+        <text class="text-title">搜索历史</text>
+        <text class="text-muted" bindtap="clearHistory">清空</text>
       </view>
       <view class="history-tags">
         <view wx:for="{{searchHistory}}" wx:key="index" class="history-tag" bindtap="selectHistory" data-keyword="{{item}}">
@@ -174,14 +172,12 @@
       </view>
     </view>
 
-    <view class="search-actions">
-      <button class="btn secondary" bindtap="closeSearch">取消</button>
-      <button class="btn" bindtap="applySearch">搜索</button>
+    <view class="search-actions flex-row gap-md">
+      <button class="btn-secondary" bindtap="closeSearch">取消</button>
+      <button class="btn-primary" bindtap="applySearch">搜索</button>
     </view>
   </view>
 </view>
 
-<!-- 调试按钮（生产环境可删除） -->
-<view class="debug-btn" bindtap="findMissingItems" bindlongpress="openDebugConsole">
-  调试
-</view>
+
+

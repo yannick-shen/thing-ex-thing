@@ -50,8 +50,8 @@
 
 
       <!-- 微信登录按钮 -->
-      <button 
-        class="wechat-login-btn {{!privacyAgreed ? 'disabled' : ''}}" 
+      <button
+        class="btn-primary"
         bindtap="handleWechatLogin"
         disabled="{{!privacyAgreed}}"
       >

@@ -2,7 +2,7 @@
 
   <!-- 物品分类标签 -->
   <view class="tab-section fixed">
-    <view class="tab-group">
+    <view class="tab-group flex-row">
       <view
         class="tab-item {{currentTab === 'active' ? 'active' : ''}}"
         bindtap="switchTab"
@@ -41,7 +41,7 @@
         <view wx:if="{{currentTab === 'draft'}}">保存的草稿和到期下架的物品</view>
         <view wx:if="{{currentTab === 'all'}}">点击上方按钮开始发布</view>
       </view>
-      <button class="empty-btn" bindtap="goPublish" wx:if="{{currentTab === 'all' || currentTab === 'draft'}}">
+      <button class="btn-primary" bindtap="goPublish" wx:if="{{currentTab === 'all' || currentTab === 'draft'}}">
         <text wx:if="{{currentTab === 'all'}}">立即发布</text>
         <text wx:if="{{currentTab === 'draft'}}">继续发布</text>
       </button>
@@ -49,7 +49,7 @@
 
     <!-- 物品项 -->
     <view
-      class="item-card"
+      class="card"
       wx:for="{{items}}"
       wx:key="id"
       bindtap="goDetail"
@@ -62,34 +62,34 @@
           mode="aspectFill"
         />
       </view>
-      <view class="item-content">
-        <view class="item-title">{{item.title}}</view>
-        <view class="item-desc">{{item.desc}}</view>
-        <view class="item-meta">
+      <view class="item-content flex-column gap-sm">
+        <text class="text-title">{{item.title}}</text>
+        <text class="text-muted">{{item.desc}}</text>
+        <view class="flex-between">
           <view class="item-mode mode-{{item.mode}}">
             <text wx:if="{{item.mode === 'sale'}}">¥{{item.price}}</text>
             <text wx:if="{{item.mode === 'exchange'}}">交换</text>
             <text wx:if="{{item.mode === 'donate'}}">赠送</text>
           </view>
-          <view class="item-time">{{item.formattedTime}}</view>
+          <text class="text-muted">{{item.formattedTime}}</text>
         </view>
-        <view class="item-stats">
-          <view class="stat">👁 {{item.counters.views}}</view>
-          <view class="stat">❤️ {{item.counters.favorites}}</view>
-          <view class="stat">💬 {{item.counters.comments}}</view>
-          <view wx:if="{{item.status === 'draft' || item.status === 'off'}}" class="action-btns">
-            <view class="action-btn delete" catchtap="deleteItem" data-id="{{item.id}}">删除</view>
-            <view class="action-btn publish" catchtap="publishDraft" data-id="{{item.id}}">发布</view>
+        <view class="flex-row gap-md">
+          <text class="text-small">👁 {{item.counters.views}}</text>
+          <text class="text-small">❤️ {{item.counters.favorites}}</text>
+          <text class="text-small">💬 {{item.counters.comments}}</text>
+          <view wx:if="{{item.status === 'draft' || item.status === 'off'}}" class="flex-row gap-sm">
+            <view class="btn-small btn-danger" catchtap="deleteItem" data-id="{{item.id}}">删除</view>
+            <view class="btn-small btn-primary" catchtap="publishDraft" data-id="{{item.id}}">发布</view>
           </view>
-          <view wx:else class="delete-btn" catchtap="deleteItem" data-id="{{item.id}}">
-            <text class="delete-text">删除</text>
+          <view wx:else class="btn-small btn-danger" catchtap="deleteItem" data-id="{{item.id}}">
+            <text>删除</text>
           </view>
         </view>
       </view>
     </view>
 
-  <!-- 加载状态 -->
-  <view wx:if="{{loading}}" class="loading-state">
+    <!-- 加载状态 -->
+    <view wx:if="{{loading}}" class="loading-state">
     <view class="loading-icon">⏳</view>
     <view class="loading-text">加载中...</view>
   </view>

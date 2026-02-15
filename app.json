@@ -33,19 +33,27 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页"
+        "text": "首页",
+        "iconPath": "assets/icons/tab-home.png",
+        "selectedIconPath": "assets/icons/tab-home-active.png"
       },
       {
         "pagePath": "pages/publish/publish",
-        "text": "发布"
+        "text": "发布",
+        "iconPath": "assets/icons/tab-publish.png",
+        "selectedIconPath": "assets/icons/tab-publish-active.png"
       },
       {
         "pagePath": "pages/messages/messages",
-        "text": "消息"
+        "text": "消息",
+        "iconPath": "assets/icons/tab-message.png",
+        "selectedIconPath": "assets/icons/tab-message-active.png"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "assets/icons/tab-profile.png",
+        "selectedIconPath": "assets/icons/tab-profile-active.png"
       }
     ]
   },

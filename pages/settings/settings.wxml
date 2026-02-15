@@ -87,7 +87,7 @@
 
   <!-- 重置功能 -->
   <view class="reset-section">
-    <button class="reset-btn" bindtap="resetAgreement">
+    <button class="btn-danger" bindtap="resetAgreement">
       重置用户协议
     </button>
     <view class="reset-desc">将重新显示用户授权页面</view>

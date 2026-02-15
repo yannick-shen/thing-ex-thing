@@ -103,12 +103,12 @@
   margin-right: 16rpx;
 }
 
-.cancel-btn {
+/* 取消按钮 .cancel-btn {
   text-align: center;
   font-size: 26rpx;
   color: #999;
   padding: 20rpx 0;
-}
+}*/
 
 /* 动画效果 */
 @keyframes fadeIn {

@@ -46,8 +46,8 @@
   </view>
 
   <view class="auth-footer">
-    <button 
-      class="auth-btn {{!privacyAgreed ? 'disabled' : ''}}" 
+    <button
+      class="btn-primary {{!privacyAgreed ? '' : ''}}"
       bindtap="handleAuth"
       disabled="{{!privacyAgreed}}"
     >

@@ -45,7 +45,7 @@
           </view>
           <view class="comment-text" wx:else>{{item.content}}</view>
           <view class="comment-actions">
-            <button class="comment-btn-reply" catchtap="onReply" data-comment="{{item}}">回复</button>
+            <button class="btn-small btn-secondary" catchtap="onReply" data-comment="{{item}}">回复</button>
           </view>
         </view>
       </view>
@@ -68,17 +68,17 @@
         maxlength="200"
         disabled="{{!isLoggedIn}}"
       />
-      <button 
+      <button
         wx:if="{{isLoggedIn}}"
-        class="send-btn {{hasContent ? 'active' : ''}}" 
+        class="btn-primary"
         bindtap="submitComment"
         disabled="{{!hasContent || submitting}}"
       >
         {{submitting ? '发送中' : '发送'}}
       </button>
-      <button 
+      <button
         wx:else
-        class="send-btn" 
+        class="btn-primary"
         bindtap="goToLogin"
       >
         去登录
