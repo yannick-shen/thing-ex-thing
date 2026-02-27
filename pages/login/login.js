@@ -3,7 +3,7 @@ const authManager = require('../../utils/auth.js');
 Page({
   data: {
     isLogging: false,
-    privacyAgreed: false,
+    privacyAgreed: true,  // 修改：默认同意协议，按钮启用
     canLogin: false
   },
 
@@ -108,27 +108,24 @@ Page({
     wx.removeStorageSync('userInfo');
     authManager.currentUser = null;
   },
-
   onUnload() {
     // 页面卸载时检查处理
     console.log('登录页面卸载');
     this.handlePageLeave();
   },
-
   onHide() {
     // 页面隐藏时检查处理
     console.log('登录页面隐藏');
     this.handlePageLeave();
   },
-
   // 处理页面离开的逻辑
   handlePageLeave() {
     const fromProtectedPage = wx.getStorageSync('fromProtectedPage') || false;
-    
+   
     // 如果来自受保护页面且用户没有成功登录，说明用户点击了返回按钮
     if (fromProtectedPage && !this.navigateToTargetCalled) {
       console.log('用户从受保护页面返回且未登录，跳转到首页');
-      
+     
       // 立即跳转到首页，避免看到中间页面
       wx.switchTab({
         url: '/pages/index/index',
@@ -140,33 +137,28 @@ Page({
         }
       });
     }
-    
+   
     // 清除临时状态
     wx.removeStorageSync('loginRedirect');
     wx.removeStorageSync('fromProtectedPage');
     this.navigateToTargetCalled = false;
   },
-
-
-
   // 协议勾选状态变更
   onAgreementChange(e) {
     const agreed = e.detail.value.includes('agree');
-    this.setData({ 
+    this.setData({
       privacyAgreed: agreed,
       canLogin: agreed
     });
   },
-
   // 处理微信登录
   async handleWechatLogin(e) {
     console.log('开始微信登录');
-    
+   
     if (this.data.isLogging) {
       console.log('正在登录中，忽略重复点击');
       return;
     }
-
     if (!this.data.privacyAgreed) {
       wx.showToast({
         title: '请先同意相关协议',
@@ -174,12 +166,11 @@ Page({
       });
       return;
     }
-
     this.setData({ isLogging: true });
-    
+   
     try {
       wx.showLoading({ title: '正在登录...' });
-      
+     
       // 第一步：获取微信登录凭证
       console.log('获取微信登录凭证...');
       const loginRes = await this.getWxLoginCode();
@@ -187,39 +178,37 @@ Page({
         throw new Error('获取微信登录凭证失败');
       }
       console.log('微信登录凭证获取成功:', loginRes.code);
-      
+     
       // 第二步：调用云函数登录（不传用户信息，让后端自动处理）
       console.log('调用 authManager.login()...');
       const loginResult = await authManager.login(loginRes.code, null);
       console.log('登录结果:', loginResult);
-
       if (loginResult.success) {
         console.log('登录成功，用户信息:', loginResult.user);
-        
+       
         // 保存用户协议同意状态
         wx.setStorageSync('userAgreed', true);
-        
+       
         // 立即隐藏loading，根据是否为新用户显示不同的成功提示
         wx.hideLoading();
-        
+       
         let successMessage = '登录成功';
         if (loginResult.isNewUser) {
           successMessage = '欢迎加入！账户已自动创建';
         }
-        
+       
         wx.showToast({
           title: successMessage,
           icon: 'success',
-          duration: 1500  // 稍微延长显示时间，让用户看到不同的提示
+          duration: 1500 // 稍微延长显示时间，让用户看到不同的提示
         });
-
         // 立即跳转，不等toast结束
         setTimeout(() => {
           this.navigateToTarget();
         }, 100);
       } else {
         console.error('登录失败，详细信息:', loginResult);
-        
+       
         // 显示具体的错误信息
         let errorMsg = '登录失败，请重试';
         if (loginResult.error && loginResult.error.errMsg) {
@@ -228,25 +217,25 @@ Page({
         } else if (loginResult.error && loginResult.error.message) {
           errorMsg = `登录失败: ${loginResult.error.message}`;
         }
-        
+       
         wx.showToast({
           title: errorMsg,
           icon: 'none',
           duration: 3000
         });
       }
-      
+     
     } catch (error) {
       console.error('登录过程异常:', error);
       console.error('异常详情:', error.errCode, error.errMsg);
-      
+     
       let errorMsg = '登录失败，请重试';
       if (error.errMsg) {
         errorMsg = `登录异常: ${error.errMsg}`;
       } else if (error.message) {
         errorMsg = `登录异常: ${error.message}`;
       }
-      
+     
       wx.showToast({
         title: errorMsg,
         icon: 'none',
@@ -257,7 +246,6 @@ Page({
       wx.hideLoading();
     }
   },
-
   // 获取用户信息
   getUserProfile() {
     return new Promise((resolve, reject) => {
@@ -270,7 +258,7 @@ Page({
         },
         fail: (err) => {
           console.log('getUserInfo 失败，尝试 getUserProfile:', err);
-          
+         
           // 如果 getUserInfo 失败，使用 getUserProfile
           wx.getUserProfile({
             desc: '用于完善用户资料，显示您的昵称和头像',
@@ -281,11 +269,11 @@ Page({
             },
             fail: (profileErr) => {
               console.error('getUserProfile 也失败:', profileErr);
-              
+             
               // 检查具体的错误信息
               const errMsg = profileErr.errMsg || '';
               console.log('详细错误信息:', errMsg);
-              
+             
               if (errMsg.includes('cancel') || errMsg.includes('拒绝')) {
                 wx.showModal({
                   title: '需要授权',
@@ -315,7 +303,6 @@ Page({
       });
     });
   },
-
   // 获取微信登录凭证
   getWxLoginCode() {
     return new Promise((resolve, reject) => {
@@ -331,9 +318,6 @@ Page({
       });
     });
   },
-
-
-
   // 跳转到目标页面
   navigateToTarget() {
     // 防止重复跳转
@@ -342,30 +326,27 @@ Page({
       return;
     }
     this.navigateToTargetCalled = true;
-
     const redirect = wx.getStorageSync('loginRedirect');
     wx.removeStorageSync('loginRedirect');
-
     console.log('准备跳转，目标:', redirect);
-
     if (redirect) {
       // 有重定向地址，跳转到指定页面
       const url = decodeURIComponent(redirect);
       console.log('重定向到:', url);
-      
+     
       // 延迟50ms确保状态清理完成
       setTimeout(() => {
         if (url.includes('/pages/')) {
           console.log('执行页面跳转:', url);
-          
+         
           // 判断是否为 tabBar 页面
           const tabPages = [
             '/pages/index/index',
-            '/pages/publish/publish', 
+            '/pages/publish/publish',
             '/pages/messages/messages',
             '/pages/profile/profile'
           ];
-          
+         
           if (tabPages.includes(url)) {
             // tabBar 页面使用 switchTab
             wx.switchTab({
@@ -379,7 +360,7 @@ Page({
             });
           } else {
             // 非 tabBar 页面使用 redirectTo
-            wx.redirectTo({ 
+            wx.redirectTo({
               url,
               success: () => {
                 console.log('✅ 重定向成功');
@@ -391,7 +372,7 @@ Page({
           }
         } else {
           console.log('执行 switchTab:', url);
-          wx.switchTab({ 
+          wx.switchTab({
             url,
             success: () => {
               console.log('✅ 切换Tab成功');
@@ -405,10 +386,10 @@ Page({
     } else {
       // 没有重定向地址，跳转到首页
       console.log('跳转到首页');
-      
+     
       setTimeout(() => {
         console.log('执行 跳转首页');
-        wx.switchTab({ 
+        wx.switchTab({
           url: '/pages/index/index',
           success: () => {
             console.log('✅ 跳转首页成功');
@@ -420,9 +401,6 @@ Page({
       }, 50);
     }
   },
-
-
-
   // 显示用户协议
   showUserAgreement() {
     wx.showModal({
@@ -432,7 +410,6 @@ Page({
       confirmText: '我知道了'
     });
   },
-
   // 显示隐私政策
   showPrivacyPolicy() {
     wx.showModal({
@@ -442,5 +419,4 @@ Page({
       confirmText: '我知道了'
     });
   },
-
 });

@@ -1,12 +1,9 @@
 <view class="publish-container">
   <!-- 未登录状态 -->
   <view wx:if="{{!isLoggedIn}}" class="login-required">
-    <view class="login-prompt">
-      <view class="login-icon">🔒</view>
-      <view class="login-title">需要登录才能发布物品</view>
-      <view class="login-desc">登录后可以发布闲置物品，让更多人看到</view>
-      <button class="login-btn btn-primary" bindtap="goToLogin">立即登录</button>
-    </view>
+    <view class="login-icon">📦</view>
+    <view class="login-title">登录后可发布闲置物品</view>
+    <button class="login-btn btn-primary" bindtap="goToLogin">立即登录</button>
   </view>
 
   <!-- 已登录状态或跳过登录状态 -->

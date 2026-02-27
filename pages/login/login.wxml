@@ -15,7 +15,6 @@
     <view class="auth-section">
       <view class="auth-tips">
         <text class="tips-title">登录后享受完整功能</text>
-        <text class="register-hint">首次登录将自动为您创建账户</text>
         <view class="tips-list">
           <view class="tips-item">
             <text class="tips-icon">✓</text>
@@ -34,20 +33,21 @@
 
       <!-- 协议勾选 -->
       <view class="agreement-check">
-        <checkbox-group bindchange="onAgreementChange">
-          <label class="agreement-label">
-            <checkbox value="agree" checked="{{privacyAgreed}}" class="agreement-checkbox" />
+        <label class="agreement-group">  
+          <checkbox 
+            value="agree" 
+            checked="{{privacyAgreed}}" 
+            class="agreement-checkbox" 
+            bindchange="onAgreementChange"  
+          />
+          <view class="agreement-content">
             <text class="agreement-text">我已阅读并同意</text>
-          </label>
-        </checkbox-group>
-        <view class="agreement-links">
-          <text class="link" bindtap="showUserAgreement">《用户协议》</text>
-          <text>和</text>
-          <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>
-        </view>
+            <text class="link" bindtap="showUserAgreement">《用户协议》</text>
+            <text class="agreement-text">和</text>
+            <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>
+          </view>
+        </label>
       </view>
-
-
 
       <!-- 微信登录按钮 -->
       <button
@@ -55,8 +55,7 @@
         bindtap="handleWechatLogin"
         disabled="{{!privacyAgreed}}"
       >
-        <text class="wechat-icon">🟢</text>
-        <text class="btn-text">微信快速登录</text>
+        <text class="btn-text">微信一键登录</text>
       </button>
     </view>
   </view>

@@ -1,52 +1,51 @@
 .profile-container {
-  min-height: 100vh;
-  background: #f8f9fa;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 40rpx);
+  min-height: 94vh;
+  background: white;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20rpx);
 }
 
 /* 顶部个人信息 */
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 40rpx 30rpx 60rpx;
+  background: white;
+  padding: 10rpx 30rpx 0rpx;
   color: white;
 }
 
 /* 登录提示 */
 .login-prompt {
-  text-align: center;
-  padding: 60rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 60rpx;
+  padding-bottom: 30rpx;
 }
 
 .login-icon {
-  font-size: 100rpx;
-  margin-bottom: 30rpx;
-}
-
-.login-text {
-  margin-bottom: 50rpx;
+  font-size: 120rpx;
+  margin-bottom: 40rpx;
+  opacity: 0.5;
 }
 
 .login-title {
   font-size: 36rpx;
   font-weight: bold;
-  margin-bottom: 15rpx;
-}
-
-.login-desc {
-  font-size: 26rpx;
-  opacity: 0.8;
-  line-height: 1.5;
+  color: #333;
+  margin-bottom: 60rpx;
 }
 
 .login-btn {
-  background: rgba(255, 255, 255, 0.2);
+  background: #1677ff;
   color: white;
-  border: 2rpx solid rgba(255, 255, 255, 0.3);
-  padding: 20rpx 60rpx;
-  border-radius: 50rpx;
-  font-size: 30rpx;
-  font-weight: 500;
-  backdrop-filter: blur(10rpx);
+  border: none;
+  border-radius: 8px;
+  height: 88rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .user-info {
@@ -102,14 +101,14 @@
 
 /* 功能菜单 */
 .menu-section {
-  padding: 20rpx 30rpx;
+  padding: 10rpx 30rpx 10rpx;
 }
 
 .menu-group {
   background: white;
   border-radius: 16rpx;
   overflow: hidden;
-  margin-bottom: 20rpx;
+  margin-bottom: 12rpx;
   box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
 }
 

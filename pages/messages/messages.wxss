@@ -1,26 +1,17 @@
 .messages-container {
   min-height: 100vh;
-  background: #f8f9fa;
+  background: white;
   padding-bottom: calc(env(safe-area-inset-bottom) + 20rpx);
 }
 
 /* 登录提示样式 */
 .login-required {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  padding: 0 40rpx;
-}
-
-.login-prompt {
-  text-align: center;
-  background: white;
-  border-radius: 20rpx;
-  padding: 80rpx 60rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 600rpx;
+  justify-content: flex-start;
+  padding-top: 250rpx;
+  padding-bottom: 40rpx;
 }
 
 .login-icon {
@@ -32,27 +23,22 @@
   font-size: 36rpx;
   font-weight: bold;
   color: #333;
-  margin-bottom: 20rpx;
-}
-
-.login-desc {
-  font-size: 28rpx;
-  color: #666;
-  margin-bottom: 60rpx;
-  line-height: 1.5;
+  margin-bottom: 80rpx;
 }
 
 .login-btn {
   background: #1677ff;
   color: white;
   border: none;
-  border-radius: 50rpx;
+  border-radius: 8px;
   height: 88rpx;
-  line-height: 88rpx;
   font-size: 32rpx;
   font-weight: bold;
   margin-bottom: 20rpx;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .login-btn::after {

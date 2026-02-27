@@ -4,10 +4,7 @@
     <!-- 未登录状态 -->
     <view wx:if="{{!isLoggedIn}}" class="login-prompt">
       <view class="login-icon">👤</view>
-      <view class="login-text">
-        <view class="login-title">登录后享受完整功能</view>
-        <view class="login-desc">发布物品、收藏喜欢的宝贝、管理个人资料</view>
-      </view>
+      <view class="login-title">登录后可享受完整功能</view>
       <button class="login-btn btn-primary" bindtap="goToLogin">立即登录</button>
     </view>
 

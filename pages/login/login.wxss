@@ -53,7 +53,7 @@
 }
 
 .auth-tips {
-  background: #f8f9fa;
+  background: white;
   border-radius: 20rpx;
   padding: 40rpx;
   margin-bottom: 50rpx;
@@ -64,20 +64,8 @@
   font-weight: 600;
   color: #333;
   display: block;
-  margin-bottom: 20rpx;
-  text-align: center;
-}
-
-.register-hint {
-  font-size: 26rpx;
-  color: #1890ff;
-  display: block;
   margin-bottom: 30rpx;
   text-align: center;
-  background: #e6f7ff;
-  padding: 12rpx 20rpx;
-  border-radius: 20rpx;
-  border: 1rpx solid #91d5ff;
 }
 
 /* 权限说明 */
@@ -129,6 +117,7 @@
 .tips-item {
   display: flex;
   align-items: center;
+  padding-left: 150rpx;
   font-size: 28rpx;
   color: #666;
 }
@@ -141,7 +130,6 @@
 }
 
 .tips-text {
-  flex: 1;
 }
 
 /* 微信登录按钮 */
@@ -167,11 +155,6 @@
   box-shadow: 0 4rpx 12rpx rgba(7, 193, 96, 0.25);
 }
 
-.wechat-icon {
-  font-size: 36rpx;
-  margin-right: 16rpx;
-}
-
 .btn-text {
   font-size: 32rpx;
 }
@@ -192,39 +175,43 @@
 /* 协议勾选区域 */
 .agreement-check {
   margin: 40rpx 0 30rpx;
-  padding: 24rpx;
-  background: #f8f9fa;
-  border-radius: 12rpx;
+  padding: 0 80rpx;  /* 保持左右距离，整体宽松 */
+  background: white;
 }
 
-.agreement-label {
+.agreement-group {
   display: flex;
-  align-items: flex-start;
-  margin-bottom: 12rpx;
+  flex-direction: row;
+  align-items: center;  /* 垂直居中，确保同一行 */
+  gap: 16rpx;  /* checkbox 和文字间距 */
 }
 
 .agreement-checkbox {
-  margin-right: 12rpx;
-  margin-top: 4rpx;
+  margin: 0;
+  width: 40rpx;
+  height: 40rpx;
+  flex-shrink: 0;
+}
+
+.agreement-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  white-space: nowrap;  /* 强制一行，不换行 */
+  overflow: hidden;  /* 如果文字超长，隐藏溢出（小程序宽够用） */
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: #666;
+  flex: 1;
+  gap: 4rpx;
 }
 
 .agreement-text {
-  font-size: 28rpx;
   color: #333;
-  line-height: 1.4;
-  flex: 1;
 }
 
-.agreement-links {
-  font-size: 26rpx;
-  color: #666;
-  line-height: 1.4;
-  padding-left: 32rpx;
-}
-
-.agreement-links .link {
+.link {
   color: #1890ff;
-  text-decoration: underline;
 }
 
 /* 禁用状态 */
