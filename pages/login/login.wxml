@@ -33,21 +33,24 @@
 
       <!-- 协议勾选 -->
       <view class="agreement-check">
-        <label class="agreement-group">  
-          <checkbox 
-            value="agree" 
-            checked="{{privacyAgreed}}" 
-            class="agreement-checkbox" 
-            bindchange="onAgreementChange"  
-          />
-          <view class="agreement-content">
-            <text class="agreement-text">我已阅读并同意</text>
-            <text class="link" bindtap="showUserAgreement">《用户协议》</text>
-            <text class="agreement-text">和</text>
-            <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>
-          </view>
-        </label>
+        <checkbox-group bindchange="onAgreementChange">  <!-- 原 class="agreement-group" 移走（移到 label 上，确保 flex 在 label 内部生效） -->
+          <label class="agreement-group">  <!-- 原无 class，添加 class="agreement-group"（应用 flex 布局） -->
+            <checkbox 
+              value="agree" 
+              checked="{{privacyAgreed}}" 
+              class="agreement-checkbox" 
+            />
+            <view class="agreement-content">
+              <text class="agreement-text">我已阅读并同意</text>
+              <text class="link" bindtap="showUserAgreement">《用户协议》</text>
+              <text class="agreement-text">和</text>
+              <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>
+            </view>
+          </label>
+        </checkbox-group>
       </view>
+      
+
 
       <!-- 微信登录按钮 -->
       <button

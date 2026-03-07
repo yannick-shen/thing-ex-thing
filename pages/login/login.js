@@ -3,7 +3,7 @@ const authManager = require('../../utils/auth.js');
 Page({
   data: {
     isLogging: false,
-    privacyAgreed: true,  // 修改：默认同意协议，按钮启用
+    privacyAgreed: false,  // 修改：默认同意协议，按钮启用
     canLogin: false
   },
 

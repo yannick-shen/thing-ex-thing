@@ -10,11 +10,6 @@
 
   <!-- 已登录状态或跳过登录状态 -->
   <view wx:else>
-  <!-- 顶部标题 -->
-  <view class="header">
-    <view class="header-title">消息中心</view>
-  </view>
-
   <!-- 消息类型切换 -->
   <view class="tab-section">
     <view class="tab-group">

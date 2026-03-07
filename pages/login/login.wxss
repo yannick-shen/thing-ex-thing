@@ -182,23 +182,26 @@
 .agreement-group {
   display: flex;
   flex-direction: row;
-  align-items: center;  /* 垂直居中，确保同一行 */
+  align-items: center;   /* 垂直居中，确保同一行 */
   gap: 16rpx;  /* checkbox 和文字间距 */
 }
 
 .agreement-checkbox {
-  margin: 0;
-  width: 40rpx;
-  height: 40rpx;
+  margin-right: 16rpx;
+  width: 20rpx;
+  height: 20rpx;
+  
   flex-shrink: 0;
 }
 
 .agreement-content {
+  
   display: flex;
   flex-direction: row;
   align-items: center;
+  transform: translateY(14rpx);
   white-space: nowrap;  /* 强制一行，不换行 */
-  overflow: hidden;  /* 如果文字超长，隐藏溢出（小程序宽够用） */
+  overflow: visible;  /* 如果文字超长，隐藏溢出（小程序宽够用） */
   font-size: 24rpx;
   line-height: 1.5;
   color: #666;
