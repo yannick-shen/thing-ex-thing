@@ -103,7 +103,9 @@
 
       <text class="text-body">{{detailItem.desc}}</text>
 
-      <text class="text-muted">发布时间: {{detailCreateTime}}</text>
+      <view class="detail-time">
+        <text class="text-muted">发布时间: {{detailCreateTime}}</text>
+      </view>
 
       <!-- 位置信息 -->
       <view class="detail-location">

@@ -70,11 +70,11 @@
       />
       <button
         wx:if="{{isLoggedIn}}"
-        class="btn-primary"
+        class="send-icon-btn {{hasContent ? 'active' : ''}}"
         bindtap="submitComment"
         disabled="{{!hasContent || submitting}}"
       >
-        {{submitting ? '发送中' : '发送'}}
+        {{submitting ? '...' : '➤'}}
       </button>
       <button
         wx:else

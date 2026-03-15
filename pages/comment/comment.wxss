@@ -240,6 +240,39 @@
   color: #fff;
 }
 
+/* 发送图标按钮 - 小圆形 */
+.send-icon-btn {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 50% !important;
+  background: #e6e6e6;
+  color: #999;
+  border: none;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.send-icon-btn.active {
+  background: #1677ff;
+  color: #fff;
+}
+
+.send-icon-btn[disabled] {
+  background: #e6e6e6;
+  color: #999;
+}
+
+.send-icon-btn::after {
+  border: none;
+}
+
 .send-btn[disabled] {
   background: #e6e6e6;
   color: #999;
