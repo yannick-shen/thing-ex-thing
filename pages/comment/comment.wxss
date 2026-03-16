@@ -183,7 +183,16 @@
 
 .comment-actions {
   display: flex;
-  gap: 16px;
+  justify-content: flex-end;
+}
+
+/* 回复按钮样式 */
+.comment-actions .btn-small {
+  padding: 4px 14px !important;
+  font-size: 12px !important;
+  min-width: auto !important;
+  width: auto !important;
+  border-radius: 4px !important;
 }
 
 .comment-btn-reply {
@@ -279,9 +288,10 @@
 }
 
 /* 未登录时的登录按钮样式 */
-.send-btn:not(.active) {
-  background: #1677ff;
-  color: #fff;
+.input-container .btn-primary {
+  min-width: auto !important;
+  width: auto !important;
+  flex: 0 0 auto !important;
 }
 
 .reply-indicator {

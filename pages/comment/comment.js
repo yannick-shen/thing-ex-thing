@@ -37,7 +37,7 @@ Page({
       // 监听 eventChannel，获取传递的物品信息
       const eventChannel = this.getOpenerEventChannel();
       if (eventChannel) {
-        eventChannel.on('transferItem', (item) => {
+        eventChannel.on ('transferItem', (item) => {
           // 使用传递的物品信息，避免重复调用云函数
           this.setData({ itemInfo: item });
         });
