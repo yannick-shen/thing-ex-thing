@@ -3,95 +3,44 @@
   background: #f8f9fa;
 }
 
-/* 顶部导航 */
-.header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding-top: env(safe-area-inset-top);
+/* 设置区域 */
+.setting-section {
+  background: #fff;
+  margin-top: 20rpx;
 }
 
-.nav-bar {
-  height: 88rpx;
+.setting-item {
   display: flex;
   align-items: center;
-  padding: 0 30rpx;
-  color: white;
+  justify-content: space-between;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
 }
 
-.nav-back {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 48rpx;
-  font-weight: bold;
+.setting-item:last-child {
+  border-bottom: none;
 }
 
-.nav-title {
+.setting-info {
   flex: 1;
-  text-align: center;
-  font-size: 36rpx;
+}
+
+.setting-label {
+  font-size: 30rpx;
+  color: #333;
   font-weight: 500;
 }
 
-.nav-placeholder {
-  width: 60rpx;
-}
-
-/* 状态卡片 */
-.status-card {
-  margin: 30rpx 30rpx 0;
-  background: white;
-  border-radius: 16rpx;
-  padding: 40rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
-}
-
-.status-header {
-  display: flex;
-  align-items: center;
-}
-
-.status-icon {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40rpx;
-  color: white;
-  font-weight: bold;
-  margin-right: 30rpx;
-}
-
-.status-icon.authorized {
-  background: #52c41a;
-}
-
-.status-icon.denied {
-  background: #ff4757;
-}
-
-.status-icon.never {
-  background: #ffa502;
-}
-
-.status-info {
-  flex: 1;
-}
-
-.status-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8rpx;
-}
-
-.status-desc {
+.setting-desc {
   font-size: 26rpx;
-  color: #666;
-  line-height: 1.4;
+  color: #999;
+  margin-top: 8rpx;
+}
+
+.setting-arrow {
+  font-size: 28rpx;
+  color: #ccc;
+  margin-left: 20rpx;
 }
 
 /* 信息卡片 */
@@ -110,10 +59,6 @@
   margin-bottom: 30rpx;
 }
 
-.info-list {
-  
-}
-
 .info-item {
   display: flex;
   margin-bottom: 20rpx;
@@ -126,7 +71,7 @@
 }
 
 .info-label {
-  color: #667eea;
+  color: #1677ff;
   font-weight: 500;
   min-width: 120rpx;
 }
@@ -134,154 +79,4 @@
 .info-content {
   color: #666;
   flex: 1;
-}
-
-/* 操作区域 */
-.action-section {
-  margin: 30rpx;
-}
-
-.action-group {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
-
-.action-btn {
-  height: 88rpx;
-  border-radius: 44rpx;
-  font-size: 32rpx;
-  font-weight: 500;
-  border: none;
-}
-
-.action-btn.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.action-btn.secondary {
-  background: white;
-  color: #667eea;
-  border: 2rpx solid #667eea;
-}
-
-/* 位置信息卡片 */
-.location-info-card {
-  margin: 30rpx;
-  background: white;
-  border-radius: 16rpx;
-  padding: 40rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
-}
-
-.location-detail {
-  margin-bottom: 30rpx;
-}
-
-.location-row {
-  display: flex;
-  margin-bottom: 15rpx;
-  font-size: 28rpx;
-}
-
-.location-row:last-child {
-  margin-bottom: 0;
-}
-
-.location-label {
-  color: #666;
-  min-width: 120rpx;
-}
-
-.location-value {
-  color: #333;
-  flex: 1;
-  word-break: break-all;
-}
-
-.refresh-btn {
-  width: 100%;
-  height: 72rpx;
-  background: #f8f9fa;
-  color: #667eea;
-  border: 2rpx solid #667eea;
-  border-radius: 36rpx;
-  font-size: 28rpx;
-}
-
-/* 设置指南弹窗 */
-.guide-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 30rpx;
-  box-sizing: border-box;
-}
-
-.guide-content {
-  width: 100%;
-  max-width: 600rpx;
-  background: white;
-  border-radius: 20rpx;
-  padding: 50rpx 40rpx;
-}
-
-.guide-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
-  text-align: center;
-  margin-bottom: 40rpx;
-}
-
-.guide-steps {
-  margin-bottom: 40rpx;
-}
-
-.guide-step {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 25rpx;
-}
-
-.step-number {
-  width: 50rpx;
-  height: 50rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24rpx;
-  font-weight: bold;
-  margin-right: 20rpx;
-  flex-shrink: 0;
-}
-
-.step-text {
-  flex: 1;
-  font-size: 28rpx;
-  color: #333;
-  line-height: 1.5;
-  padding-top: 8rpx;
-}
-
-.guide-close {
-  width: 100%;
-  height: 88rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 44rpx;
-  font-size: 32rpx;
-  font-weight: 500;
 }
