@@ -143,6 +143,11 @@ Page({
 
   // 回复评论
   onReply(e) {
+    const { isLoggedIn } = this.data;
+    if (!isLoggedIn) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      return;
+    }
     const comment = e.currentTarget.dataset.comment;
     this.setData({
       replyingTo: comment,
