@@ -97,6 +97,12 @@
 .username {
   font-size: 36rpx;
   font-weight: bold;
+  color: #333;
+}
+
+.edit-icon {
+  font-size: 20rpx;
+  margin-left: 20rpx;
 }
 
 /* 功能菜单 */
