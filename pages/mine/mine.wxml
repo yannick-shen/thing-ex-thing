@@ -63,8 +63,8 @@
         />
       </view>
       <view class="item-content flex-column gap-sm">
-        <text class="text-title">{{item.title}}</text>
-        <text class="text-muted">{{item.desc}}</text>
+        <text class="text-title item-desc">{{item.title}}</text>
+        <text class="text-muted item-desc">{{item.desc}}</text>
         <view class="flex-between">
           <view class="item-mode mode-{{item.mode}}">
             <text wx:if="{{item.mode === 'sale'}}">¥{{item.price}}</text>
@@ -74,14 +74,19 @@
           <text class="text-muted">{{item.formattedTime}}</text>
         </view>
         <view class="flex-row gap-md">
-          <text class="text-small">👁 {{item.counters.views}}</text>
-          <text class="text-small">❤️ {{item.counters.favorites}}</text>
-          <text class="text-small">💬 {{item.counters.comments}}</text>
+          <!-- 展示中的物品显示统计 -->
+          <view wx:if="{{item.status !== 'draft' && item.status !== 'off'}}" class="flex-row gap-sm">
+            <text class="text-small">👁 {{item.counters.views}}</text>
+            <text class="text-small">❤️ {{item.counters.favorites}}</text>
+            <text class="text-small">💬 {{item.counters.comments}}</text>
+          </view>
+          <!-- 草稿箱物品显示操作按钮 -->
           <view wx:if="{{item.status === 'draft' || item.status === 'off'}}" class="flex-row gap-sm">
             <view class="btn-small btn-danger" catchtap="deleteItem" data-id="{{item.id}}">删除</view>
             <view class="btn-small btn-primary" catchtap="publishDraft" data-id="{{item.id}}">发布</view>
           </view>
-          <view wx:else class="btn-small btn-danger" catchtap="deleteItem" data-id="{{item.id}}">
+          <!-- 展示中物品显示删除按钮 -->
+          <view wx:if="{{item.status !== 'draft' && item.status !== 'off'}}" class="btn-small btn-danger" catchtap="deleteItem" data-id="{{item.id}}">
             <text>删除</text>
           </view>
         </view>

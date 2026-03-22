@@ -65,7 +65,7 @@ Page({
     items = items.map(item => ({
       ...item,
       id: item._id, // 确保有统一的id字段
-      formattedTime: this.formatTime(item.updatedAt || item.createdAt)
+      formattedTime: this.formatTime(item.createdAt)
     }));
 
     const now = Date.now();
