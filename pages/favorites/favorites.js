@@ -107,7 +107,27 @@ Page({
   },
   goDetail(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: '/pages/detail/detail?id=' + id });
+    
+    // 查询物品状态
+    const db = wx.cloud.database();
+    db.collection('items').doc(id).get().then(res => {
+      const item = res.data;
+      if (!item || item.status !== 'on') {
+        wx.showModal({
+          title: '提示',
+          content: '该物品已下架或删除',
+          showCancel: false
+        });
+        return;
+      }
+      wx.navigateTo({ url: '/pages/detail/detail?id=' + id });
+    }).catch(err => {
+      wx.showModal({
+        title: '提示',
+        content: '该物品已下架或删除',
+        showCancel: false
+      });
+    });
   },
 
   // 图片加载错误处理

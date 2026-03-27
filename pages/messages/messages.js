@@ -238,6 +238,30 @@ Page({
 
   async goToDetail(e) {
     const { id, jumpPath, messageId } = e.currentTarget.dataset;
+    const itemId = id;
+
+    // 查询物品状态
+    if (itemId) {
+      try {
+        const db = wx.cloud.database();
+        const itemRes = await db.collection('items').doc(itemId).get();
+        if (!itemRes.data || itemRes.data.status !== 'on') {
+          wx.showModal({
+            title: '提示',
+            content: '该物品已下架或删除',
+            showCancel: false
+          });
+          return;
+        }
+      } catch (err) {
+        wx.showModal({
+          title: '提示',
+          content: '该物品已下架或删除',
+          showCancel: false
+        });
+        return;
+      }
+    }
 
     if (messageId) {
       // 更新本地消息为已读

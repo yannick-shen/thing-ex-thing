@@ -34,6 +34,23 @@ exports.main = async (event, context) => {
       updateData.deletedAt = Date.now();
     }
 
+    // 如果是下架到草稿箱，删除该物品的所有评论
+    if (status === 'draft' && item.data.status === 'on') {
+      const comments = await db.collection('comments')
+        .where({ itemId })
+        .limit(500)
+        .get();
+      
+      if (comments.data && comments.data.length > 0) {
+        // 批量删除评论
+        const deletePromises = comments.data.map(c => 
+          db.collection('comments').doc(c._id).remove()
+        );
+        await Promise.all(deletePromises);
+        console.log(`Deleted ${comments.data.length} comments for item ${itemId}`);
+      }
+    }
+
     await db.collection('items').doc(itemId).update({ data: updateData });
     return { code: 0, data: { success: true } };
   } catch (e) {
