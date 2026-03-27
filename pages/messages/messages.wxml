@@ -55,26 +55,40 @@
       <view class="empty-desc">当有人评论您的物品时会在这里显示</view>
     </view>
 
-    <view wx:for="{{comments}}" wx:key="id" class="message-item">
-      <view class="message-avatar">
-        <image wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill" />
-        <view wx:else class="avatar-placeholder">👤</view>
-      </view>
-      <view class="message-content">
-        <view class="message-header">
-          <view class="message-user">{{item.username}}</view>
-          <view class="message-time">{{utils.formatTime(item.createdAt)}}</view>
+    <view wx:for="{{comments}}" wx:key="id" class="slide-item">
+      <view 
+        class="message-item {{item.isSliding ? 'sliding' : ''}}"
+        bindtouchstart="onTouchStart"
+        bindtouchmove="onTouchMove"
+        bindtouchend="onTouchEnd"
+        data-index="{{index}}"
+      >
+        <view class="message-avatar">
+          <image wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill" />
+          <view wx:else class="avatar-placeholder">👤</view>
         </view>
-        <view class="message-text">{{item.content}}</view>
-        <view class="message-item-info" bindtap="goToDetail" data-id="{{item.itemId}}" data-jump-path="{{item.jumpPath}}" data-message-id="{{item.id}}">
-          <view class="item-title">{{item.itemTitle}}</view>
-          <view class="item-image" wx:if="{{item.itemImage}}">
-            <image src="{{item.itemImage}}" mode="aspectFill" />
+        <view class="message-content">
+          <view class="message-header">
+            <view class="message-user">{{item.username}}</view>
+            <view class="message-time">{{utils.formatTime(item.createdAt)}}</view>
           </view>
-          <view class="item-arrow">></view>
+          <view class="message-text">{{item.content}}</view>
+          <view class="message-item-info" catchtap="goToDetail" data-id="{{item.itemId}}" data-jump-path="{{item.jumpPath}}" data-message-id="{{item.id}}">
+            <view class="item-title">{{item.itemTitle}}</view>
+            <view class="item-image" wx:if="{{item.itemImage}}">
+              <image src="{{item.itemImage}}" mode="aspectFill" />
+            </view>
+            <view class="item-arrow">></view>
+          </view>
         </view>
+        <view wx:if="{{!item.read}}" class="unread-dot"></view>
       </view>
-      <view wx:if="{{!item.read}}" class="unread-dot"></view>
+      <view 
+        class="delete-btn {{item.isSliding ? 'show' : ''}}" 
+        catchtap="deleteComment" 
+        data-id="{{item.id}}"
+        data-index="{{index}}"
+      >删除</view>
     </view>
   </view>
 

@@ -331,4 +331,38 @@
   line-height: 1.4;
 }
 
+/* 滑动删除 */
+.slide-item { position: relative; overflow: hidden; margin-bottom: 20rpx; }
+
+.message-item {
+  display: flex;
+  background: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.message-item.sliding { transform: translateX(-100rpx); }
+
+.delete-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 100rpx;
+  background: #ff4d4f;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  border-radius: 16rpx;
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+}
+
+.delete-btn.show { transform: translateX(0); }
+
 

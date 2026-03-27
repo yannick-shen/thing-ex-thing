@@ -5,7 +5,10 @@ Page({
   data: { 
     isLoggedIn: false,
     items: [],
-    hasLoadedData: false // 添加数据加载状态标识
+    hasLoadedData: false, // 添加数据加载状态标识
+    slidingIndex: -1, // 当前滑动的项索引
+    startX: 0,
+    startY: 0
   },
   
   onLoad() {
@@ -138,6 +141,87 @@ Page({
       items[index].images[0] = '/assets/images/placeholder-empty.png';
       this.setData({ items });
     }
+  },
+
+  // 触摸开始
+  onTouchStart(e) {
+    this.setData({
+      startX: e.touches[0].clientX,
+      startY: e.touches[0].clientY
+    });
+  },
+
+  // 触摸移动
+  onTouchMove(e) {
+    const { startX, startY, slidingIndex } = this.data;
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const diffX = currentX - startX;
+    const diffY = currentY - startY;
+    
+    // 水平滑动且滑动距离大于垂直滑动
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+      const index = e.currentTarget.dataset.index;
+      
+      if (diffX < 0) {
+        // 左滑，显示删除按钮
+        this.updateSlide(index, true);
+      } else {
+        // 右滑，关闭删除按钮
+        this.updateSlide(index, false);
+      }
+    }
+  },
+
+  // 触摸结束
+  onTouchEnd(e) {
+    // 可选：自动关闭其他项的滑动
+  },
+
+  // 更新滑动状态
+  updateSlide(index, show) {
+    const items = this.data.items.map((item, i) => {
+      if (i === index) {
+        return { ...item, isSliding: show };
+      } else {
+        return { ...item, isSliding: false };
+      }
+    });
+    this.setData({ items, slidingIndex: show ? index : -1 });
+  },
+
+  // 删除收藏
+  deleteFavorite(e) {
+    const { id, index } = e.currentTarget.dataset;
+    
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除该收藏吗？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '删除中...' });
+          
+          wx.cloud.callFunction({
+            name: 'remove-favorite',
+            data: { itemId: id }
+          }).then(res => {
+            wx.hideLoading();
+            
+            if (res.result && res.result.code === 0) {
+              // 从列表中移除
+              const items = this.data.items.filter((_, i) => i !== index);
+              this.setData({ items });
+              wx.showToast({ title: '已删除', icon: 'success' });
+            } else {
+              wx.showToast({ title: '删除失败', icon: 'none' });
+            }
+          }).catch(err => {
+            wx.hideLoading();
+            wx.showToast({ title: '删除失败', icon: 'none' });
+          });
+        }
+      }
+    });
   },
 
 });

@@ -11,7 +11,9 @@ Page({
     commentsUnreadCount: 0,
     requestsUnreadCount: 0,
     approvedUnreadCount: 0,
-    systemUnreadCount: 0
+    systemUnreadCount: 0,
+    startX: 0,
+    startY: 0
   },
 
   onLoad() {
@@ -441,7 +443,86 @@ Page({
     });
   },
 
+  // 触摸开始
+  onTouchStart(e) {
+    this.setData({
+      startX: e.touches[0].clientX,
+      startY: e.touches[0].clientY
+    });
+  },
 
+  // 触摸移动
+  onTouchMove(e) {
+    const { startX, startY } = this.data;
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const diffX = currentX - startX;
+    const diffY = currentY - startY;
+    
+    // 水平滑动且滑动距离大于垂直滑动
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+      const index = e.currentTarget.dataset.index;
+      
+      if (diffX < 0) {
+        // 左滑，显示删除按钮
+        this.updateCommentSlide(index, true);
+      } else {
+        // 右滑，关闭删除按钮
+        this.updateCommentSlide(index, false);
+      }
+    }
+  },
+
+  // 触摸结束
+  onTouchEnd(e) {
+    // 可选：自动关闭其他项的滑动
+  },
+
+  // 更新评论滑动状态
+  updateCommentSlide(index, show) {
+    const comments = this.data.comments.map((item, i) => {
+      if (i === index) {
+        return { ...item, isSliding: show };
+      } else {
+        return { ...item, isSliding: false };
+      }
+    });
+    this.setData({ comments });
+  },
+
+  // 删除评论
+  deleteComment(e) {
+    const { id, index } = e.currentTarget.dataset;
+    
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除这条评论消息吗？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '删除中...' });
+          
+          wx.cloud.callFunction({
+            name: 'delete-comment-message',
+            data: { messageId: id }
+          }).then(res => {
+            wx.hideLoading();
+            
+            if (res.result && res.result.code === 0) {
+              // 从列表中移除
+              const comments = this.data.comments.filter((_, i) => i !== index);
+              this.setData({ comments });
+              wx.showToast({ title: '已删除', icon: 'success' });
+            } else {
+              wx.showToast({ title: '删除失败', icon: 'none' });
+            }
+          }).catch(err => {
+            wx.hideLoading();
+            wx.showToast({ title: '删除失败', icon: 'none' });
+          });
+        }
+      }
+    });
+  },
 
   // 页面分享
   onShareAppMessage() {
