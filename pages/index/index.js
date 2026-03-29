@@ -61,6 +61,36 @@ Page({
   },
 
   loadTimer: null, // 节流定时器
+  mapCache: null, // 地图数据缓存
+  cacheValidTime: 5 * 60 * 1000, // 缓存有效时间5分钟
+  
+  // 生成缓存key
+  getCacheKey(center, radiusKm, keyword, mode) {
+    const lat = center.latitude.toFixed(4);
+    const lng = center.longitude.toFixed(4);
+    return `map_cache_${lat}_${lng}_${radiusKm}_${keyword || ''}_${mode || ''}`;
+  },
+
+  // 检查缓存
+  getCache(center, radiusKm, keyword, mode) {
+    const key = this.getCacheKey(center, radiusKm, keyword, mode);
+    const cache = wx.getStorageSync(key);
+    if (cache && cache.timestamp && (Date.now() - cache.timestamp < this.cacheValidTime)) {
+      console.log('[缓存命中]', key);
+      return cache.data;
+    }
+    return null;
+  },
+
+  // 设置缓存
+  setCache(center, radiusKm, keyword, mode, data) {
+    const key = this.getCacheKey(center, radiusKm, keyword, mode);
+    wx.setStorageSync(key, {
+      data,
+      timestamp: Date.now()
+    });
+  },
+
   onLoad() {
     this.mapCtx = wx.createMapContext('map');
     this.initLocation();
@@ -137,53 +167,53 @@ Page({
 
   // 模拟数据加载与轻量聚合（按网格）
   loadMarkers() {
-    
     const { center, scale, searchKeyword, selectedMode } = this.data;
     const radiusKm = 2;
+    const mode = selectedMode === 'all' ? '' : selectedMode;
 
     // 防止重复请求：如果正在加载则跳过
     if (this.isLoading) {
-      //console.log('正在加载中，跳过本次请求');
       return;
     }
+
+    // 检查缓存（仅在非强制刷新时使用缓存）
+    const cachedItems = this.getCache(center, radiusKm, searchKeyword, mode);
+    if (cachedItems) {
+      this.processItems(cachedItems, scale);
+      return;
+    }
+
     this.isLoading = true;
 
     // 云函数查询视野内数据（后端已根据状态/审核/过期过滤）
-    wx.cloud.callFunction({ name: 'fetch-items-in-view', data: { center, radiusKm, keyword: searchKeyword, mode: selectedMode === 'all' ? '' : selectedMode } }).then(res => {
+    wx.cloud.callFunction({ name: 'fetch-items-in-view', data: { center, radiusKm, keyword: searchKeyword, mode } }).then(res => {
       this.isLoading = false;
       const items = res.result?.data?.items || [];
 
-      // 云函数已处理图片临时链接，直接聚合
-      const clustered = gridCluster(items, scale);
-        // 保存原始数据用于点击跳转
-        this.currentItems = {};
-        clustered.forEach((c, idx) => {
-          if (c.count === 1 && c.id) {
-            this.currentItems[idx] = { id: c.id };
-          }
-        });
-        this.setData({ markers: clustered.map((c, idx) => {
-        const marker = { id: idx, latitude: c.lat, longitude: c.lng, width: 32, height: 32 };
+      // 缓存结果
+      this.setCache(center, radiusKm, searchKeyword, mode, items);
 
-        // 单个标记点使用自定义图标
-        if (c.count === 1) {
-          const icon = MODE_ICONS[c.mode] || MODE_ICONS.default;
-          marker.iconPath = icon;
-        } else {
-          // 聚合点使用聚合图标
-          marker.iconPath = CLUSTER_ICON;
-          marker.callout = { content: String(c.count), color: '#fff', fontSize: 10, borderRadius: 10, bgColor: '#1677ff', padding: 2, display: 'ALWAYS' };
-          marker.items = c.items;
-        }
-
-        return marker;
-      })       });
+      this.processItems(items, scale);
     }).catch(err => {
       this.isLoading = false;
       console.warn('云函数调用失败，使用本地模拟数据:', err);
       const raw = mockFetchItems(center, radiusKm, searchKeyword);
-      const clustered = gridCluster(raw, scale);
-      this.setData({ markers: clustered.map((c, idx) => {
+      this.processItems(raw, scale);
+    });
+  },
+
+  // 处理物品数据（提取为独立方法复用）
+  processItems(items, scale) {
+    const clustered = gridCluster(items, scale);
+    // 保存原始数据用于点击跳转
+    this.currentItems = {};
+    clustered.forEach((c, idx) => {
+      if (c.count === 1 && c.id) {
+        this.currentItems[idx] = { id: c.id };
+      }
+    });
+    this.setData({ 
+      markers: clustered.map((c, idx) => {
         const marker = { id: idx, latitude: c.lat, longitude: c.lng, width: 32, height: 32 };
 
         // 单个标记点使用自定义图标
@@ -198,7 +228,7 @@ Page({
         }
 
         return marker;
-      }) });
+      }) 
     });
   },
 
