@@ -58,52 +58,8 @@ exports.main = async (event, context) => {
         .where({ _id: _.in(itemIds), status: 'on' })
         .get();
 
-      // 为所有图片生成临时访问链接
+      // 直接使用云存储的 fileID，微信小程序会自动处理访问
       const items = itemsRes.data || [];
-      const allImageIds = [];
-
-      // 收集所有云存储图片ID
-      items.forEach(item => {
-        if (item.images && item.images.length > 0) {
-          item.images.forEach(img => {
-            if (img && img.startsWith('cloud://')) {
-              allImageIds.push(img);
-            }
-          });
-        }
-      });
-
-      // 批量获取临时链接
-      let tempUrlMap = {};
-      if (allImageIds.length > 0) {
-        try {
-          const result = await cloud.getTempFileURL({
-            fileList: allImageIds
-          });
-
-          if (result.fileList) {
-            result.fileList.forEach(file => {
-              if (file.status === 0) {
-                tempUrlMap[file.fileID] = file.tempFileURL;
-              }
-            });
-          }
-        } catch (e) {
-          console.error('获取临时链接失败:', e);
-        }
-      }
-
-      // 替换图片路径为临时链接
-      items.forEach(item => {
-        if (item.images && item.images.length > 0) {
-          item.images = item.images.map(img => {
-            if (img && img.startsWith('cloud://') && tempUrlMap[img]) {
-              return tempUrlMap[img];
-            }
-            return img;
-          });
-        }
-      });
 
       return { code: 0, data: { items: items } };
     }

@@ -73,37 +73,7 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 批量获取头像的临时链接
-    const avatarCloudPaths = Object.values(usersMap)
-      .map(user => user.profile?.avatarUrl)
-      .filter(avatar => avatar && avatar.startsWith('cloud://'))
-
-    let tempUrlsMap = {}
-    if (avatarCloudPaths.length > 0) {
-      try {
-        // 分批获取临时链接（每次最多50个）
-        const batchSize = 50
-        for (let i = 0; i < avatarCloudPaths.length; i += batchSize) {
-          const batch = avatarCloudPaths.slice(i, i + batchSize)
-          const tempUrlResult = await cloud.getTempFileURL({
-            fileList: batch,
-            maxAge: 7200
-          })
-
-          if (tempUrlResult.fileList && tempUrlResult.fileList.length > 0) {
-            tempUrlResult.fileList.forEach(fileInfo => {
-              if (fileInfo.tempFileURL) {
-                tempUrlsMap[fileInfo.fileID] = fileInfo.tempFileURL
-              }
-            })
-          }
-        }
-      } catch (error) {
-        console.error('批量获取临时链接失败:', error)
-      }
-    }
-
-    // 处理消息数据，添加跳转路径和头像
+    // 处理消息数据，添加跳转路径和头像（直接使用cloud://路径）
     const messages = messagesResult.data.map(message => {
       let jumpPath = ''
 
@@ -118,9 +88,8 @@ exports.main = async (event, context) => {
       const user = usersMap[message.fromUserId]
       let avatar = ''
       if (user && user.profile && user.profile.avatarUrl) {
-        const originalAvatar = user.profile.avatarUrl
-        // 使用临时链接
-        avatar = tempUrlsMap[originalAvatar] || originalAvatar
+        // 直接使用cloud://路径
+        avatar = user.profile.avatarUrl
       }
 
       const processedMessage = {

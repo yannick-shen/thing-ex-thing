@@ -46,53 +46,6 @@ Page({
     });
   },
 
-
-  // 获取云存储图片临时链接
-  async downloadCloudImages(images) {
-    const localImages = [];
-    const cloudIds = [];
-
-    for (let i = 0; i < images.length; i++) {
-      const image = images[i];
-      console.log('处理图片:', image);
-      if (image && image.startsWith('cloud://')) {
-        cloudIds.push(image);
-      } else {
-        localImages.push(image);
-      }
-    }
-
-    // 批量获取临时链接
-    if (cloudIds.length > 0) {
-      try {
-        const result = await wx.cloud.getTempFileURL({
-          fileList: cloudIds,
-          maxAge: 7200 // 2小时有效期
-        });
-        console.log('临时链接结果:', result);
-
-        if (result.fileList && result.fileList.length > 0) {
-          result.fileList.forEach(file => {
-            if (file.status === 0 && file.tempFileURL) {
-              localImages.push(file.tempFileURL);
-            } else {
-              console.error('获取临时链接失败:', file);
-              localImages.push('/assets/images/placeholder-empty.png');
-            }
-          });
-        }
-      } catch (err) {
-        console.error('获取临时链接异常:', err);
-        // 失败时全部使用占位图
-        cloudIds.forEach(() => {
-          localImages.push('/assets/images/placeholder-empty.png');
-        });
-      }
-    }
-
-    return localImages;
-  },
-
   async loadFavorites() {
     wx.cloud.callFunction({ name: 'get-my-favorites' }).then(res => {
       if (res.result && res.result.code === 0) {

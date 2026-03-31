@@ -36,22 +36,8 @@ Page({
 
       if (result.result && result.result.code === 0) {
         const user = result.result.data.user;
-        let qrCode = user.contactInfo && user.contactInfo.qrCode || '';
-
-        // 获取临时链接避免缓存
-        if (qrCode && qrCode.startsWith('cloud://')) {
-          try {
-            const tempUrlResult = await wx.cloud.getTempFileURL({
-              fileList: [qrCode],
-              maxAge: 7200
-            });
-            if (tempUrlResult.fileList && tempUrlResult.fileList.length > 0) {
-              qrCode = tempUrlResult.fileList[0].tempFileURL;
-            }
-          } catch (tempError) {
-            console.warn('获取临时链接失败，使用原路径:', tempError);
-          }
-        }
+        // 直接使用cloud://路径
+        const qrCode = user.contactInfo && user.contactInfo.qrCode || '';
 
         this.setData({ qrCode });
       }
@@ -92,22 +78,7 @@ Page({
 
       const fileID = uploadRes.fileID;
 
-      // 获取临时链接避免缓存
-      let displayUrl = fileID;
-      if (fileID.startsWith('cloud://')) {
-        try {
-          const tempUrlResult = await wx.cloud.getTempFileURL({
-            fileList: [fileID],
-            maxAge: 7200
-          });
-          if (tempUrlResult.fileList && tempUrlResult.fileList.length > 0) {
-            displayUrl = tempUrlResult.fileList[0].tempFileURL;
-          }
-        } catch (tempError) {
-          console.warn('获取临时链接失败，使用原路径:', tempError);
-        }
-      }
-
+      // 直接使用cloud://路径
       const updateRes = await wx.cloud.callFunction({
         name: 'update-contact-info',
         data: {
@@ -116,7 +87,7 @@ Page({
       });
 
       if (updateRes.result && updateRes.result.code === 0) {
-        this.setData({ qrCode: displayUrl });
+        this.setData({ qrCode: fileID });
         wx.showToast({
           title: '上传成功',
           icon: 'success'

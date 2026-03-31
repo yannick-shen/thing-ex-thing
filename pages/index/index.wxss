@@ -18,11 +18,6 @@
 .cluster-item-price.mode-donate { color: #2ED573; }
 .cluster-item-price.mode-help { color: #FFA502; }
 
-/* 图例 */
-.legend { position: fixed; bottom: 140px; left: 16px; background: rgba(255,255,255,0.95); padding: 8px 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.legend-item { font-size: 12px; }
-.legend-dot { font-size: 10px; }
-
 /* 浮动按钮组 */
 .button-group { position: fixed; right: 16px; bottom: 40px; z-index: 8; }
 .fab { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }

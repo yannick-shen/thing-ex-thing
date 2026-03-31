@@ -42,24 +42,8 @@ exports.main = async (event, context) => {
       })
       .count();
 
-    // 转换头像链接为临时链接
-    const requests = await Promise.all(requestsRes.data.map(async (req) => {
-      const processedReq = { ...req };
-      if (processedReq.buyerAvatar && processedReq.buyerAvatar.startsWith('cloud://')) {
-        try {
-          const tempUrlResult = await cloud.getTempFileURL({
-            fileList: [processedReq.buyerAvatar],
-            maxAge: 7200  // 设置临时链接有效期为2小时（7200秒）
-          });
-          if (tempUrlResult.fileList && tempUrlResult.fileList.length > 0) {
-            processedReq.buyerAvatar = tempUrlResult.fileList[0].tempFileURL;
-          }
-        } catch (err) {
-          console.warn('获取临时链接失败:', processedReq.buyerAvatar, err);
-        }
-      }
-      return processedReq;
-    }));
+    // 直接使用cloud://路径
+    const requests = requestsRes.data;
 
     return {
       code: 0,

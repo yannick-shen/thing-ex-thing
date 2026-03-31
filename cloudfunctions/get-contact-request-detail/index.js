@@ -38,23 +38,9 @@ exports.main = async (event, context) => {
       // 获取卖家昵称
       sellerName = seller.profile && seller.profile.nickname || '对方';
 
+      // 直接使用cloud://路径
       if (qrCodeFileID) {
-        try {
-          // 获取云存储文件的临时下载链接（有效期2小时）
-          const result = await cloud.getTempFileURL({
-            fileList: [qrCodeFileID],
-            maxAge: 7200  // 设置临时链接有效期为2小时（7200秒）
-          });
-          if (result.fileList && result.fileList.length > 0) {
-            sellerQrCode = result.fileList[0].tempFileURL;
-          } else {
-            // 如果获取临时链接失败，返回原fileID
-            sellerQrCode = qrCodeFileID;
-          }
-        } catch (error) {
-          console.warn('获取临时链接失败，使用原fileID:', error);
-          sellerQrCode = qrCodeFileID;
-        }
+        sellerQrCode = qrCodeFileID;
       }
     }
 

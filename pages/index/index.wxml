@@ -37,26 +37,6 @@
 
 <view wx:if="{{searchKeyword}}" class="filter-tag" catchtap="clearSearch">已筛选:{{searchKeyword}}</view>
 
-<!-- 图例 -->
-<view class="legend flex-row gap-md">
-  <view class="legend-item flex-row gap-sm">
-    <text class="legend-dot" style="color: #FF4757;">●</text>
-    <text class="text-small">出售</text>
-  </view>
-  <view class="legend-item flex-row gap-sm">
-    <text class="legend-dot" style="color: #3742FA;">●</text>
-    <text class="text-small">交换</text>
-  </view>
-  <view class="legend-item flex-row gap-sm">
-    <text class="legend-dot" style="color: #2ED573;">●</text>
-    <text class="text-small">赠送</text>
-  </view>
-  <view class="legend-item flex-row gap-sm">
-    <text class="legend-dot" style="color: #FFA502;">●</text>
-    <text class="text-small">求助</text>
-  </view>
-</view>
-
 <!-- 地图 -->
 <map id="map" longitude="{{center.longitude}}" latitude="{{center.latitude}}" scale="{{scale}}" style="width: 100%; height: 100vh;" show-location="true" enable-scroll="true" enable-zoom="true" bindregionchange="onRegionChange" bindmarkertap="onMarkerTap" markers="{{markers}}">
 </map>
