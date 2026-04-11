@@ -62,7 +62,7 @@ Page({
 
   loadTimer: null, // 节流定时器
   mapCache: null, // 地图数据缓存
-  cacheValidTime: 5 * 60 * 1000, // 缓存有效时间5分钟
+  cacheValidTime: 10 * 60 * 1000, // 缓存有效时间10分钟
   
   // 生成缓存key
   getCacheKey(center, radiusKm, keyword, mode) {
@@ -71,22 +71,53 @@ Page({
     return `map_cache_${lat}_${lng}_${radiusKm}_${keyword || ''}_${mode || ''}`;
   },
 
-  // 检查缓存
+  // 检查缓存（添加1km距离阈值判断）
   getCache(center, radiusKm, keyword, mode) {
     const key = this.getCacheKey(center, radiusKm, keyword, mode);
     const cache = wx.getStorageSync(key);
-    if (cache && cache.timestamp && (Date.now() - cache.timestamp < this.cacheValidTime)) {
-      console.log('[缓存命中]', key);
-      return cache.data;
+    
+    // 检查缓存是否存在且未过期
+    if (cache && cache.timestamp) {
+      const timeDiff = Date.now() - cache.timestamp;
+      const isTimeValid = timeDiff < this.cacheValidTime;
+      
+      if (isTimeValid) {
+        // 缓存未过期，检查位置匹配（1km阈值）
+        if (cache.center) {
+          const distance = calculateDistance(
+            center.latitude, center.longitude,
+            cache.center.latitude, cache.center.longitude
+          );
+          
+          const DISTANCE_THRESHOLD = 1.0; // 1公里阈值
+          
+          if (distance < DISTANCE_THRESHOLD) {
+            console.log(`[缓存命中] 距离: ${distance.toFixed(2)}km < ${DISTANCE_THRESHOLD}km`, key);
+            return cache.data;
+          } else {
+            console.log(`[缓存不匹配] 距离: ${distance.toFixed(2)}km ≥ ${DISTANCE_THRESHOLD}km`);
+            return null;
+          }
+        } else {
+          // 旧缓存没有位置信息，直接使用
+          console.log('[缓存命中] 旧格式缓存', key);
+          return cache.data;
+        }
+      } else {
+        console.log('[缓存过期] 时间差:', (timeDiff/1000/60).toFixed(1), '分钟');
+        return null;
+      }
     }
+    
     return null;
   },
 
-  // 设置缓存
+  // 设置缓存（添加位置信息）
   setCache(center, radiusKm, keyword, mode, data) {
     const key = this.getCacheKey(center, radiusKm, keyword, mode);
     wx.setStorageSync(key, {
       data,
+      center, // 存储位置信息，用于距离匹配
       timestamp: Date.now()
     });
   },
@@ -148,11 +179,29 @@ Page({
 
   onRegionChange(e) {
     if (e.type === 'end') {
-      // 节流：避免频繁调用
+      const { center, scale, searchKeyword, selectedMode } = this.data;
+      
+      // 清除之前的定时器
       if (this.loadTimer) clearTimeout(this.loadTimer);
+      
+      const radiusKm = 2;
+      const mode = selectedMode === 'all' ? '' : selectedMode;
+      
+      // 1. 立即检查缓存
+      const cachedItems = this.getCache(center, radiusKm, searchKeyword, mode);
+      
+      if (cachedItems) {
+        // 缓存命中，立即显示数据
+        console.log('[缓存命中] 立即显示缓存数据');
+        this.processItems(cachedItems, scale);
+        return;
+      }
+      
+      // 2. 缓存未命中，延迟1秒加载
+      console.log('[缓存未命中] 延迟1秒加载数据');
       this.loadTimer = setTimeout(() => {
         this.updateCenterAndLoad();
-      }, 300);
+      }, 1000);
     }
   },
 
@@ -257,8 +306,8 @@ Page({
     const cacheKey = `item_detail_${itemId}`;
     const cachedData = wx.getStorageSync(cacheKey);
     
-    // 如果有缓存且未过期（5分钟），先显示缓存内容
-    if (cachedData && (Date.now() - cachedData.timestamp < 5 * 60 * 1000)) {
+    // 如果有缓存且未过期（8分钟），先显示缓存内容
+    if (cachedData && (Date.now() - cachedData.timestamp < 8 * 60 * 1000)) {
       this.setData({
         showDetailModal: true,
         detailItem: cachedData.item,
