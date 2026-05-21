@@ -1,7 +1,7 @@
 <view class="container">
   <!-- 加载状态 -->
   <view wx:if="{{loading}}" class="loading-container">
-    <view class="loading-icon">⏳</view>
+    <image class="loading-icon-img" src="/assets/icons/icon-contact-loading.png" />
     <view class="loading-text">加载中...</view>
   </view>
 
@@ -76,8 +76,8 @@
 
     <!-- 底部按钮 -->
     <view class="bottom-actions">
-      <button class="btn-save" bindtap="saveQrCode">保存到相册</button>
-      <button class="btn-back" bindtap="goBack">返回</button>
+      <button class="btn-primary" bindtap="saveQrCode">保存到相册</button>
+      <button class="btn-secondary" bindtap="goBack">返回</button>
     </view>
   </view>
 </view>

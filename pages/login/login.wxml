@@ -6,7 +6,7 @@
   <view class="content-area">
     <!-- Logo和标题 -->
     <view class="logo-section">
-      <text class="logo-icon">🗺️</text>
+      <image class="logo-icon-img" src="/assets/icons/logo.png" />
       <text class="app-name">闲置地图</text>
       <text class="app-slogan">让闲置物品找到新主人</text>
     </view>

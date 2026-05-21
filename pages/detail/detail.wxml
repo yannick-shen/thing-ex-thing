@@ -21,13 +21,12 @@
     </view>
     <view class="desc">{{item.desc}}</view>
     <view class="meta">
-      <text class="meta-item">交易方式: {{item.tradeMethod === 'face' ? '面交' : '快递'}}</text>
       <text class="meta-item">发布时间: {{createTime}}</text>
     </view>
   </view>
 
   <view class="location-card">
-    <view class="card-title">📍 交易位置</view>
+    <view class="card-title"><image class="inline-icon" src="/assets/icons/icon-main-location.png" /> 交易位置</view>
     <map class="location-map" 
          latitude="{{item.lat}}" 
          longitude="{{item.lng}}" 
@@ -41,9 +40,10 @@
   </view>
 
   <view class="actions">
-    <!-- 如果是自己的物品,显示下架和评论按钮 -->
-    <button wx:if="{{isOwnItem}}" class="btn-secondary" bindtap="handleUnpublish" hover-class="btn-hover">下架到草稿箱</button>
-    <button wx:if="{{isOwnItem}}" class="btn-primary" bindtap="handleViewComments" hover-class="btn-hover">查看评论</button>
+    <!-- 如果是自己的物品,显示编辑、下架和评论按钮 -->
+    <button wx:if="{{isOwnItem}}" class="btn-edit" bindtap="handleEdit" hover-class="btn-hover">编辑</button>
+    <button wx:if="{{isOwnItem && item.status !== 'draft' && item.status !== 'off'}}" class="btn-unpublish" bindtap="handleUnpublish" hover-class="btn-hover">下架到草稿箱</button>
+    <button wx:if="{{isOwnItem}}" class="btn-view-comments" bindtap="handleViewComments" hover-class="btn-hover">查看评论</button>
 
     <!-- 如果是别人的物品,显示收藏和联系按钮 -->
     <button wx:if="{{!isOwnItem}}" class="btn-secondary" bindtap="handleFavorite" hover-class="btn-hover">

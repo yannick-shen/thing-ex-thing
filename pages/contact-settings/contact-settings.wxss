@@ -43,7 +43,7 @@
 
 /* 顶部说明 */
 .header-tips {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1677ff;
   padding: 40rpx 30rpx;
   color: white;
 }
@@ -118,55 +118,13 @@
   margin-bottom: 30rpx;
 }
 
-.btn-primary {
-  width: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 12rpx;
-  height: 88rpx;
-  line-height: 88rpx;
-  font-size: 32rpx;
-  font-weight: bold;
-}
-
-.btn-primary::after {
-  border: none;
-}
-
 .button-group {
   display: flex;
   gap: 20rpx;
 }
 
-.button-group .btn-secondary,
-.button-group .btn-danger {
+.button-group button {
   flex: 1;
-  height: 88rpx;
-  line-height: 88rpx;
-  font-size: 30rpx;
-}
-
-.btn-secondary {
-  background: white;
-  color: #1677ff;
-  border: 2rpx solid #1677ff;
-  border-radius: 12rpx;
-}
-
-.btn-secondary::after {
-  border: none;
-}
-
-.btn-danger {
-  background: white;
-  color: #ff4d4f;
-  border: 2rpx solid #ff4d4f;
-  border-radius: 12rpx;
-}
-
-.btn-danger::after {
-  border: none;
 }
 
 /* 使用说明 */

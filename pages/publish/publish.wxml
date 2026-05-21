@@ -51,22 +51,22 @@
           <radio-group name="mode" class="mode-group" bindchange="onModeChange">
             <label class="mode-item {{formData.mode === 'sale' ? 'active' : ''}}">
               <radio value="sale" checked="{{formData.mode === 'sale'}}"/>
-              <view class="mode-icon">💰</view>
+              <image class="mode-icon-img" src="/assets/icons/icon-publish-sale.png" />
               <view class="mode-text">出售</view>
             </label>
             <label class="mode-item {{formData.mode === 'exchange' ? 'active' : ''}}">
               <radio value="exchange" checked="{{formData.mode === 'exchange'}}"/>
-              <view class="mode-icon">🔄</view>
+              <image class="mode-icon-img" src="/assets/icons/icon-publish-exchange.png" />
               <view class="mode-text">交换</view>
             </label>
             <label class="mode-item {{formData.mode === 'donate' ? 'active' : ''}}">
               <radio value="donate" checked="{{formData.mode === 'donate'}}"/>
-              <view class="mode-icon">🎁</view>
+              <image class="mode-icon-img" src="/assets/icons/icon-publish-send.png" />
               <view class="mode-text">赠送</view>
             </label>
             <label class="mode-item {{formData.mode === 'help' ? 'active' : ''}}">
               <radio value="help" checked="{{formData.mode === 'help'}}"/>
-              <view class="mode-icon">🙏</view>
+              <image class="mode-icon-img" src="/assets/icons/icon-publish-help.png" />
               <view class="mode-text">求助</view>
             </label>
           </radio-group>
@@ -77,7 +77,7 @@
           <input 
             name="price" 
             class="input-field" 
-            placeholder="{{formData.mode === 'sale' ? '请输入价格' : '交换或赠送可不填'}}" 
+            placeholder="{{formData.mode === 'sale' ? '请输入价格' : '交换、赠送或求助可不填'}}" 
             placeholder-class="input-placeholder"
             type="digit"
             value="{{formData.price}}"
@@ -98,7 +98,7 @@
               <view wx:if="{{location}}" class="location-detail">
                 <view class="location-name">
                   {{location.name}}
-                  <text wx:if="{{locationWarning}}" class="warning-icon">⚠️</text>
+                  <image wx:if="{{locationWarning}}" class="warning-icon-img" src="/assets/icons/icon-publish-warn.png" />
                 </view>
                 <view class="location-address" wx:if="{{location.address}}">{{location.address}}</view>
               </view>
@@ -108,7 +108,7 @@
           </view>
           <!-- 位置警告提示（方案C） -->
           <view wx:if="{{locationWarning}}" class="location-warning-text">
-            ⚠️ 当前可能使用了默认坐标，建议点击上方重新选择具体位置
+            <image class="inline-icon-sm" src="/assets/icons/icon-publish-warn.png" /> 当前可能使用了默认坐标，建议点击上方重新选择具体位置
           </view>
         </view>
       </view>
@@ -161,6 +161,7 @@
               {{isSubmitting ? '保存中...' : '保存修改'}}
             </button>
             <button
+              wx:if="{{editItemStatus === 'draft' || editItemStatus === 'off'}}"
               class="btn-secondary"
               bindtap="handlePublishAndOnline"
               disabled="{{isSubmitting}}"
@@ -188,6 +189,7 @@
               {{isSubmitting ? '保存中...' : '保存到草稿箱'}}
             </button>
           </view>
+          <view class="clear-form-link" bindtap="handleClearForm">清空内容</view>
           <view class="submit-tips">发布后将在地图上显示30天</view>
         </block>
       </view>

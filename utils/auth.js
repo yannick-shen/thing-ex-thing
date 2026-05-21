@@ -3,33 +3,60 @@ class AuthManager {
   constructor() {
     this.currentUser = null
     this.loginCallbacks = []
+    this._loginStatusCache = null  // 缓存登录状态，避免频繁读Storage
+    this._loginCacheTime = 0       // 缓存时间
   }
 
   // 检查登录状态
   isLoggedIn() {
+    const now = Date.now()
+    // 10秒内使用缓存结果，避免频繁读Storage和重复日志
+    if (this._loginStatusCache !== null && (now - this._loginCacheTime) < 10000) {
+      return this._loginStatusCache
+    }
+
     const userId = wx.getStorageSync('userId')
     const userInfo = wx.getStorageSync('userInfo')
 
     // 基本检查
     if (!userId || !userInfo) {
+      this._updateCache(false)
       return false
     }
 
     // 检查登录时间,超过24小时需要重新登录
     const lastLoginTime = wx.getStorageSync('lastLoginTime')
     if (!lastLoginTime) {
+      this._updateCache(false)
       return false
     }
 
-    const timeDiff = Date.now() - lastLoginTime
+    const timeDiff = now - lastLoginTime
     const maxAge = 24 * 60 * 60 * 1000  // 24小时
 
     if (timeDiff > maxAge) {
       console.log('登录已超过24小时,需要重新登录')
+      this._updateCache(false)
       return false
     }
 
+    // 用户活跃时自动续期，避免正在使用中被踢出
+    wx.setStorageSync('lastLoginTime', now)
+
+    this._updateCache(true)
     return true
+  }
+
+  // 更新登录状态缓存
+  _updateCache(status) {
+    this._loginStatusCache = status
+    this._loginCacheTime = Date.now()
+  }
+
+  // 清除登录状态缓存（登录/退出时调用）
+  clearCache() {
+    this._loginStatusCache = null
+    this._loginCacheTime = 0
   }
 
   // 获取当前用户
@@ -138,6 +165,7 @@ class AuthManager {
 
         // 通知所有登录回调
         this.loginCallbacks.forEach(callback => callback(this.currentUser))
+        this.clearCache()
 
         console.log('登录流程完成')
 
@@ -225,6 +253,7 @@ class AuthManager {
     wx.removeStorageSync('userInfo')
     wx.removeStorageSync('lastLoginTime')
     this.currentUser = null
+    this.clearCache()
   }
 
   // 检查登录并处理

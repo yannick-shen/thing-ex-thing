@@ -31,4 +31,9 @@
 /* 加载状态 */
 .loading-state { text-align: center; padding: 40px 20px; }
 .loading-icon { font-size: 24px; margin-bottom: 8px; }
+.loading-icon-img { width: 24px; height: 24px; margin-bottom: 8px; }
 .loading-text { font-size: 14px; color: #999; }
+
+/* 内联小图标 */
+.inline-icon-xs { width: 14px; height: 14px; vertical-align: middle; margin-right: 2px; }
+.stat-item { display: flex; align-items: center; gap: 2px; }

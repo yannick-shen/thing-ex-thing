@@ -14,8 +14,9 @@
   padding-bottom: 40rpx;
 }
 
-.login-icon {
-  font-size: 120rpx;
+.login-icon-img {
+  width: 120rpx;
+  height: 120rpx;
   margin-bottom: 40rpx;
 }
 
@@ -159,6 +160,12 @@
   color: #ccc;
 }
 
+.avatar-placeholder-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+}
+
 .message-avatar.system {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
@@ -272,18 +279,19 @@
   margin-top: 15rpx;
 }
 
-.request-actions .action-btn {
-  flex: 1;
-  padding: 12rpx 0;
+.request-actions button {
+  width: 200rpx;
+  margin: 0;
+  padding: 8rpx 0;
   font-size: 26rpx;
+  font-weight: 500;
+  line-height: 1.5;
+  border: none;
+  height: auto;
 }
 
-.action-btn.accept {
-  background: #52c41a;
-}
-
-.action-btn.reject {
-  background: #ff4d4f;
+.request-actions button::after {
+  border: none;
 }
 
 .status-text {
@@ -315,6 +323,13 @@
 
 .empty-icon {
   font-size: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
+}
+
+.empty-icon-img {
+  width: 80rpx;
+  height: 80rpx;
   margin-bottom: 20rpx;
   opacity: 0.5;
 }

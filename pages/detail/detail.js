@@ -37,6 +37,7 @@ Page({
       return;
     }
     this.itemId = itemId;
+    this.fromPage = query.from || '';
     
     // 检查来源页面，如果是从收藏页面进入，直接设置已收藏状态
     const pages = getCurrentPages();
@@ -231,14 +232,19 @@ Page({
 
     this.setData({ isOwnItem });
 
+    // 如果从收藏页进入，收藏状态已经在onLoad中设为true，不要覆盖
+    if (fromFavorites) {
+      return;
+    }
+
     // 如果已从缓存获取收藏状态，直接设置
     if (favorited !== null) {
       this.setData({ favorited });
       return;
     }
 
-    // 只有在非收藏页面进入时才需要检查收藏状态
-    if (!fromFavorites && !isOwnItem) {
+    // 需要检查收藏状态
+    if (!isOwnItem) {
       this.loadFavoriteStatus();
     }
   },
@@ -421,6 +427,59 @@ Page({
     });
   },
 
+  // 编辑物品
+  handleEdit() {
+    const publishPage = this.getPublishPage();
+    const hasFormData = publishPage && this.checkPublishFormHasData(publishPage);
+
+    if (hasFormData) {
+      wx.showModal({
+        title: '提示',
+        content: '发布页有未发布的信息，是否清空并编辑该物品？',
+        confirmText: '是',
+        cancelText: '否',
+        success: (res) => {
+          if (res.confirm) {
+            this.navigateToEdit();
+          }
+        }
+      });
+    } else {
+      this.navigateToEdit();
+    }
+  },
+
+  // 获取发布页实例
+  getPublishPage() {
+    const pages = getCurrentPages();
+    for (let i = 0; i < pages.length; i++) {
+      if (pages[i].route === 'pages/publish/publish') {
+        return pages[i];
+      }
+    }
+    return null;
+  },
+
+  // 检查发布页表单是否有数据
+  checkPublishFormHasData(page) {
+    const data = page.data;
+    if (!data) return false;
+    const { formData, images, location } = data;
+    if (formData && (formData.title || formData.desc || formData.price)) return true;
+    if (images && images.length > 0) return true;
+    if (location) return true;
+    return false;
+  },
+
+  // 跳转到编辑页面
+  navigateToEdit() {
+    wx.setStorageSync('editItemId', this.itemId);
+    wx.setStorageSync('editMode', 'edit');
+    wx.switchTab({
+      url: '/pages/publish/publish'
+    });
+  },
+
   // 下架到草稿箱
   handleUnpublish() {
     const { item } = this.data;
@@ -451,6 +510,8 @@ Page({
 
               // 标记首页需要刷新
               wx.setStorageSync('refreshMarkers', true);
+              // 标记我的页面需要刷新
+              wx.setStorageSync('refreshMyItems', true);
 
               // 更新本地状态
               this.setData({

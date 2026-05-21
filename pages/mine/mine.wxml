@@ -9,7 +9,6 @@
         data-tab="active"
       >
         <text class="tab-text">展示中</text>
-        <view wx:if="{{stats.active > 0}}" class="tab-count">{{stats.active}}</view>
       </view>
       <view
         class="tab-item {{currentTab === 'draft' ? 'active' : ''}}"
@@ -17,7 +16,6 @@
         data-tab="draft"
       >
         <text class="tab-text">草稿箱</text>
-        <view wx:if="{{stats.draft > 0}}" class="tab-count">{{stats.draft}}</view>
       </view>
     </view>
   </view>
@@ -41,9 +39,8 @@
         <view wx:if="{{currentTab === 'draft'}}">保存的草稿和到期下架的物品</view>
         <view wx:if="{{currentTab === 'all'}}">点击上方按钮开始发布</view>
       </view>
-      <button class="btn-primary" bindtap="goPublish" wx:if="{{currentTab === 'all' || currentTab === 'draft'}}">
-        <text wx:if="{{currentTab === 'all'}}">立即发布</text>
-        <text wx:if="{{currentTab === 'draft'}}">继续发布</text>
+      <button class="btn-primary" bindtap="goPublish" wx:if="{{currentTab === 'all'}}">
+        <text>立即发布</text>
       </button>
       </view>
 
@@ -76,9 +73,9 @@
         <view class="flex-row gap-md">
           <!-- 展示中的物品显示统计 -->
           <view wx:if="{{item.status !== 'draft' && item.status !== 'off'}}" class="flex-row gap-sm">
-            <text class="text-small">👁 {{item.counters.views}}</text>
-            <text class="text-small">❤️ {{item.counters.favorites}}</text>
-            <text class="text-small">💬 {{item.counters.comments}}</text>
+            <view class="stat-item"><image class="inline-icon-xs" src="/assets/icons/icon-main-view.png" /><text class="text-small">{{item.counters.views}}</text></view>
+            <view class="stat-item"><image class="inline-icon-xs" src="/assets/icons/icon-mine-favorite.png" /><text class="text-small">{{item.counters.favorites}}</text></view>
+            <view class="stat-item"><image class="inline-icon-xs" src="/assets/icons/icon-main-message.png" /><text class="text-small">{{item.counters.comments}}</text></view>
           </view>
           <!-- 草稿箱物品显示操作按钮 -->
           <view wx:if="{{item.status === 'draft' || item.status === 'off'}}" class="flex-row gap-sm">
@@ -95,7 +92,7 @@
 
     <!-- 加载状态 -->
     <view wx:if="{{loading}}" class="loading-state">
-    <view class="loading-icon">⏳</view>
+    <image class="loading-icon-img" src="/assets/icons/icon-contact-loading.png" />
     <view class="loading-text">加载中...</view>
   </view>
 </view>

@@ -63,39 +63,30 @@ Page({
     }
   },
 
-  saveQrCode() {
-    if (this.data.sellerQrCode) {
-      wx.showLoading({ title: '保存中...' });
+  async saveQrCode() {
+    const qrCode = this.data.sellerQrCode;
+    if (!qrCode) return;
 
-      wx.downloadFile({
-        url: this.data.sellerQrCode,
-        success: (res) => {
-          wx.saveImageToPhotosAlbum({
-            filePath: res.tempFilePath,
-            success: () => {
-              wx.hideLoading();
-              wx.showToast({
-                title: '已保存到相册',
-                icon: 'success'
-              });
-            },
-            fail: () => {
-              wx.hideLoading();
-              wx.showToast({
-                title: '保存失败，请检查相册权限',
-                icon: 'none'
-              });
-            }
-          });
-        },
-        fail: () => {
-          wx.hideLoading();
-          wx.showToast({
-            title: '下载失败',
-            icon: 'none'
-          });
-        }
-      });
+    wx.showLoading({ title: '保存中...' });
+
+    try {
+      const res = await wx.cloud.downloadFile({ fileID: qrCode });
+
+      if (res.statusCode === 200) {
+        await wx.saveImageToPhotosAlbum({ filePath: res.tempFilePath });
+        wx.hideLoading();
+        wx.showToast({ title: '已保存到相册', icon: 'success' });
+      } else {
+        throw new Error('下载失败');
+      }
+    } catch (err) {
+      wx.hideLoading();
+      const msg = err.errMsg || '';
+      if (msg.includes('auth deny')) {
+        wx.showToast({ title: '请授权相册权限后重试', icon: 'none' });
+      } else {
+        wx.showToast({ title: '保存失败，请重试', icon: 'none' });
+      }
     }
   },
 

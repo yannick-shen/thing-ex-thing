@@ -31,6 +31,13 @@
   margin-bottom: 20rpx;
 }
 
+.logo-icon-img {
+  width: 200rpx;
+  height: 200rpx;
+  display: block;
+  margin: 0 auto 20rpx;
+}
+
 .app-name {
   font-size: 48rpx;
   font-weight: bold;

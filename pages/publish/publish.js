@@ -15,7 +15,8 @@ Page({
     images: [],
     location: null,
     isSubmitting: false,
-    locationWarning: false  // 位置警告标志（方案C）
+    locationWarning: false,  // 位置警告标志（方案C）
+    editItemStatus: ''  // 编辑时物品原始状态
   },
 
   onLoad(options) {
@@ -304,7 +305,8 @@ Page({
             latitude: item.lat,
             longitude: item.lng,
             name: item.addressText
-          }
+          },
+          editItemStatus: item.status || 'on'
         });
 
         wx.hideLoading();
@@ -486,7 +488,8 @@ Page({
         price: ''
       },
       images: [],
-      location: null
+      location: null,
+      editItemStatus: ''
     });
   },
 
@@ -633,6 +636,21 @@ Page({
     } finally {
       this.setData({ isSubmitting: false });
     }
+  },
+
+  // 清空表单
+  handleClearForm() {
+    wx.showModal({
+      title: '确认清空',
+      content: '是否清空当前填写的所有信息？',
+      confirmText: '是',
+      cancelText: '否',
+      success: (res) => {
+        if (res.confirm) {
+          this.resetForm();
+        }
+      }
+    });
   },
 
   // 页面分享

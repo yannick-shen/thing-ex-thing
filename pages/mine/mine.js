@@ -58,15 +58,15 @@ Page({
       items = [];
     }
 
-    // 缓存原始数据用于 tab 切换筛选
-    this.allItems = items;
-
     // 为每个物品添加格式化的时间和统一的ID字段
     items = items.map(item => ({
       ...item,
       id: item._id, // 确保有统一的id字段
       formattedTime: this.formatTime(item.createdAt)
     }));
+
+    // 缓存处理后的数据用于 tab 切换筛选
+    this.allItems = items;
 
     const now = Date.now();
     const activeItems = items.filter(item =>
@@ -191,20 +191,11 @@ Page({
     const id = e.currentTarget.dataset.id;
     const status = e.currentTarget.dataset.status;
 
-    // 草稿状态的物品，跳转到编辑页面
-    if (status === 'draft' || status === 'off') {
-      // publish是tabBar页面，需要先缓存编辑参数
-      wx.setStorageSync('editItemId', id);
-      wx.setStorageSync('editMode', 'edit');
-      wx.switchTab({
-        url: '/pages/publish/publish'
-      });
-    } else {
-      // 正常上架物品，跳转到详情页
-      wx.navigateTo({
-        url: `/pages/detail/detail?id=${id}`
-      });
-    }
+    // 统一跳转到详情页，通过from参数标识来源
+    const from = (status === 'draft' || status === 'off') ? 'draft' : '';
+    wx.navigateTo({
+      url: `/pages/detail/detail?id=${id}${from ? '&from=' + from : ''}`
+    });
   },
 
   // 物品操作
@@ -212,6 +203,17 @@ Page({
   async publishDraft(e) {
     const id = e.currentTarget.dataset.id;
     
+    if (!id) {
+      wx.showToast({ title: '物品信息异常', icon: 'none' });
+      return;
+    }
+
+    // 模拟数据不支持云函数操作，引导用户通过详情页编辑发布
+    if (id.startsWith('mock_')) {
+      wx.showToast({ title: '示例数据，无法操作', icon: 'none' });
+      return;
+    }
+
     wx.showModal({
       title: '发布草稿',
       content: '是否发布此草稿？',

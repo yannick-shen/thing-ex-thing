@@ -3,7 +3,7 @@
 <view class="messages-container">
   <!-- 未登录状态 -->
   <view wx:if="{{!isLoggedIn}}" class="login-required">
-    <view class="login-icon">💬</view>
+    <image class="login-icon-img" src="/assets/icons/message-login-icon.png" />
     <view class="login-title">登录后可查看消息与评论</view>
     <button class="login-btn btn-primary" bindtap="goToLogin">立即登录</button>
   </view>
@@ -50,7 +50,7 @@
   <!-- 评论消息列表 -->
   <view wx:if="{{currentTab === 'comments'}}" class="message-list">
     <view wx:if="{{comments.length === 0}}" class="empty-state">
-      <view class="empty-icon">💬</view>
+      <image class="empty-icon-img" src="/assets/icons/icon-main-message.png" />
       <view class="empty-text">暂无评论消息</view>
       <view class="empty-desc">当有人评论您的物品时会在这里显示</view>
     </view>
@@ -64,8 +64,7 @@
         data-index="{{index}}"
       >
         <view class="message-avatar">
-          <image wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill" />
-          <view wx:else class="avatar-placeholder">👤</view>
+          <image src="{{item.avatar}}" mode="aspectFill" />
         </view>
         <view class="message-content">
           <view class="message-header">
@@ -95,14 +94,14 @@
   <!-- 系统消息列表 -->
   <view wx:if="{{currentTab === 'system'}}" class="message-list">
     <view wx:if="{{systemMessages.length === 0}}" class="empty-state">
-      <view class="empty-icon">📢</view>
+      <image class="empty-icon-img" src="/assets/icons/icon-message-system.png" />
       <view class="empty-text">暂无系统消息</view>
       <view class="empty-desc">系统通知和活动消息会在这里显示</view>
     </view>
 
     <view wx:for="{{systemMessages}}" wx:key="id" class="message-item system">
       <view class="message-avatar system">
-        <view class="system-icon">📢</view>
+        <image class="system-icon-img" src="/assets/icons/icon-message-system.png" />
       </view>
       <view class="message-content">
         <view class="message-header">

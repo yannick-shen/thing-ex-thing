@@ -42,8 +42,44 @@ exports.main = async (event, context) => {
       })
       .count();
 
-    // 直接使用cloud://路径
     const requests = requestsRes.data;
+
+    // 实时从users表获取买家最新头像（与get-comment-messages逻辑一致）
+    const buyerIds = [...new Set(requests.map(req => req.buyerId))];
+    let buyersMap = {};
+
+    if (buyerIds.length > 0) {
+      try {
+        const batchSize = 20;
+        for (let i = 0; i < buyerIds.length; i += batchSize) {
+          const batch = buyerIds.slice(i, i + batchSize);
+          const buyersRes = await db.collection('users')
+            .where({
+              _id: db.command.in(batch)
+            })
+            .field({
+              'profile.avatarUrl': true
+            })
+            .get();
+
+          if (buyersRes.data && buyersRes.data.length > 0) {
+            buyersRes.data.forEach(user => {
+              buyersMap[user._id] = user.profile && user.profile.avatarUrl || '';
+            });
+          }
+        }
+      } catch (error) {
+        console.error('批量查询买家信息失败:', error);
+      }
+    }
+
+    // 用最新头像替换存储的旧头像（直接使用cloud://路径）
+    requests.forEach(req => {
+      const freshAvatar = buyersMap[req.buyerId];
+      if (freshAvatar) {
+        req.buyerAvatar = freshAvatar;
+      }
+    });
 
     return {
       code: 0,

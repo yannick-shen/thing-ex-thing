@@ -89,7 +89,7 @@
 
       <!-- 位置信息 -->
       <view class="detail-location">
-        <text class="text-small">📍 交易位置</text>
+        <view class="location-label"><image class="inline-icon" src="/assets/icons/icon-main-location.png" /><text class="text-small">交易位置</text></view>
         <map class="detail-location-map"
              latitude="{{detailItem.lat}}"
              longitude="{{detailItem.lng}}"
@@ -106,7 +106,7 @@
     <!-- 评论入口 -->
     <view class="card-item" bindtap="goToComments" wx:if="{{detailItem}}">
       <view class="flex-row gap-sm">
-        <text class="text-muted">💬</text>
+        <image class="inline-icon-sm" src="/assets/icons/icon-main-message.png" />
         <text class="text-body">{{detailItem.commentCount || 0}} 条留言</text>
         <text class="text-muted">></text>
       </view>
