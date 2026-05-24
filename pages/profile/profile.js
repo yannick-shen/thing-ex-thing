@@ -384,6 +384,15 @@ Page({
     });
   },
 
+  goToAbout() {
+    wx.showModal({
+      title: '关于我们',
+      content: '闲置地图 - 让闲置物品找到新主人\n\n在这里你可以发布闲置物品，也可以浏览和联系附近的闲置卖家，让你的闲置物品发挥新的价值。',
+      showCancel: false,
+      confirmText: '知道了'
+    });
+  },
+
 
 
   // 联系客服

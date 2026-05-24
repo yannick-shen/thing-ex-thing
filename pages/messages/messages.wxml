@@ -122,7 +122,7 @@
   <!-- 联系申请列表 -->
   <view wx:if="{{currentTab === 'requests'}}" class="message-list">
     <view wx:if="{{contactRequests.length === 0}}" class="empty-state">
-      <view class="empty-icon">📨</view>
+      <image class="empty-icon-img" src="/assets/icons/icon-message-request1.png" />
       <view class="empty-text">暂无联系申请</view>
       <view class="empty-desc">当有买家申请联系您时会在这里显示</view>
     </view>
@@ -151,7 +151,7 @@
   <!-- 联系成功消息列表 -->
   <view wx:if="{{currentTab === 'approved'}}" class="message-list">
     <view wx:if="{{contactApprovedMessages.length === 0}}" class="empty-state">
-      <view class="empty-icon">✅</view>
+      <image class="empty-icon-img" src="/assets/icons/icon-message-agreed.png" />
       <view class="empty-text">暂无联系成功消息</view>
       <view class="empty-desc">当卖家同意您的联系申请时会在这里显示</view>
     </view>

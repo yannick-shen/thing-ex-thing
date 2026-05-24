@@ -1,7 +1,9 @@
 <view class="settings-container">
   <!-- 功能设置 -->
   <view class="setting-section">
-    <view class="section-title">⚙️ 功能设置</view>
+    <view class="section-title">
+      <image class="section-icon-img" src="/assets/icons/icon-mine-setting.png" />功能设置
+    </view>
 
     <view class="setting-item" bindtap="goToContactSettings">
       <view class="setting-info">
@@ -27,7 +29,9 @@
 
   <!-- 帮助与支持 -->
   <view class="setting-section">
-    <view class="section-title">📚 帮助与支持</view>
+    <view class="section-title">
+      <image class="section-icon-img" src="/assets/icons/icon-mine-help.png" />帮助与支持
+    </view>
     
     <view class="setting-item" bindtap="viewAgreement">
       <view class="setting-info">
@@ -60,7 +64,9 @@
 
   <!-- 关于 -->
   <view class="setting-section">
-    <view class="section-title">ℹ️ 关于</view>
+    <view class="section-title">
+      <image class="section-icon-img" src="/assets/icons/icon-mine-about.png" />关于
+    </view>
     
     <view class="setting-item">
       <view class="setting-info">

@@ -49,23 +49,15 @@
     <!-- 设置功能 -->
     <view class="menu-group">
       <view class="menu-item" bindtap="goToSettings">
-        <view class="menu-icon">⚙️</view>
+        <image class="menu-icon-img" src="/assets/icons/icon-mine-setting.png" />
         <view class="menu-info">
           <view class="menu-title">应用设置</view>
         </view>
         <view class="menu-arrow">></view>
       </view>
 
-      <view class="menu-item" bindtap="goToPolicy">
-        <image class="menu-icon-img" src="/assets/icons/icon-mine-privite.png" />
-        <view class="menu-info">
-          <view class="menu-title">隐私政策</view>
-        </view>
-        <view class="menu-arrow">></view>
-      </view>
-
       <view class="menu-item" bindtap="contactService">
-        <view class="menu-icon">📞</view>
+        <image class="menu-icon-img" src="/assets/icons/icon-mine-contruct.png" />
         <view class="menu-info">
           <view class="menu-title">联系客服</view>
         </view>
@@ -75,7 +67,7 @@
 
     <!-- 关于 -->
     <view class="menu-group">
-      <view class="menu-item">
+      <view class="menu-item" bindtap="goToAbout">
         <image class="menu-icon-img" src="/assets/icons/icon-mine-about.png" />
         <view class="menu-info">
           <view class="menu-title">关于我们</view>

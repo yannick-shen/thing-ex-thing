@@ -53,10 +53,18 @@
 }
 
 .card-title {
+  display: flex;
+  align-items: center;
   font-size: 32rpx;
   font-weight: bold;
   color: #333;
   margin-bottom: 30rpx;
+}
+
+.card-icon-img {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 12rpx;
 }
 
 .info-item {

@@ -12,7 +12,9 @@
 
   <!-- 权限说明 -->
   <view class="info-card">
-    <view class="card-title">📍 位置权限说明</view>
+    <view class="card-title">
+      <image class="card-icon-img" src="/assets/icons/icon-main-location.png" />位置权限说明
+    </view>
     <view class="info-list">
       <view class="info-item">
         <text class="info-label">用途：</text>
