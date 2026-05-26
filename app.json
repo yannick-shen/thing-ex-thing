@@ -63,8 +63,7 @@
     }
   },
   "requiredPrivateInfos": [
-    "chooseLocation",
-    "getLocation"
+    "chooseLocation"
   ],
   "style": "v2",
   "sitemapLocation": "sitemap.json",

@@ -62,18 +62,16 @@ App({
   },
   
   updateUserLocation() {
-    wx.getLocation({
-      type: 'gcj02',
-      success: (res) => {
-        this.globalData.userLocation = {
-          latitude: res.latitude,
-          longitude: res.longitude
-        };
-      },
-      fail: (err) => {
-        console.log('获取位置失败:', err);
-      }
-    });
+    // 位置由首页地图组件通过 moveToLocation + getCenterLocation 获取
+    // 此处读取缓存作为降级
+    const cached = wx.getStorageSync('cachedUserLocation');
+    if (cached && cached.latitude && cached.longitude) {
+      this.globalData.userLocation = {
+        latitude: cached.latitude,
+        longitude: cached.longitude
+      };
+      console.log('从缓存恢复用户位置:', this.globalData.userLocation);
+    }
   },
   
   globalData: {

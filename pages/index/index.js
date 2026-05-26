@@ -139,45 +139,82 @@ Page({
 
   },
   initLocation() {
-    // 使用location工具管理位置权限
-    const locationUtil = require('../../utils/location.js');
-    
-    // 请求位置权限并获取位置
-    locationUtil.requestLocationPermission().then(result => {
-      if (result.success && result.location) {
-        // 成功获取位置，更新地图中心
-        this.setData({ 
-          center: { 
-            latitude: result.location.latitude, 
-            longitude: result.location.longitude 
-          } 
-        });
-        
-        // 更新全局位置
-        const app = getApp();
-        if (app) {
-          app.globalData.userLocation = {
-            latitude: result.location.latitude,
-            longitude: result.location.longitude
-          };
-        }
-        
-        console.log('成功获取用户位置:', result.location);
-      } else {
-        // 未授权或获取失败，使用默认位置
-        console.log('未获取到位置权限，使用默认位置:', result.message || '无权限');
+    // 步骤1：优先使用缓存坐标立刻展示（有缓存时零等待）
+    const cached = wx.getStorageSync('cachedUserLocation');
+    if (cached && cached.latitude && cached.longitude) {
+      this.setData({ center: { latitude: cached.latitude, longitude: cached.longitude } });
+      const app = getApp();
+      if (app) {
+        app.globalData.userLocation = { latitude: cached.latitude, longitude: cached.longitude };
       }
-      
-      // 无论是否获取到位置，都加载标记点
-      this.loadMarkers();
-    }).catch(error => {
-      console.error('位置权限请求异常:', error);
-      // 异常情况也加载标记点
-      this.loadMarkers();
+      console.log('使用缓存位置立即展示:', cached);
+    }
+
+    // 步骤2：无论有没有缓存，都尝试通过地图组件获取精确位置
+    // 使用bindregionchange首次end事件确保地图已渲染就绪
+    this._waitForMapReady(() => {
+      this._moveToUserLocation()
+        .then(center => {
+          if (center) {
+            const isSignificantMove = !cached ||
+              Math.abs(center.latitude - cached.latitude) > 0.01 ||
+              Math.abs(center.longitude - cached.longitude) > 0.01;
+
+            if (!cached || isSignificantMove) {
+              this.setData({ center });
+              const app = getApp();
+              if (app) {
+                app.globalData.userLocation = center;
+              }
+              wx.setStorageSync('cachedUserLocation', { ...center, time: Date.now() });
+              console.log('位置已更新:', center);
+            }
+          }
+          if (!cached) this.loadMarkers();
+        })
+        .catch(error => {
+          console.error('定位异常:', error);
+          if (!cached) this.loadMarkers();
+        });
+      if (cached) this.loadMarkers();
+    });
+  },
+
+  // 等待地图组件就绪（通过bindregionchange首次end事件）
+  _waitForMapReady(callback) {
+    if (this._mapReady) {
+      callback();
+      return;
+    }
+    this._mapReadyCallback = callback;
+  },
+
+  // 通过地图组件 moveToLocation + getCenterLocation 获取用户位置
+  _moveToUserLocation() {
+    return new Promise((resolve) => {
+      this.mapCtx.moveToLocation();
+      // 等待地图视口移动到蓝点位置
+      setTimeout(() => {
+        this.mapCtx.getCenterLocation({
+          success: (res) => {
+            resolve({ latitude: res.latitude, longitude: res.longitude });
+          },
+          fail: () => resolve(null)
+        });
+      }, 500);
     });
   },
 
   onRegionChange(e) {
+    // 标记地图首次渲染就绪，触发待执行的回调
+    if (!this._mapReady) {
+      this._mapReady = true;
+      if (this._mapReadyCallback) {
+        this._mapReadyCallback();
+        this._mapReadyCallback = null;
+      }
+    }
+
     if (e.type === 'end') {
       const { center, scale, searchKeyword, selectedMode } = this.data;
       
@@ -476,43 +513,24 @@ Page({
   // 重新定位到当前位置
   relocate() {
     console.log('开始重新定位...');
-    
-    // 使用location工具进行定位，静默操作
-    const locationUtil = require('../../utils/location.js');
-    
-    locationUtil.requestLocationPermission().then(result => {
-      if (result.success && result.location) {
-        // 定位成功，更新地图中心点和缩放级别
-        this.setData({
-          center: {
-            latitude: result.location.latitude,
-            longitude: result.location.longitude
-          },
-          scale: 16 // 设置合适的缩放级别
-        });
-        
-        // 更新全局位置
-        const app = getApp();
-        if (app) {
-          app.globalData.userLocation = {
-            latitude: result.location.latitude,
-            longitude: result.location.longitude
-          };
+    this._moveToUserLocation()
+      .then(center => {
+        if (center) {
+          this.setData({ center, scale: 16 });
+          const app = getApp();
+          if (app) {
+            app.globalData.userLocation = center;
+          }
+          wx.setStorageSync('cachedUserLocation', { ...center, time: Date.now() });
+          console.log('重新定位成功:', center);
+          setTimeout(() => this.loadMarkers(), 300);
+        } else {
+          console.log('重新定位失败');
         }
-        
-        console.log('重新定位成功:', result.location);
-        
-        // 延迟加载标记点，避免卡顿
-        setTimeout(() => this.loadMarkers(), 300);
-        
-      } else {
-        // 静默处理失败，不显示提示
-        console.log('重新定位失败:', result.message);
-      }
-    }).catch(error => {
-      // 静默处理异常，不显示提示
-      console.error('重新定位异常:', error);
-    });
+      })
+      .catch(error => {
+        console.error('重新定位异常:', error);
+      });
   },
 
   goPublish() {

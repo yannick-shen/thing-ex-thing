@@ -85,16 +85,16 @@ Page({
 
   async requestLocationPermission() {
     return new Promise((resolve) => {
-      // 首先检查位置权限状态
+      // 检查位置权限状态（仅验证权限，不获取坐标）
       wx.getSetting({
         success: (settingRes) => {
           const locationAuth = settingRes.authSetting['scope.userLocation'];
           
           if (locationAuth === true) {
-            // 已经授权，直接获取位置
-            this.getCurrentLocation(resolve);
+            // 已授权
+            resolve(true);
           } else if (locationAuth === false) {
-            // 用户拒绝过，引导用户去设置页面开启
+            // 用户拒绝过，引导去设置
             wx.showModal({
               title: '位置权限',
               content: '需要位置权限来展示附近的物品，请在设置中开启位置权限',
@@ -103,11 +103,7 @@ Page({
                 if (modalRes.confirm) {
                   wx.openSetting({
                     success: (openRes) => {
-                      if (openRes.authSetting['scope.userLocation']) {
-                        this.getCurrentLocation(resolve);
-                      } else {
-                        resolve(false);
-                      }
+                      resolve(openRes.authSetting['scope.userLocation'] === true);
                     },
                     fail: () => resolve(false)
                   });
@@ -120,12 +116,8 @@ Page({
             // 从未授权过，请求授权
             wx.authorize({
               scope: 'scope.userLocation',
-              success: () => {
-                this.getCurrentLocation(resolve);
-              },
-              fail: () => {
-                resolve(false);
-              }
+              success: () => resolve(true),
+              fail: () => resolve(false)
             });
           }
         },
@@ -135,21 +127,9 @@ Page({
   },
 
   getCurrentLocation(resolve) {
-    wx.getLocation({
-      type: 'gcj02',
-      success: (res) => {
-        // 保存当前位置到全局数据
-        const app = getApp();
-        if (app) {
-          app.globalData.userLocation = {
-            latitude: res.latitude,
-            longitude: res.longitude
-          };
-        }
-        resolve(true);
-      },
-      fail: () => resolve(false)
-    });
+    // 不再调用wx.getLocation，授权通过即可
+    // 实际位置由首页地图组件通过 moveToLocation + getCenterLocation 获取
+    resolve(true);
   },
 
   redirectToHome() {

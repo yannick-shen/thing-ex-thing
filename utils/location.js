@@ -112,20 +112,25 @@ class LocationManager {
     });
   }
 
-  // 获取当前位置
+  // 获取当前位置（从首页缓存的全局坐标读取，不再调用wx.getLocation）
   getCurrentLocation() {
-    return new Promise((resolve, reject) => {
-      wx.getLocation({
-        type: 'gcj02',
-        success: (res) => {
-          resolve({
-            latitude: res.latitude,
-            longitude: res.longitude
-          });
-        },
-        fail: reject
+    const app = getApp();
+    const userLocation = app?.globalData?.userLocation;
+    if (userLocation && userLocation.latitude && userLocation.longitude) {
+      return Promise.resolve({
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude
       });
-    });
+    }
+    // 降级：读取本地缓存
+    const cached = wx.getStorageSync('cachedUserLocation');
+    if (cached && cached.latitude && cached.longitude) {
+      return Promise.resolve({
+        latitude: cached.latitude,
+        longitude: cached.longitude
+      });
+    }
+    return Promise.reject(new Error('暂无位置信息'));
   }
 
   // 打开位置选择器
