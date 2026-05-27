@@ -165,9 +165,7 @@
 .menu-icon-img {
   width: 80rpx;
   height: 80rpx;
-  border-radius: 20rpx;
   margin-right: 25rpx;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
 .menu-info {
@@ -220,5 +218,34 @@
 .logout-desc {
   color: #ff7875;
   font-size: 24rpx;
+}
+
+/* 联系我们弹窗 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 50rpx 40rpx;
+  margin: 0 60rpx;
+  text-align: center;
+}
+
+.modal-text {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-line;
 }
 

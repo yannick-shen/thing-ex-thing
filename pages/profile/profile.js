@@ -4,7 +4,8 @@ Page({
   data: {
     isLoggedIn: false,
     userInfo: null,
-    messageCount: 0
+    messageCount: 0,
+    showContactModal: false
   },
 
   onLoad() {
@@ -387,7 +388,7 @@ Page({
   goToAbout() {
     wx.showModal({
       title: '关于我们',
-      content: '闲置地图 - 让闲置物品找到新主人\n\n在这里你可以发布闲置物品，也可以浏览和联系附近的闲置卖家，让你的闲置物品发挥新的价值。',
+      content: '我们致力于打造便捷的同城闲置分享空间，方便大家互通身边好物。希望让闲置物品重新发挥价值，也让邻里之间的交流更加轻松简单。',
       showCancel: false,
       confirmText: '知道了'
     });
@@ -395,33 +396,22 @@ Page({
 
 
 
-  // 联系客服
+  // 联系我们
   contactService() {
     if (!this.data.isLoggedIn) {
       this.redirectToLogin('/pages/profile/profile');
       return;
     }
-
-    wx.showModal({
-      title: '联系客服',
-      content: '您可以通过客服功能与我们联系',
-      confirmText: '联系客服',
-      success: (res) => {
-        if (res.confirm) {
-          // 使用客服消息功能
-          wx.openCustomerServiceConversation({
-            success: () => {},
-            fail: () => {
-              wx.showToast({
-                title: '客服功能暂未开通',
-                icon: 'none'
-              });
-            }
-          });
-        }
-      }
-    });
+    this.setData({ showContactModal: true });
   },
+
+  // 关闭联系我们弹窗
+  closeContactModal() {
+    this.setData({ showContactModal: false });
+  },
+
+  // 阻止冒泡（点击弹窗内容不关闭）
+  preventBubble() {},
 
   // 退出登录
   logout() {

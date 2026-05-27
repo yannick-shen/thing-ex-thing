@@ -15,7 +15,8 @@
 }
 
 .login-icon {
-  font-size: 120rpx;
+  width: 180rpx;
+  height: 180rpx;
   margin-bottom: 40rpx;
 }
 

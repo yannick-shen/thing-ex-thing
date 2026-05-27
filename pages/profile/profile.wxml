@@ -59,7 +59,7 @@
       <view class="menu-item" bindtap="contactService">
         <image class="menu-icon-img" src="/assets/icons/icon-mine-contruct.png" />
         <view class="menu-info">
-          <view class="menu-title">联系客服</view>
+          <view class="menu-title">联系我们</view>
         </view>
         <view class="menu-arrow">></view>
       </view>
@@ -85,6 +85,13 @@
         </view>
         <view class="menu-arrow">></view>
       </view>
+    </view>
+  </view>
+
+  <!-- 联系我们弹窗 -->
+  <view wx:if="{{showContactModal}}" class="modal-overlay" bindtap="closeContactModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <text class="modal-text">问题反馈，请发送邮件至邮箱\npy_young@163.com</text>
     </view>
   </view>
 

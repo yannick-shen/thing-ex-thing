@@ -12,12 +12,13 @@
       <view class="setting-arrow">></view>
     </view>
 
-    <view class="setting-item">
+    <!-- 消息通知暂时屏蔽 -->
+    <!-- <view class="setting-item">
       <view class="setting-info">
         <view class="setting-label">消息通知</view>
       </view>
       <switch checked="{{notificationEnabled}}" bindchange="onNotificationChange" />
-    </view>
+    </view> -->
 
     <view class="setting-item" bindtap="viewLocationSetting">
       <view class="setting-info">
@@ -56,7 +57,7 @@
 
     <view class="setting-item" bindtap="contactService">
       <view class="setting-info">
-        <view class="setting-label">联系客服</view>
+        <view class="setting-label">联系我们</view>
       </view>
       <view class="setting-arrow">></view>
     </view>
@@ -70,7 +71,10 @@
     
     <view class="setting-item">
       <view class="setting-info">
-        <view class="setting-label">版本号</view>
+        <view class="setting-label-row">
+          <text class="setting-label">版本号</text>
+          <text class="setting-version">v1.0.2</text>
+        </view>
       </view>
     </view>
 
@@ -84,8 +88,16 @@
 
   <!-- 重置功能 -->
   <view class="reset-section">
-    <button class="btn-danger" bindtap="resetAgreement">
+  
+  <button class="btn-danger" bindtap="resetAgreement">
       重置用户协议
     </button>
+  </view>
+
+  <!-- 联系我们弹窗 -->
+  <view wx:if="{{showContactModal}}" class="modal-overlay" bindtap="closeContactModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <text class="modal-text">问题反馈，请发送邮件至邮箱\npy_young@163.com</text>
+    </view>
   </view>
 </view>

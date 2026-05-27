@@ -3,7 +3,8 @@ const locationUtil = require('../../utils/location.js');
 Page({
   data: {
     notificationEnabled: true,
-    locationStatus: false
+    locationStatus: false,
+    showContactModal: false
   },
 
   onLoad() {
@@ -68,30 +69,18 @@ Page({
     wx.navigateTo({ url: '/pages/policy/policy?type=rules' });
   },
 
-  // 联系客服
+  // 联系我们
   contactService() {
-    wx.showModal({
-      title: '联系客服',
-      content: '您可以通过客服功能与我们联系',
-      confirmText: '联系客服',
-      success: (res) => {
-        if (res.confirm) {
-          wx.openCustomerServiceConversation({
-            success: () => {
-              console.log('打开客服会话成功');
-            },
-            fail: (err) => {
-              console.error('打开客服会话失败', err);
-              wx.showToast({ 
-                title: '客服功能暂未开通', 
-                icon: 'none' 
-              });
-            }
-          });
-        }
-      }
-    });
+    this.setData({ showContactModal: true });
   },
+
+  // 关闭联系我们弹窗
+  closeContactModal() {
+    this.setData({ showContactModal: false });
+  },
+
+  // 阻止冒泡（点击弹窗内容不关闭）
+  preventBubble() {},
 
   // 清理缓存
   clearCache() {

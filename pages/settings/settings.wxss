@@ -65,6 +65,17 @@
   margin-left: 20rpx;
 }
 
+.setting-version {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.setting-label-row {
+  display: flex;
+  align-items: baseline;
+  gap: 30rpx;
+}
+
 /* 重置功能 */
 .reset-section {
   margin: 40rpx 30rpx;
@@ -86,4 +97,33 @@
   font-size: 26rpx;
   color: #999;
   line-height: 1.4;
+}
+
+/* 联系我们弹窗 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 50rpx 40rpx;
+  margin: 0 60rpx;
+  text-align: center;
+}
+
+.modal-text {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-line;
 }

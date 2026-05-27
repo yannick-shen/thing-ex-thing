@@ -14,6 +14,8 @@ Page({
   data: {
     center: app?.globalData?.defaultCenter || { latitude: 39.908722, longitude: 116.397499 },
     scale: 16,
+    showLocation: true, // 用于强制刷新蓝色定位点
+    showLocationTip: false, // 定位提示气泡
     markers: [],
     showSearch: false,
     searchKeyword: '',
@@ -139,54 +141,106 @@ Page({
 
   },
   initLocation() {
-    // 步骤1：优先使用缓存坐标立刻展示（有缓存时零等待）
     const cached = wx.getStorageSync('cachedUserLocation');
-    if (cached && cached.latitude && cached.longitude) {
+    const hasCache = cached && cached.latitude && cached.longitude;
+
+    // 步骤1：有缓存时立刻展示（零等待）
+    if (hasCache) {
+      this._markersLoaded = true;
       this.setData({ center: { latitude: cached.latitude, longitude: cached.longitude } });
       const app = getApp();
       if (app) {
         app.globalData.userLocation = { latitude: cached.latitude, longitude: cached.longitude };
       }
       console.log('使用缓存位置立即展示:', cached);
+      this.loadMarkers();
     }
 
-    // 步骤2：无论有没有缓存，都尝试通过地图组件获取精确位置
-    // 使用bindregionchange首次end事件确保地图已渲染就绪
+    // 步骤2：等待地图就绪后检查权限
     this._waitForMapReady(() => {
-      this._moveToUserLocation()
-        .then(center => {
-          if (center) {
-            const isSignificantMove = !cached ||
-              Math.abs(center.latitude - cached.latitude) > 0.01 ||
-              Math.abs(center.longitude - cached.longitude) > 0.01;
+      wx.getSetting({
+        success: (res) => {
+          const authStatus = res.authSetting['scope.userLocation'];
 
-            if (!cached || isSignificantMove) {
-              this.setData({ center });
-              const app = getApp();
-              if (app) {
-                app.globalData.userLocation = center;
-              }
-              wx.setStorageSync('cachedUserLocation', { ...center, time: Date.now() });
-              console.log('位置已更新:', center);
+          if (authStatus === true) {
+            // 已授权 → 获取精确位置 + 刷新蓝点
+            this.setData({ showLocationTip: false });
+            this._doMoveToLocation(hasCache ? cached : null);
+          } else {
+            // 未授权（undefined 或 false）→ 显示气泡引导
+            if (!hasCache) {
+              // 无缓存：不加载物品，等用户操作
+              this.setData({ showLocationTip: true });
+            } else {
+              // 有缓存但权限被撤销了，仍然提示用户
+              this.setData({ showLocationTip: true });
             }
           }
-          if (!cached) this.loadMarkers();
-        })
-        .catch(error => {
-          console.error('定位异常:', error);
-          if (!cached) this.loadMarkers();
-        });
-      if (cached) this.loadMarkers();
+        },
+        fail: () => {
+          // getSetting 失败也显示气泡
+          if (!hasCache) this.setData({ showLocationTip: true });
+        }
+      });
     });
   },
 
-  // 等待地图组件就绪（通过bindregionchange首次end事件）
+  // 移动地图到用户位置并加载物品
+  _doMoveToLocation(cached) {
+    this._moveToUserLocation()
+      .then(center => {
+        if (center) {
+          const hasCache = cached && cached.latitude && cached.longitude;
+          const isSignificantMove = !hasCache ||
+            Math.abs(center.latitude - cached.latitude) > 0.01 ||
+            Math.abs(center.longitude - cached.longitude) > 0.01;
+
+          if (!hasCache || isSignificantMove) {
+            this.setData({ center });
+            const app = getApp();
+            if (app) {
+              app.globalData.userLocation = center;
+            }
+            wx.setStorageSync('cachedUserLocation', { ...center, time: Date.now() });
+            console.log('位置已更新:', center);
+          }
+        }
+        if (!this._markersLoaded) {
+          this._markersLoaded = true;
+          this.loadMarkers();
+        }
+      })
+      .catch(error => {
+        console.error('定位异常:', error);
+        if (!this._markersLoaded) {
+          this._markersLoaded = true;
+          this.loadMarkers();
+        }
+      });
+  },
+
+  // 等待地图组件就绪（通过bindregionchange事件或超时回退）
   _waitForMapReady(callback) {
     if (this._mapReady) {
       callback();
       return;
     }
     this._mapReadyCallback = callback;
+    // 安全超时：3秒后如果 regionchange 仍未触发，强制执行回调
+    // 在开发者工具中 regionchange 可能不会主动触发
+    if (!this._mapReadyFallbackTimer) {
+      this._mapReadyFallbackTimer = setTimeout(() => {
+        if (!this._mapReady) {
+          console.log('_waitForMapReady 超时回退，强制标记地图就绪');
+          this._mapReady = true;
+          if (this._mapReadyCallback) {
+            const cb = this._mapReadyCallback;
+            this._mapReadyCallback = null;
+            cb();
+          }
+        }
+      }, 3000);
+    }
   },
 
   // 通过地图组件 moveToLocation + getCenterLocation 获取用户位置
@@ -209,6 +263,11 @@ Page({
     // 标记地图首次渲染就绪，触发待执行的回调
     if (!this._mapReady) {
       this._mapReady = true;
+      // 清理超时回退定时器
+      if (this._mapReadyFallbackTimer) {
+        clearTimeout(this._mapReadyFallbackTimer);
+        this._mapReadyFallbackTimer = null;
+      }
       if (this._mapReadyCallback) {
         this._mapReadyCallback();
         this._mapReadyCallback = null;
@@ -513,24 +572,139 @@ Page({
   // 重新定位到当前位置
   relocate() {
     console.log('开始重新定位...');
-    this._moveToUserLocation()
-      .then(center => {
-        if (center) {
-          this.setData({ center, scale: 16 });
-          const app = getApp();
-          if (app) {
-            app.globalData.userLocation = center;
+    // 开发者工具没有真实 OS 权限系统，wx.authorize 的 callback 可能不触发
+    // 导致后续流程卡死。通过 platform 检测环境做兼容处理。
+    const sysInfo = wx.getSystemInfoSync();
+    const isDevtools = sysInfo && sysInfo.platform === 'devtools';
+
+    wx.getSetting({
+      success: (res) => {
+        const authStatus = res.authSetting['scope.userLocation'];
+        console.log('定位权限状态:', authStatus, isDevtools ? '(devtools)' : '');
+
+        if (authStatus === true) {
+          // 已授权：直接定位 + toggle 蓝点
+          this.setData({ showLocationTip: false });
+          this._doRelocateFlow();
+        } else if (authStatus === undefined) {
+          if (isDevtools) {
+            // devtools 无真实权限系统，跳过 wx.authorize，直接定位
+            console.log('devtools: 跳过 wx.authorize，直接定位');
+            this.setData({ showLocationTip: false });
+            this._doRelocateFlow();
+          } else {
+            // 真机：调用 wx.authorize 弹出系统权限窗（用户手势触发，有效）
+            wx.authorize({
+              scope: 'scope.userLocation',
+              success: () => {
+                console.log('用户同意位置授权');
+                this.setData({ showLocationTip: false });
+                this._doRelocateFlow();
+              },
+              fail: () => {
+                console.log('用户拒绝位置授权');
+                this._handlePermissionDenied();
+              }
+            });
           }
-          wx.setStorageSync('cachedUserLocation', { ...center, time: Date.now() });
-          console.log('重新定位成功:', center);
-          setTimeout(() => this.loadMarkers(), 300);
         } else {
-          console.log('重新定位失败');
+          // 曾拒绝（false）：无法再弹系统窗，引导去设置
+          this._handlePermissionDenied();
         }
-      })
-      .catch(error => {
-        console.error('重新定位异常:', error);
+      },
+      fail: () => {
+        // getSetting 失败，尝试直接定位
+        this._doRelocateFlow();
+      }
+    });
+  },
+
+  // 定位流程：toggle showLocation 强制蓝点出现 → moveToLocation → 获取坐标
+  _doRelocateFlow() {
+    // 先 toggle showLocation 确保授权后蓝色定位点正确渲染
+    this.setData({ showLocation: false }, () => {
+      this.setData({ showLocation: true }, () => {
+        // 短暂延迟让地图组件完成 show-location 重新绑定
+        setTimeout(() => {
+          this._moveToUserLocation()
+            .then(center => {
+              if (center) {
+                this.setData({ center, scale: 16 });
+                const app = getApp();
+                if (app) {
+                  app.globalData.userLocation = center;
+                }
+                wx.setStorageSync('cachedUserLocation', { ...center, time: Date.now() });
+                console.log('重新定位成功:', center);
+              } else {
+                // devtools 中 getCenterLocation 可能返回 null，使用当前位置加载
+                console.log('重新定位：getCenterLocation 返回 null，使用当前地图中心');
+              }
+              // 无论是否拿到精确坐标，都加载物品 + 标记已完成
+              this._markersLoaded = true;
+              setTimeout(() => this.loadMarkers(), 300);
+            })
+            .catch(error => {
+              console.error('重新定位异常:', error);
+              this._markersLoaded = true;
+              this.loadMarkers();
+            });
+        }, 150);
       });
+    });
+  },
+
+  // 权限被拒绝后的处理：引导去设置页
+  _handlePermissionDenied() {
+    wx.showModal({
+      title: '需要位置权限',
+      content: '获取您的位置才能显示附近的闲置物品，是否前往设置开启？',
+      confirmText: '去设置',
+      cancelText: '使用默认位置',
+      success: (modalRes) => {
+        if (modalRes.confirm) {
+          // 去设置页
+          wx.openSetting({
+            success: (settingRes) => {
+              if (settingRes.authSetting['scope.userLocation']) {
+                // 用户在设置中开启了权限
+                console.log('用户在设置中开启了位置权限');
+                this.setData({ showLocationTip: false });
+                this._doRelocateFlow();
+              } else {
+                // 用户未开启，加载默认位置物品
+                this.setData({ showLocationTip: false });
+                this._loadDefaultMarkers();
+              }
+            },
+            fail: () => {
+              this.setData({ showLocationTip: false });
+              this._loadDefaultMarkers();
+            }
+          });
+        } else {
+          // 用户选择使用默认位置
+          this.setData({ showLocationTip: false });
+          this._loadDefaultMarkers();
+        }
+      }
+    });
+  },
+
+  // 加载默认位置附近的物品
+  _loadDefaultMarkers() {
+    if (!this._markersLoaded) {
+      this._markersLoaded = true;
+      this.loadMarkers();
+    }
+  },
+
+  // 关闭定位提示气泡
+  dismissLocationTip(e) {
+    if (e) e.stopPropagation && e.stopPropagation();
+    this.setData({ showLocationTip: false });
+    // 用户主动关闭气泡，加载默认位置物品
+    this._loadDefaultMarkers();
   },
 
   goPublish() {

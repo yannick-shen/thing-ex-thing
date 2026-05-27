@@ -38,8 +38,17 @@
 <view wx:if="{{searchKeyword}}" class="filter-tag" catchtap="clearSearch">已筛选:{{searchKeyword}}</view>
 
 <!-- 地图 -->
-<map id="map" longitude="{{center.longitude}}" latitude="{{center.latitude}}" scale="{{scale}}" style="width: 100%; height: 100vh;" show-location="true" enable-scroll="true" enable-zoom="true" bindregionchange="onRegionChange" bindmarkertap="onMarkerTap" markers="{{markers}}">
+<map id="map" longitude="{{center.longitude}}" latitude="{{center.latitude}}" scale="{{scale}}" style="width: 100%; height: 100vh;" show-location="{{showLocation}}" enable-scroll="true" enable-zoom="true" bindregionchange="onRegionChange" bindmarkertap="onMarkerTap" markers="{{markers}}">
 </map>
+
+<!-- 定位提示气泡 -->
+<view wx:if="{{showLocationTip}}" class="location-tip" catchtap="relocate">
+  <view class="location-tip-content">
+    <text class="location-tip-text">点我查看您身边的闲置物品</text>
+    <view class="location-tip-close" catchtap="dismissLocationTip">×</view>
+  </view>
+  <view class="location-tip-arrow"></view>
+</view>
 
 <!-- 按钮组 -->
 <view class="button-group">
