@@ -200,7 +200,14 @@ Page({
       });
 
       if (result.result && result.result.code === 0) {
-        const messages = result.result.data.messages;
+        const EXPIRE_DAYS = 7;
+        const now = Date.now();
+        const expireMs = EXPIRE_DAYS * 24 * 60 * 60 * 1000;
+
+        const messages = result.result.data.messages.map(msg => ({
+          ...msg,
+          expired: (now - msg.createTime) > expireMs
+        }));
 
         this.setData({
           contactApprovedMessages: messages
@@ -437,6 +444,10 @@ Page({
 
   goToContactSuccess(e) {
     const messageId = e.currentTarget.dataset.id;
+
+    // 过期消息不跳转
+    const item = this.data.contactApprovedMessages.find(m => m.requestId === messageId);
+    if (item && item.expired) return;
 
     wx.navigateTo({
       url: `/pages/contact-success/contact-success?requestId=${messageId}`

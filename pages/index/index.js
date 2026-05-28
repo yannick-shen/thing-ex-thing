@@ -275,25 +275,8 @@ Page({
     }
 
     if (e.type === 'end') {
-      const { center, scale, searchKeyword, selectedMode } = this.data;
-      
-      // 清除之前的定时器
+      // 清除之前的定时器，防抖：等待拖动完全结束后再加载
       if (this.loadTimer) clearTimeout(this.loadTimer);
-      
-      const radiusKm = 2;
-      const mode = selectedMode === 'all' ? '' : selectedMode;
-      
-      // 1. 立即检查缓存
-      const cachedItems = this.getCache(center, radiusKm, searchKeyword, mode);
-      
-      if (cachedItems) {
-        // 缓存命中，立即显示数据
-
-        this.processItems(cachedItems, scale);
-        return;
-      }
-      
-      // 2. 缓存未命中，延迟1秒加载
 
       this.loadTimer = setTimeout(() => {
         this.updateCenterAndLoad();

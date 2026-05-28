@@ -315,6 +315,16 @@
   margin-top: 10rpx;
 }
 
+.message-expired-text {
+  font-size: 26rpx;
+  color: #ccc;
+  margin-top: 10rpx;
+}
+
+.expired-item {
+  opacity: 0.55;
+}
+
 /* 空状态 */
 .empty-state {
   text-align: center;

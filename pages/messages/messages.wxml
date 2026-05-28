@@ -156,7 +156,7 @@
       <view class="empty-desc">当卖家同意您的联系申请时会在这里显示</view>
     </view>
 
-    <view wx:for="{{contactApprovedMessages}}" wx:key="_id" class="message-item" bindtap="goToContactSuccess" data-id="{{item.requestId}}">
+    <view wx:for="{{contactApprovedMessages}}" wx:key="_id" class="message-item {{item.expired ? 'expired-item' : ''}}" bindtap="{{item.expired ? '' : 'goToContactSuccess'}}" data-id="{{item.requestId}}">
       <view class="message-avatar">
         <image src="{{item.sellerAvatar}}" mode="aspectFill" />
       </view>
@@ -166,7 +166,8 @@
           <view class="message-time">{{utils.formatTime(item.createTime)}}</view>
         </view>
         <view class="message-text">已同意您的联系请求 - 《{{item.itemTitle}}》</view>
-        <view class="message-action-text">点击查看联系方式</view>
+        <view wx:if="{{!item.expired}}" class="message-action-text">点击查看联系方式</view>
+        <view wx:else class="message-expired-text">超过7天，无法查看</view>
       </view>
     </view>
   </view>
