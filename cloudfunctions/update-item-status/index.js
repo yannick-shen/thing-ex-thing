@@ -2,6 +2,9 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: 'cloud1-3gsbomiw03ea5416' });
 const db = cloud.database();
 
+// ===== 功能开关 =====
+const ENABLE_POINTS = false  // 积分系统：获得广告资格后改为 true
+
 exports.main = async (event, context) => {
   try {
     const { itemId, status } = event || {};
@@ -28,6 +31,74 @@ exports.main = async (event, context) => {
       return { code: 403, message: 'forbidden' };
     }
 
+    // ============================================================
+    //  积分系统：上架消耗（draft/off → on）
+    // ============================================================
+    const oldStatus = item.data.status
+    let isFirstPublish = false
+
+    if (status === 'on' && oldStatus !== 'on') {
+      // 1. 统计用户当前已上架物品（排除本物品）
+      const onCountRes = await db.collection('items')
+        .where({ authorId: userId, status: 'on', _id: db.command.neq(itemId) })
+        .count()
+      const currentOnCount = onCountRes.total
+
+      // 2. 是否首次上架
+      isFirstPublish = (currentOnCount === 0)
+
+      // 3. 判断计费类型：草稿发布 or 续期/重新上架
+      const isExpired = item.data.expireAt && item.data.expireAt <= Date.now()
+      const isRenew = (oldStatus === 'off' && !isExpired)
+
+      const getPublishCost = (n) => {
+        if (n <= 3) return 0
+        if (n === 4) return 10
+        if (n === 5) return 20
+        if (n === 6) return 35
+        return 65
+      }
+
+      const getRenewCost = (n) => {
+        if (n <= 3) return 0
+        if (n === 4) return 7
+        if (n === 5) return 15
+        if (n === 6) return 25
+        return 45
+      }
+
+      const cost = isRenew ? getRenewCost(currentOnCount) : getPublishCost(currentOnCount)
+      const consumeType = isRenew ? 'renew' : 'publish'
+
+      // 4. 消耗积分（ENABLE_POINTS 为 false 时跳过）
+      if (ENABLE_POINTS && cost > 0) {
+        try {
+          const consumeRes = await cloud.callFunction({
+            name: 'points-service',
+            data: {
+              action: 'consume',
+              params: { type: consumeType, amount: cost, relatedItemId: itemId }
+            }
+          })
+          const cr = consumeRes.result
+          if (cr.code !== 0) {
+            return {
+              code: 402,
+              message: '积分不足',
+              data: {
+                cost,
+                balance: cr.data ? cr.data.balance : 0,
+                required: cost
+              }
+            }
+          }
+        } catch (e) {
+          console.error('积分扣减失败:', e)
+          return { code: 500, message: '积分系统异常，请稍后重试' }
+        }
+      }
+    }
+
     const updateData = { updatedAt: Date.now(), status };
 
     if (status === 'deleted') {
@@ -52,6 +123,23 @@ exports.main = async (event, context) => {
     }
 
     await db.collection('items').doc(itemId).update({ data: updateData });
+
+    // 5. 新用户首次上架奖励（ENABLE_POINTS 为 false 时跳过）
+    if (ENABLE_POINTS && isFirstPublish) {
+      try {
+        await cloud.callFunction({
+          name: 'points-service',
+          data: {
+            action: 'earn',
+            params: { type: 'new_user', amount: 50, relatedItemId: itemId }
+          }
+        })
+        console.log('新用户奖励已发放: 50 积分, itemId:', itemId)
+      } catch (e) {
+        console.error('新用户奖励发放失败:', e)
+      }
+    }
+
     return { code: 0, data: { success: true } };
   } catch (e) {
     console.error(e);

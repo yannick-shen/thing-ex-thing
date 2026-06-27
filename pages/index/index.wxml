@@ -5,8 +5,70 @@
   </view>
 </view>
 
+<!-- 视图切换 tabs -->
+<view class="view-tabs">
+  <view class="tab {{viewMode === 'map' ? 'active' : ''}}" bindtap="switchView" data-mode="map">📍 地图</view>
+  <view class="tab {{viewMode === 'list' ? 'active' : ''}}" bindtap="switchView" data-mode="list">📋 列表</view>
+</view>
+
+<!-- ==================== 列表模式 ==================== -->
+<view wx:if="{{viewMode === 'list'}}" class="list-container">
+  <!-- 城市头部 -->
+  <view class="list-city-header">
+    <text class="list-city-name">{{listCity || '定位中...'}}</text>
+    <text class="list-city-count">共 {{listItems.length}} 件物品</text>
+  </view>
+
+  <!-- 物品卡片列表 -->
+  <scroll-view wx:if="{{listItems.length > 0}}" class="list-scroll" scroll-y="true" refresher-enabled="true" bindrefresherrefresh="onListRefresh" refresher-triggered="{{listRefreshing}}">
+    <view
+      wx:for="{{listItems}}"
+      wx:key="id"
+      class="list-card"
+      bindtap="onListItemTap"
+      data-id="{{item.id}}"
+    >
+      <image class="list-card-img" src="{{item.tempImage || '/assets/images/placeholder-item.png'}}" mode="aspectFill" />
+      <view class="list-card-body">
+        <text class="list-card-title">{{item.title}}</text>
+        <text class="list-card-desc">{{item.desc || '暂无描述'}}</text>
+        <view class="list-card-meta">
+          <text wx:if="{{item.mode === 'sale'}}" class="list-card-price">¥{{item.price}}</text>
+          <text wx:if="{{item.mode === 'exchange'}}" class="list-card-price mode-exchange">交换</text>
+          <text wx:if="{{item.mode === 'donate'}}" class="list-card-price mode-donate">赠送</text>
+          <text wx:if="{{item.mode === 'help'}}" class="list-card-price mode-help">求助</text>
+          <text class="list-card-distance" wx:if="{{item.distanceText}}">{{item.distanceText}}</text>
+        </view>
+        <view class="list-card-footer">
+          <text class="list-card-address" wx:if="{{item.addressText}}">📍 {{item.addressText}}</text>
+          <text class="list-card-time">{{item.timeText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部提示 -->
+    <view class="list-footer-hint">
+      <text class="text-muted">— 已展示全部 {{listItems.length}} 条 —</text>
+    </view>
+  </scroll-view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{listItems.length === 0 && !listLoading}}" class="list-empty">
+    <text class="list-empty-icon">📦</text>
+    <text class="text-muted">{{listCity ? listCity + '暂无物品' : '获取位置中...'}}</text>
+    <text class="text-small text-muted">快去发布第一件物品吧</text>
+    <button class="btn-primary list-empty-btn" bindtap="goPublish">发布物品</button>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{listLoading}}" class="list-loading">
+    <text class="text-muted">加载中...</text>
+  </view>
+</view>
+
+<!-- ==================== 地图模式（原有） ==================== -->
 <!-- 聚合物品列表弹窗 -->
-<view wx:if="{{showClusterList}}" class="overlay cluster-overlay" catchtouchmove="prevent">
+<view wx:if="{{viewMode === 'map' && showClusterList}}" class="overlay cluster-overlay" catchtouchmove="prevent">
   <view class="card cluster-panel" catchtap="prevent">
     <view class="flex-between">
       <text class="text-title">附近物品</text>
@@ -35,14 +97,14 @@
   </view>
 </view>
 
-<view wx:if="{{searchKeyword}}" class="filter-tag" catchtap="clearSearch">已筛选:{{searchKeyword}}</view>
+<view wx:if="{{viewMode === 'map' && searchKeyword}}" class="filter-tag" catchtap="clearSearch">已筛选:{{searchKeyword}}</view>
 
 <!-- 地图 -->
-<map id="map" longitude="{{center.longitude}}" latitude="{{center.latitude}}" scale="{{scale}}" style="width: 100%; height: 100vh;" show-location="{{showLocation}}" enable-scroll="true" enable-zoom="true" bindregionchange="onRegionChange" bindmarkertap="onMarkerTap" markers="{{markers}}">
+<map wx:if="{{viewMode === 'map'}}" id="map" longitude="{{center.longitude}}" latitude="{{center.latitude}}" scale="{{scale}}" style="width: 100%; height: 100vh;" show-location="{{showLocation}}" enable-scroll="true" enable-zoom="true" bindregionchange="onRegionChange" bindmarkertap="onMarkerTap" markers="{{markers}}">
 </map>
 
 <!-- 定位提示气泡 -->
-<view wx:if="{{showLocationTip}}" class="location-tip" catchtap="relocate">
+<view wx:if="{{viewMode === 'map' && showLocationTip}}" class="location-tip" catchtap="relocate">
   <view class="location-tip-content">
     <text class="location-tip-text">点我查看您身边的闲置物品</text>
     <view class="location-tip-close" catchtap="dismissLocationTip">×</view>
@@ -51,7 +113,7 @@
 </view>
 
 <!-- 按钮组 -->
-<view class="button-group">
+<view wx:if="{{viewMode === 'map'}}" class="button-group">
   <view class="fab location" bindtap="relocate">
     <image class="button-icon" src="/assets/icons/locate.png" />
   </view>

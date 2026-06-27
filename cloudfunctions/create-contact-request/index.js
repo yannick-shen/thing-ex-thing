@@ -2,6 +2,9 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
+// ===== 功能开关 =====
+const ENABLE_POINTS = false  // 积分系统：获得广告资格后改为 true
+
 exports.main = async (event, context) => {
   const { itemId, remark } = event;
   const wxContext = cloud.getWXContext();
@@ -95,7 +98,57 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 创建联系申请
+    // ============================================================
+    //  积分系统：联系卖家消耗（每日前 2 次免费，超出 3 积分/次）
+    //  使用 users.todayContactCount / contactCountDate 跟踪
+    // ============================================================
+    let pointsCost = 0
+
+    // 1. 获取今天的日期字符串，跨天重置
+    const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
+    const contactCountDate = buyer.contactCountDate || ''
+    const todayContactCount = (contactCountDate === todayStr) ? (buyer.todayContactCount || 0) : 0
+
+    // 2. 超过 2 次免费配额，扣积分（ENABLE_POINTS 为 false 时跳过）
+    if (ENABLE_POINTS && todayContactCount >= 2) {
+      pointsCost = 3
+      try {
+        const consumeRes = await cloud.callFunction({
+          name: 'points-service',
+          data: {
+            action: 'consume',
+            params: { type: 'contact', amount: pointsCost, relatedItemId: itemId }
+          }
+        })
+        const cr = consumeRes.result
+        if (cr.code !== 0) {
+          return {
+            code: 402,
+            message: '积分不足',
+            data: {
+              cost: pointsCost,
+              balance: cr.data ? cr.data.balance : 0,
+              required: pointsCost,
+              todayCount: todayContactCount
+            }
+          }
+        }
+      } catch (e) {
+        console.error('联系消耗积分失败:', e)
+        return { code: 500, message: '积分系统异常，请稍后重试' }
+      }
+    }
+
+    // 3. 更新用户联系计数（先更新计数，再创建申请）
+    await db.collection('users').doc(buyerId).update({
+      data: {
+        todayContactCount: todayContactCount + 1,
+        contactCountDate: todayStr,
+        updateTime: db.serverDate()
+      }
+    })
+
+    // 4. 创建联系申请
     const requestResult = await db.collection('contact_requests').add({
       data: {
         itemId: itemId,
@@ -108,7 +161,8 @@ exports.main = async (event, context) => {
         sellerOpenid: sellerOpenid,
         remark: remark || '',
         status: 'pending',
-        createTime: Date.now()
+        createTime: Date.now(),
+        pointsCost: pointsCost  // 记录消耗积分，退款时用
       }
     });
 
@@ -116,7 +170,9 @@ exports.main = async (event, context) => {
       code: 0,
       message: '联系申请已发送',
       data: {
-        requestId: requestResult._id
+        requestId: requestResult._id,
+        freeRemaining: Math.max(0, 2 - todayContactCount),
+        pointsUsed: pointsCost
       }
     };
   } catch (error) {

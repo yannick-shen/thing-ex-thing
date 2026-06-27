@@ -35,7 +35,14 @@ Page({
     detailItem: null,
     detailFavorited: false,
     detailCreateTime: '',
-    detailImgIndex: 0
+    detailImgIndex: 0,
+    // 视图模式：list / map
+    viewMode: 'list',
+    // 列表模式相关
+    listItems: [],
+    listCity: '',
+    listLoading: false,
+    listRefreshing: false
   },
 
   // 显示聚合点物品列表
@@ -125,6 +132,10 @@ Page({
   },
 
   onLoad() {
+    // 读取保存的视图模式偏好，默认列表
+    const savedViewMode = wx.getStorageSync('indexViewMode') || 'list';
+    this.setData({ viewMode: savedViewMode });
+
     this.mapCtx = wx.createMapContext('map');
     this.initLocation();
     this.loadSearchHistory();
@@ -134,8 +145,13 @@ Page({
     const refreshMarkers = wx.getStorageSync('refreshMarkers');
     
     if (refreshMarkers) {
-      console.log('[index.onShow] >>> 调用 loadMarkers');
-      this.loadMarkers();
+      console.log('[index.onShow] >>> 刷新数据');
+      // 按当前视图模式刷新
+      if (this.data.viewMode === 'list') {
+        this.loadListItems();
+      } else {
+        this.loadMarkers();
+      }
       wx.removeStorageSync('refreshMarkers');
     }
 
@@ -153,7 +169,12 @@ Page({
         app.globalData.userLocation = { latitude: cached.latitude, longitude: cached.longitude };
       }
       console.log('使用缓存位置立即展示:', cached);
-      this.loadMarkers();
+      // 按当前视图模式加载，避免无效请求
+      if (this.data.viewMode === 'list') {
+        this.loadListItems({ latitude: cached.latitude, longitude: cached.longitude });
+      } else {
+        this.loadMarkers();
+      }
     }
 
     // 步骤2：等待地图就绪后检查权限
@@ -207,14 +228,21 @@ Page({
         }
         if (!this._markersLoaded) {
           this._markersLoaded = true;
-          this.loadMarkers();
+          // 按当前视图模式加载，避免无效请求
+          if (this.data.viewMode === 'list') {
+            this.loadListItems(center || undefined);
+          } else {
+            this.loadMarkers();
+          }
         }
       })
       .catch(error => {
         console.error('定位异常:', error);
         if (!this._markersLoaded) {
           this._markersLoaded = true;
-          this.loadMarkers();
+          if (this.data.viewMode !== 'list') {
+            this.loadMarkers();
+          }
         }
       });
   },
@@ -544,12 +572,30 @@ Page({
     if (keyword) {
       this.saveSearchHistory(keyword);
     }
-    this.setData({ showSearch: false, searchKeyword: keyword }, () => this.loadMarkers());
+    this.setData({ showSearch: false, searchKeyword: keyword }, () => {
+      if (this.data.viewMode === 'list') {
+        this.loadListItems();
+      } else {
+        this.loadMarkers();
+      }
+    });
   },
-  clearSearch() { this.setData({ searchKeyword: '' }, () => this.loadMarkers()); },
+  clearSearch() { this.setData({ searchKeyword: '' }, () => {
+    if (this.data.viewMode === 'list') {
+      this.loadListItems();
+    } else {
+      this.loadMarkers();
+    }
+  }); },
   selectMode(e) {
     const mode = e.currentTarget.dataset.mode;
-    this.setData({ selectedMode: mode }, () => this.loadMarkers());
+    this.setData({ selectedMode: mode }, () => {
+      if (this.data.viewMode === 'list') {
+        this.loadListItems();
+      } else {
+        this.loadMarkers();
+      }
+    });
   },
   
   // 重新定位到当前位置
@@ -625,12 +671,22 @@ Page({
               }
               // 无论是否拿到精确坐标，都加载物品 + 标记已完成
               this._markersLoaded = true;
-              setTimeout(() => this.loadMarkers(), 300);
+              setTimeout(() => {
+                if (this.data.viewMode === 'list') {
+                  this.loadListItems(center || undefined);
+                } else {
+                  this.loadMarkers();
+                }
+              }, 300);
             })
             .catch(error => {
               console.error('重新定位异常:', error);
               this._markersLoaded = true;
-              this.loadMarkers();
+              if (this.data.viewMode === 'list') {
+                this.loadListItems();
+              } else {
+                this.loadMarkers();
+              }
             });
         }, 150);
       });
@@ -678,7 +734,11 @@ Page({
   _loadDefaultMarkers() {
     if (!this._markersLoaded) {
       this._markersLoaded = true;
-      this.loadMarkers();
+      if (this.data.viewMode === 'list') {
+        this.loadListItems();
+      } else {
+        this.loadMarkers();
+      }
     }
   },
 
@@ -896,7 +956,13 @@ Page({
 
   selectHistory(e) {
     const keyword = e.currentTarget.dataset.keyword;
-    this.setData({ tmpKeyword: keyword, showSearch: false, searchKeyword: keyword }, () => this.loadMarkers());
+    this.setData({ tmpKeyword: keyword, showSearch: false, searchKeyword: keyword }, () => {
+      if (this.data.viewMode === 'list') {
+        this.loadListItems();
+      } else {
+        this.loadMarkers();
+      }
+    });
   },
 
   clearHistory() {
@@ -913,7 +979,83 @@ Page({
     });
   },
 
-  noop() {}
+  noop() {},
+
+  // ===== 视图切换 =====
+  switchView(e) {
+    const mode = e.currentTarget.dataset.mode;
+    wx.setStorageSync('indexViewMode', mode);
+    this.setData({ viewMode: mode });
+    if (mode === 'list') {
+      // 切到列表：未加载或无数据时触发加载
+      if (this.data.listItems.length === 0 || !this.data.listCity) {
+        this.loadListItems();
+      }
+    } else {
+      // 切到地图：确保标记点已加载
+      if (this.data.markers.length === 0) {
+        this.loadMarkers();
+      }
+    }
+  },
+
+  // ===== 列表模式：按城市加载物品 =====
+  async loadListItems(forceCenter) {
+    if (this._listLoading) return;
+    this._listLoading = true;
+    this.setData({ listLoading: true });
+
+    const center = forceCenter || this.data.center;
+    const { searchKeyword, selectedMode } = this.data;
+    const mode = selectedMode === 'all' ? '' : selectedMode;
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'fetch-items-in-view',
+        data: {
+          center,
+          autoDetectCity: true,
+          keyword: searchKeyword,
+          mode,
+          radiusKm: 50
+        }
+      });
+      this._listLoading = false;
+      this.setData({ listLoading: false, listRefreshing: false });
+
+      if (res.result && res.result.code === 0) {
+        const rawItems = res.result.data.items || [];
+        const city = res.result.data.city || '';
+        // 计算距离并格式化
+        const items = rawItems.map(it => ({
+          ...it,
+          distanceText: calculateListDistance(center.latitude, center.longitude, it.lat, it.lng),
+          timeText: formatRelativeTime(it.createdAt)
+        }));
+        this.setData({ listItems: items, listCity: city });
+        console.log(`[列表] 加载完成，城市: ${city}，共 ${items.length} 条`);
+      } else {
+        this.setData({ listItems: [] });
+      }
+    } catch (err) {
+      this._listLoading = false;
+      this.setData({ listLoading: false, listRefreshing: false });
+      console.error('[列表] 加载失败:', err);
+    }
+  },
+
+  // ===== 列表项点击 → 复用详情弹窗 =====
+  onListItemTap(e) {
+    const itemId = e.currentTarget.dataset.id;
+    this.showDetailModal(itemId);
+  },
+
+  // ===== 列表下拉刷新 =====
+  onListRefresh() {
+    this.setData({ listRefreshing: true });
+    this.loadListItems();
+  },
+
 });
 
 // ===== 计算两点间距离（Haversine公式，单位km）=====
@@ -925,6 +1067,31 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLng / 2) * Math.sin(dLng / 2);
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// ===== 格式化列表距离文字 =====
+function calculateListDistance(lat1, lng1, lat2, lng2) {
+  if (!lat2 || !lng2) return '';
+  const km = calculateDistance(lat1, lng1, lat2, lng2);
+  if (km < 0.1) return '< 100米';
+  if (km < 1) return (km * 1000).toFixed(0) + '米';
+  return km.toFixed(1) + ' 公里';
+}
+
+// ===== 格式化相对时间 =====
+function formatRelativeTime(timestamp) {
+  if (!timestamp) return '';
+  const diff = Date.now() - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return '刚刚';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return minutes + '分钟前';
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return hours + '小时前';
+  const days = Math.floor(hours / 24);
+  if (days < 7) return days + '天前';
+  const date = new Date(timestamp);
+  return `${date.getMonth() + 1}月${date.getDate()}日`;
 }
 
 // ===== 轻量聚合（示例）=====

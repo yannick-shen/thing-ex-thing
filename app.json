@@ -17,6 +17,7 @@
     "pages/contact-settings/contact-settings",
     "pages/contact-success/contact-success",
     "pages/profile/profile",
+    "pages/points-detail/points-detail",
     "pages/test-image/test-image"
   ],
   "window": {

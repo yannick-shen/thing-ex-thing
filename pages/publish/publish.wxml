@@ -191,10 +191,38 @@
           </view>
           <view class="clear-form-link" bindtap="handleClearForm">清空内容</view>
           <view class="submit-tips">发布后将在地图上显示30天</view>
+          <!-- 发布消耗预览 -->
+          <view wx:if="{{publishCostPreview.loaded}}" class="publish-cost-card">
+            <view class="cost-card-title">发布消耗积分规则</view>
+            <view class="cost-tiers">
+              <view class="cost-tier"><text class="tier-label">已上架 ≤3 个</text><text class="tier-value free">免费</text></view>
+              <view class="cost-tier"><text class="tier-label">第 4 个</text><text class="tier-value">10 积分</text></view>
+              <view class="cost-tier"><text class="tier-label">第 5 个</text><text class="tier-value">20 积分</text></view>
+              <view class="cost-tier"><text class="tier-label">第 6 个</text><text class="tier-value">35 积分</text></view>
+              <view class="cost-tier"><text class="tier-label">第 7 个及以上</text><text class="tier-value">65 积分</text></view>
+            </view>
+            <view class="cost-balance">当前积分余额：<text class="balance-num">{{publishCostPreview.balance}}</text></view>
+          </view>
         </block>
       </view>
     </form>
   </view>
+  </view>
+
+  <!-- 积分不足弹窗 -->
+  <view wx:if="{{showPointsModal}}" class="points-modal-mask" bindtap="closePointsModal">
+    <view class="points-modal" catchtap="preventBubble">
+      <view class="points-modal-title">积分不足</view>
+      <view class="points-modal-body">
+        <text>发布此物品需要 <text class="points-highlight">{{pointsModalData.cost}}</text> 积分</text>
+        <text class="points-modal-sub">当前余额：{{pointsModalData.balance}} 积分</text>
+        <text class="points-modal-tip">观看广告可免费获取积分</text>
+      </view>
+      <view class="points-modal-actions">
+        <view class="points-modal-btn cancel" bindtap="closePointsModal">取消</view>
+        <view class="points-modal-btn confirm" bindtap="goWatchAd">前往看广告</view>
+      </view>
+    </view>
   </view>
 </view>
 

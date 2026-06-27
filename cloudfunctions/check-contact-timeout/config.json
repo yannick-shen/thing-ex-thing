@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "openapi": []
+  },
+  "triggers": [
+    {
+      "name": "hourlyContactTimeoutCheck",
+      "type": "timer",
+      "config": "0 0 * * * * *"
+    }
+  ]
+}

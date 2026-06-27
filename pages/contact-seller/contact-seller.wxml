@@ -56,4 +56,21 @@
       </button>
     </view>
   </view>
+
+  <!-- 积分不足弹窗 -->
+  <view wx:if="{{showPointsModal}}" class="points-modal-mask" bindtap="closePointsModal">
+    <view class="points-modal" catchtap="preventBubble">
+      <view class="points-modal-title">积分不足</view>
+      <view class="points-modal-body">
+        <text>联系卖家需要 <text class="points-highlight">{{pointsModalData.cost}}</text> 积分</text>
+        <text class="points-modal-sub">（每日前2次免费，超出后3积分/次）</text>
+        <text class="points-modal-sub">当前余额：{{pointsModalData.balance}} 积分</text>
+        <text class="points-modal-tip">观看广告可免费获取积分</text>
+      </view>
+      <view class="points-modal-actions">
+        <view class="points-modal-btn cancel" bindtap="closePointsModal">取消</view>
+        <view class="points-modal-btn confirm" bindtap="goWatchAd">前往看广告</view>
+      </view>
+    </view>
+  </view>
 </view>

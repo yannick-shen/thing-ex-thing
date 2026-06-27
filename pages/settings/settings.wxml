@@ -28,6 +28,21 @@
     </view>
   </view>
 
+  <!-- 积分管理 -->
+  <view class="setting-section">
+    <view class="section-title">
+      <image class="section-icon-img" src="/assets/icons/icon-mine-about.png" />积分管理
+    </view>
+
+    <view class="setting-item" bindtap="goToPointsDetail">
+      <view class="setting-info">
+        <view class="setting-label">积分明细</view>
+        <view class="setting-desc">查看积分收入与支出记录</view>
+      </view>
+      <view class="setting-arrow">></view>
+    </view>
+  </view>
+
   <!-- 帮助与支持 -->
   <view class="setting-section">
     <view class="section-title">
@@ -73,7 +88,7 @@
       <view class="setting-info">
         <view class="setting-label-row">
           <text class="setting-label">版本号</text>
-          <text class="setting-version">v1.0.3</text>
+          <text class="setting-version">v1.0.4</text>
         </view>
       </view>
     </view>

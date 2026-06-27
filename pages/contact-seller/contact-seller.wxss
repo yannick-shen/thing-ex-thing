@@ -207,3 +207,87 @@ page {
   opacity: 0.7;
   transform: scale(0.98);
 }
+
+/* ============================================================
+   积分不足弹窗
+   ============================================================ */
+.points-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.points-modal {
+  width: 600rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 40rpx 36rpx 30rpx;
+  box-sizing: border-box;
+}
+
+.points-modal-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+.points-modal-body {
+  text-align: center;
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.8;
+}
+
+.points-highlight {
+  color: #ff4757;
+  font-weight: 700;
+  font-size: 32rpx;
+}
+
+.points-modal-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: #999;
+}
+
+.points-modal-tip {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: #ffa940;
+}
+
+.points-modal-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 32rpx;
+}
+
+.points-modal-btn {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: 12rpx;
+}
+
+.points-modal-btn.cancel {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.points-modal-btn.confirm {
+  background: linear-gradient(135deg, #ffc53d, #ffa940);
+  color: #fff;
+}

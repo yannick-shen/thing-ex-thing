@@ -6,7 +6,10 @@ Page({
     item: null,
     loading: true,
     submitting: false,
-    remark: ''
+    remark: '',
+    // 积分不足弹窗
+    showPointsModal: false,
+    pointsModalData: {}
   },
 
   onLoad(options) {
@@ -102,6 +105,15 @@ Page({
             wx.navigateBack();
           }
         });
+      } else if (result.result && result.result.code === 402) {
+        // 积分不足
+        this.setData({
+          showPointsModal: true,
+          pointsModalData: {
+            cost: result.result.data ? result.result.data.cost : 3,
+            balance: result.result.data ? result.result.data.balance : 0
+          }
+        })
       } else {
         throw new Error(result.result?.message || '发送失败');
       }
@@ -131,5 +143,21 @@ Page({
         urls: item.images
       });
     }
-  }
+  },
+
+  // 关闭积分不足弹窗
+  closePointsModal() {
+    this.setData({ showPointsModal: false })
+  },
+
+  // 前往看广告
+  goWatchAd() {
+    this.setData({ showPointsModal: false })
+    wx.switchTab({
+      url: '/pages/profile/profile'
+    })
+  },
+
+  // 阻止冒泡
+  preventBubble() {}
 });

@@ -24,6 +24,8 @@ Page({
   onShow() {
     // 每次显示页面时检查登录状态
     this.checkLoginStatus();
+    // 触发 48 小时超时联系退款检查（异步静默）
+    this.checkContactTimeout();
   },
 
   // 检查登录状态但不跳转
@@ -541,5 +543,19 @@ Page({
       title: '闲置地图 - 消息中心',
       path: '/pages/messages/messages'
     };
+  },
+
+  // 检查 48h 超时联系申请，触发退款
+  async checkContactTimeout() {
+    if (!this.isActuallyLoggedIn()) return
+    try {
+      await wx.cloud.callFunction({
+        name: 'check-contact-timeout',
+        data: {}
+      })
+    } catch (e) {
+      // 静默失败不影响页面
+      console.log('check-contact-timeout 调用失败:', e)
+    }
   }
 });

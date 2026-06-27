@@ -1,0 +1,9 @@
+{
+  "name": "renew-item",
+  "version": "1.0.0",
+  "description": "续期物品云函数 - 积分消耗 + 延长有效期",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~3.0.0"
+  }
+}

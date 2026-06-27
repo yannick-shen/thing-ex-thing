@@ -1,0 +1,9 @@
+{
+  "name": "points-service",
+  "version": "1.0.0",
+  "description": "积分核心服务 - 加减查",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

@@ -81,6 +81,13 @@ async function processLogin(openid, appid, userProfile = null) {
           favoritesCount: 0,
           soldCount: 0
         },
+        // 积分系统相关字段
+        lastSignDate: '',           // 上次签到日期 '2026-05-31'，空字符串表示从未签到
+        consecutiveDays: 0,         // 连续签到天数 1-7
+        todayAdCount: 0,            // 今日已看广告次数
+        todayContactCount: 0,       // 今日已免费联系次数
+        adCountDate: '',            // 广告计数日期，用于跨天重置
+        contactCountDate: '',       // 联系计数日期，用于跨天重置
         status: 'active'
       }
 
@@ -103,13 +110,30 @@ async function processLogin(openid, appid, userProfile = null) {
       // 已存在用户，检查是否需要更新用户信息
       user = userResult.data[0]
       
-      // 简化逻辑：不依赖传入的用户信息，仅更新登录时间
-      console.log('更新用户登录时间...')
-      await userCollection.doc(user._id).update({
-        data: {
-          updateTime: db.serverDate()
-        }
-      })
+      // 懒迁移：补全积分系统相关字段（仅首次执行一次）
+      const patches = {}
+      if (user.lastSignDate === undefined) patches.lastSignDate = ''
+      if (user.consecutiveDays === undefined) patches.consecutiveDays = 0
+      if (user.todayAdCount === undefined) patches.todayAdCount = 0
+      if (user.todayContactCount === undefined) patches.todayContactCount = 0
+      if (user.adCountDate === undefined) patches.adCountDate = ''
+      if (user.contactCountDate === undefined) patches.contactCountDate = ''
+      
+      if (Object.keys(patches).length > 0) {
+        console.log('📦 补全积分系统字段...', patches)
+        await userCollection.doc(user._id).update({
+          data: { ...patches, updateTime: db.serverDate() }
+        })
+        // 更新内存中的 user 对象
+        Object.assign(user, patches)
+        console.log('✅ 字段补全成功')
+      } else {
+        // 仅更新登录时间
+        await userCollection.doc(user._id).update({
+          data: { updateTime: db.serverDate() }
+        })
+      }
+      
       console.log('✅ 登录时间更新成功')
       
       // 添加到缓存
@@ -122,7 +146,14 @@ async function processLogin(openid, appid, userProfile = null) {
       openid: user.openid,
       profile: user.profile,
       stats: user.stats,
-      isNewUser: userResult.data.length === 0
+      isNewUser: userResult.data.length === 0,
+      // 积分系统字段（前端需要缓存）
+      lastSignDate: user.lastSignDate || '',
+      consecutiveDays: user.consecutiveDays || 0,
+      todayAdCount: user.todayAdCount || 0,
+      todayContactCount: user.todayContactCount || 0,
+      adCountDate: user.adCountDate || '',
+      contactCountDate: user.contactCountDate || ''
     }
     console.log('返回数据:', responseData)
     
@@ -252,7 +283,12 @@ async function getUserInfo(wxContext) {
       data: {
         userId: user._id,
         profile: user.profile,
-        stats: user.stats
+        stats: user.stats,
+        // 积分系统字段
+        lastSignDate: user.lastSignDate || '',
+        consecutiveDays: user.consecutiveDays || 0,
+        todayAdCount: user.todayAdCount || 0,
+        todayContactCount: user.todayContactCount || 0
       }
     }
   } catch (error) {

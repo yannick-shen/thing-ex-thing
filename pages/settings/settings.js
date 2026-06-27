@@ -64,6 +64,11 @@ Page({
     wx.navigateTo({ url: '/pages/policy/policy?type=privacy' });
   },
 
+  // 积分明细
+  goToPointsDetail() {
+    wx.navigateTo({ url: '/pages/points-detail/points-detail' });
+  },
+
   // 查看平台规则
   viewRules() {
     wx.navigateTo({ url: '/pages/policy/policy?type=rules' });

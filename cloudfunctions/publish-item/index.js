@@ -1,6 +1,32 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const https = require('https');
+
+// ===== 功能开关 =====
+const ENABLE_POINTS = false  // 积分系统：获得广告资格后改为 true
+
+// ===== 通过 Nominatim 逆地理编码获取城市名（地级市级别）=====
+function reverseGeocodeCity(lat, lng) {
+  return new Promise((resolve) => {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=zh`;
+    https.get(url, { headers: { 'User-Agent': 'WxMiniprogram/1.0' } }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          const addr = json.address || {};
+          // state_district：中文 OSM 中代表地级市（如"郑州市"），解决县级市（登封）→地级市（郑州）的映射
+          const city = addr.city || addr.state_district || addr.county || addr.state || addr.town || '';
+          resolve(city ? city.replace(/市$/, '') : '');
+        } catch (e) {
+          resolve('');
+        }
+      });
+    }).on('error', () => resolve(''));
+  });
+}
 
 // 位置模糊处理：在原位置基础上生成稳定的偏移（基于种子值，确保同一位置每次偏移相同）
 // 偏移范围：50-200米
@@ -99,7 +125,7 @@ exports.main = async (event, context) => {
       return { code: 400, message: 'missing fields' };
     }
 
-    // 获取用户ID
+    // 获取用户信息
     let userId = null;
     try {
       const userResult = await db.collection('users').where({
@@ -139,17 +165,71 @@ exports.main = async (event, context) => {
     //   return { code: 400, message: '图片包含违规内容，请更换后重试' };
     // }
 
+    // ============================================================
+    //  积分系统：发布消耗 + 新用户奖励
+    // ============================================================
+    const publishStatus = event.status || 'on'
+
+    if (publishStatus === 'on') {
+      // 1. 统计用户当前上架物品数量（status='on'）
+      const onCountRes = await db.collection('items')
+        .where({ authorId: userId, status: 'on' })
+        .count()
+      const currentOnCount = onCountRes.total
+
+      // 2. 按 N（当前已上架数）确定费用档位
+      const getPublishCost = (n) => {
+        if (n <= 3) return 0
+        if (n === 4) return 10
+        if (n === 5) return 20
+        if (n === 6) return 35
+        return 65
+      }
+      const cost = getPublishCost(currentOnCount)
+
+      // 4. 消费积分（ENABLE_POINTS 为 false 时跳过）
+      if (ENABLE_POINTS && cost > 0) {
+        try {
+          const consumeRes = await cloud.callFunction({
+            name: 'points-service',
+            data: {
+              action: 'consume',
+              params: { type: 'publish', amount: cost }
+            }
+          })
+          const cr = consumeRes.result
+          if (cr.code !== 0) {
+            return {
+              code: 402,
+              message: '积分不足',
+              data: {
+                cost,
+                balance: cr.data ? cr.data.balance : 0,
+                required: cost
+              }
+            }
+          }
+        } catch (e) {
+          console.error('积分扣减失败:', e)
+          return { code: 500, message: '积分系统异常，请稍后重试' }
+        }
+      }
+    }
+
     const now = Date.now();
     const expiryDays = 30;
     const expireAt = now + expiryDays * 24 * 60 * 60 * 1000;
 
-    // 位置处理（简化版，不再有复杂的隐私设置）
+    // 位置处理
     const finalLat = Number(location.latitude);
     const finalLng = Number(location.longitude);
     const exactLocationData = {
       lat: Number(location.latitude),
       lng: Number(location.longitude)
     };
+
+    // 逆地理编码获取城市名（异步，不阻塞发布）
+    const city = await reverseGeocodeCity(finalLat, finalLng).catch(() => '');
 
     const doc = {
       title,
@@ -162,9 +242,10 @@ exports.main = async (event, context) => {
       lng: finalLng,
       exactLocation: exactLocationData,
       addressText,
+      city: city || '',  // 发布时写入城市名，用于城市级别查询
       images,
       authorId: userId,
-      status: event.status || 'on',
+      status: publishStatus,
       auditStatus: 'pass',
       counters: { views: 0, favorites: 0, comments: 0 },
       createdAt: now,
@@ -173,7 +254,43 @@ exports.main = async (event, context) => {
 
     };
     const res = await db.collection('items').add({ data: doc });
-    return { code: 0, data: { id: res._id } };
+
+    // 5. 新用户首次上架奖励（原子标记防并发重复）
+    let newUserBonus = false
+    try {
+      // 原子 CAS：仅在 newUserBonusClaimed 字段不存在时才写入 true
+      const claimRes = await db.collection('users')
+        .where({
+          _id: userId,
+          newUserBonusClaimed: _.exists(false)
+        })
+        .update({
+          data: { newUserBonusClaimed: true, updateTime: db.serverDate() }
+        })
+
+      // stats.updated === 1 表示我们是第一个写入的（从未领取过）
+      if (claimRes.stats && claimRes.stats.updated === 1) {
+        await cloud.callFunction({
+          name: 'points-service',
+          data: {
+            action: 'earn',
+            params: { type: 'new_user', amount: 50, relatedItemId: res._id }
+          }
+        })
+        newUserBonus = true
+      }
+    } catch (e) {
+      console.error('新用户奖励处理失败:', e)
+    }
+
+    return {
+      code: 0,
+      data: {
+        id: res._id,
+        newUserBonus,
+        bonusAmount: newUserBonus ? 50 : 0
+      }
+    };
   } catch (e) {
     console.error(e);
     return { code: 500, message: 'server error' };

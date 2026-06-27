@@ -8,7 +8,10 @@ Page({
     },
     currentTab: 'active',
     items: [],
-    loading: true
+    loading: true,
+    // 续期弹窗
+    showRenewModal: false,
+    renewModalData: {}
   },
 
   onLoad() {
@@ -70,7 +73,7 @@ Page({
 
     const now = Date.now();
     const activeItems = items.filter(item =>
-      item.status === 'on' && item.expireAt > now
+      item.status === 'on' 
     );
     const draftItems = items.filter(item =>
       item.status === 'draft' || item.status === 'off' || item.expireAt <= now
@@ -238,6 +241,20 @@ Page({
               });
               wx.setStorageSync('refreshMyItems', true);
               this.loadMyItems();
+            } else if (result.result && result.result.code === 402) {
+              wx.hideLoading();
+              const pts = result.result.data || {}
+              wx.showModal({
+                title: '积分不足',
+                content: `发布此物品需要 ${pts.cost || 0} 积分（当前余额：${pts.balance || 0}）。\n观看广告可免费获取积分。`,
+                confirmText: '前往看广告',
+                cancelText: '取消',
+                success: (modalRes) => {
+                  if (modalRes.confirm) {
+                    wx.switchTab({ url: '/pages/profile/profile' })
+                  }
+                }
+              })
             } else {
               wx.hideLoading();
               wx.showToast({
@@ -285,6 +302,19 @@ Page({
               });
               wx.setStorageSync('refreshMyItems', true);
               this.loadMyItems();
+            } else if (result.result && result.result.code === 402) {
+              const pts = result.result.data || {}
+              wx.showModal({
+                title: '积分不足',
+                content: `重新上架需要 ${pts.cost || 0} 积分（当前余额：${pts.balance || 0}）。\n观看广告可免费获取积分。`,
+                confirmText: '前往看广告',
+                cancelText: '取消',
+                success: (modalRes) => {
+                  if (modalRes.confirm) {
+                    wx.switchTab({ url: '/pages/profile/profile' })
+                  }
+                }
+              })
             } else {
               wx.showToast({
                 title: '发布失败',
@@ -400,6 +430,116 @@ Page({
       return `${year}-${month}-${day}`;
     }
   },
+
+  // 续期物品
+  renewItem(e) {
+    const id = e.currentTarget.dataset.id
+    const item = (this.allItems || []).find(i => (i._id === id || i.id === id))
+    if (!item) {
+      wx.showToast({ title: '物品信息异常', icon: 'none' })
+      return
+    }
+
+    if (id.startsWith('mock_')) {
+      wx.showToast({ title: '示例数据，无法操作', icon: 'none' })
+      return
+    }
+
+    // 计算续期前后到期时间
+    const oldExpireAt = item.expireAt
+    const newExpireAt = oldExpireAt + 30 * 24 * 60 * 60 * 1000
+
+    const formatDate = (ts) => {
+      const d = new Date(ts)
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    }
+
+    this.setData({
+      showRenewModal: true,
+      renewModalData: {
+        itemId: id,
+        itemTitle: item.title,
+        oldExpireDate: formatDate(oldExpireAt),
+        newExpireDate: formatDate(newExpireAt),
+        loading: false
+      }
+    })
+  },
+
+  // 关闭续期弹窗
+  closeRenewModal() {
+    this.setData({ showRenewModal: false })
+  },
+
+  // 确认续期
+  async confirmRenew() {
+    const { itemId } = this.data.renewModalData
+    this.setData({ 'renewModalData.loading': true })
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'renew-item',
+        data: { itemId }
+      })
+
+      if (res.result && res.result.code === 0) {
+        const { oldExpireAt, newExpireAt, cost } = res.result.data
+        const formatDate = (ts) => {
+          const d = new Date(ts)
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        }
+
+        this.setData({ showRenewModal: false })
+
+        wx.showToast({
+          title: '续期成功',
+          icon: 'success',
+          duration: 2000
+        })
+
+        // 气泡提示新的到期时间
+        setTimeout(() => {
+          wx.showModal({
+            title: '续期成功',
+            content: `物品已续期 30 天\n新到期时间：${formatDate(newExpireAt)}\n${cost > 0 ? '消耗 ' + cost + ' 积分' : '本次续期免费'}`,
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        }, 2200)
+
+        // 刷新列表
+        wx.setStorageSync('refreshMyItems', true)
+        this.loadMyItems()
+      } else if (res.result && res.result.code === 402) {
+        this.setData({ showRenewModal: false })
+        const pts = res.result.data || {}
+        wx.showModal({
+          title: '积分不足',
+          content: `续期需要 ${pts.cost || 0} 积分（当前余额：${pts.balance || 0}）。\n观看广告可免费获取积分。`,
+          confirmText: '前往看广告',
+          cancelText: '取消',
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              wx.switchTab({ url: '/pages/profile/profile' })
+            }
+          }
+        })
+      } else {
+        this.setData({ showRenewModal: false })
+        wx.showToast({
+          title: res.result?.message || '续期失败',
+          icon: 'none'
+        })
+      }
+    } catch (e) {
+      this.setData({ showRenewModal: false })
+      console.error('续期失败:', e)
+      wx.showToast({ title: '续期失败，请重试', icon: 'none' })
+    }
+  },
+
+  // 阻止冒泡
+  preventBubble() {},
 
   // 页面分享
   onShareAppMessage() {

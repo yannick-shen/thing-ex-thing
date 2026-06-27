@@ -23,6 +23,58 @@
     </view>
   </view>
 
+  <!-- 签到卡片（积分关闭时隐藏） -->
+  <view wx:if="{{isLoggedIn && enablePoints}}" class="signin-card">
+    <view class="signin-header">
+      <view class="signin-title-row">
+        <text class="signin-title">每日签到</text>
+        <text class="signin-streak">已连续 {{signInDays}} 天</text>
+      </view>
+    </view>
+    <view class="signin-days">
+      <view class="signin-day {{signInDays >= index + 1 ? 'done' : ''}} {{signInDays === index + 1 && !signInDone ? 'today' : ''}}" wx:for="{{[1,2,3,4,5,6,7]}}" wx:key="*this">
+        <text wx:if="{{signInDays >= index + 1}}" class="day-check">✓</text>
+        <text wx:else class="day-num">{{item}}</text>
+        <text class="day-reward">+{{signInRewards[index]}}</text>
+      </view>
+    </view>
+    <view class="signin-action">
+      <view wx:if="{{signInDone}}" class="signin-done-btn">今日已签到</view>
+      <view wx:else class="signin-btn" bindtap="doSignIn">签到领积分</view>
+    </view>
+  </view>
+
+  <!-- 广告奖励卡片（积分关闭时隐藏） -->
+  <view wx:if="{{isLoggedIn && enablePoints}}" class="ad-card">
+    <view class="ad-header">
+      <view class="ad-title-row">
+        <text class="ad-title">看广告赚积分</text>
+        <text wx:if="{{adMock}}" class="ad-mock-tag">测试模式</text>
+      </view>
+      <text class="ad-progress">今日 {{todayAdCount}}/20 次</text>
+    </view>
+    <view class="ad-tiers">
+      <view class="ad-tier {{todayAdCount < 5 ? 'active' : ''}}">
+        <text class="ad-tier-num">5分/次</text>
+        <text class="ad-tier-range">第1~5次</text>
+      </view>
+      <view class="ad-tier {{todayAdCount >= 5 && todayAdCount < 10 ? 'active' : ''}}">
+        <text class="ad-tier-num">4分/次</text>
+        <text class="ad-tier-range">第6~10次</text>
+      </view>
+      <view class="ad-tier {{todayAdCount >= 10 && todayAdCount < 20 ? 'active' : ''}}">
+        <text class="ad-tier-num">3分/次</text>
+        <text class="ad-tier-range">第11~20次</text>
+      </view>
+    </view>
+    <view class="ad-action">
+      <button wx:if="{{adRemaining > 0}}" class="ad-btn" bindtap="doWatchAd" loading="{{adRewardLoading}}" disabled="{{adRewardLoading}}">
+        {{adRewardLoading ? '发放中...' : '观看广告 +' + (todayAdCount < 5 ? '5' : (todayAdCount < 10 ? '4' : '3')) + ' 积分'}}
+      </button>
+      <view wx:else class="ad-done-btn">今日次数已用完</view>
+    </view>
+  </view>
+
   <!-- 功能菜单 -->
   <view class="menu-section">
     <!-- 我的物品 -->
@@ -42,6 +94,15 @@
           <view class="menu-title">我的收藏</view>
         </view>
         <view class="menu-badge" wx:if="{{stats.favorited > 0}}">{{stats.favorited}}</view>
+        <view class="menu-arrow">></view>
+      </view>
+
+      <!-- 积分明细（积分关闭时隐藏） -->
+      <view wx:if="{{enablePoints}}" class="menu-item" bindtap="goToPointsDetail">
+        <image class="menu-icon-img" src="/assets/icons/icon-mine-mything.png" />
+        <view class="menu-info">
+          <view class="menu-title">积分明细</view>
+        </view>
         <view class="menu-arrow">></view>
       </view>
     </view>

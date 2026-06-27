@@ -1,0 +1,105 @@
+<wxs module="fmt">
+  var typeMap = {
+    sign_in: '每日签到',
+    ad_reward: '广告奖励',
+    new_user: '新用户奖励',
+    publish: '发布消耗',
+    renew: '续期消耗',
+    contact: '联系卖家',
+    contact_refund: '联系退款'
+  }
+  var incomeTypes = ['sign_in', 'ad_reward', 'new_user', 'contact_refund']
+
+  function typeName(type) {
+    return typeMap[type] || type || '未知类型'
+  }
+
+  function isIncome(type, amount) {
+    return amount > 0
+  }
+
+  function formatDate(ts) {
+    var d = getDate(ts)
+    var y = d.getFullYear()
+    var m = (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1)
+    var day = (d.getDate() < 10 ? '0' : '') + d.getDate()
+    var h = (d.getHours() < 10 ? '0' : '') + d.getHours()
+    var min = (d.getMinutes() < 10 ? '0' : '') + d.getMinutes()
+    return y + '-' + m + '-' + day + ' ' + h + ':' + min
+  }
+
+  function amountText(amount) {
+    if (amount > 0) return '+' + amount
+    return '' + amount
+  }
+
+  module.exports = {
+    typeName: typeName,
+    isIncome: isIncome,
+    formatDate: formatDate,
+    amountText: amountText
+  }
+</wxs>
+
+<view class="page-container">
+  <!-- 账户摘要卡 -->
+  <view class="balance-card">
+    <view class="balance-header">当前积分余额</view>
+    <view class="balance-num">{{balance}}</view>
+    <view class="balance-hint">积分有效期 90 天</view>
+    <view class="balance-stats">
+      <view class="stat-item">
+        <text class="stat-label">累计收入</text>
+        <text class="stat-value earn">+{{totalEarned}}</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-label">累计支出</text>
+        <text class="stat-value spend">-{{totalSpent}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 明细列表 -->
+  <view class="detail-section">
+    <view class="section-title">积分明细</view>
+
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading-wrap">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:elif="{{list.length === 0}}" class="empty-wrap">
+      <image class="empty-img" src="/assets/icons/icon-mine-about.png" mode="aspectFit"></image>
+      <text class="empty-text">暂无积分记录</text>
+      <text class="empty-sub">发布物品、签到或观看广告获取积分吧</text>
+    </view>
+
+    <!-- 明细列表 -->
+    <view wx:else class="detail-list">
+      <view wx:for="{{list}}" wx:key="_id" class="detail-item">
+        <view class="detail-left">
+          <view class="detail-type">{{fmt.typeName(item.type)}}</view>
+          <view class="detail-time">{{fmt.formatDate(item.createTime)}}</view>
+        </view>
+        <view class="detail-right">
+          <text class="detail-amount {{fmt.isIncome(item.type, item.amount) ? 'income' : 'spend'}}">
+            {{fmt.amountText(item.amount)}}
+          </text>
+          <view class="detail-balance">余额 {{item.balance}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{hasMore}}" class="load-more" bindtap="loadMore">
+      <text wx:if="{{!loadingMore}}">点击加载更多</text>
+      <text wx:else>加载中...</text>
+    </view>
+    <view wx:elif="{{list.length > 0 && !loading}}" class="load-end">
+      — 共 {{total}} 条记录 —
+    </view>
+  </view>
+</view>

@@ -16,7 +16,15 @@ Page({
     location: null,
     isSubmitting: false,
     locationWarning: false,  // 位置警告标志（方案C）
-    editItemStatus: ''  // 编辑时物品原始状态
+    editItemStatus: '',  // 编辑时物品原始状态
+    // 积分不足弹窗
+    showPointsModal: false,
+    pointsModalData: {},
+    // 发布消耗预览
+    publishCostPreview: {
+      balance: 0,
+      loaded: false
+    }
   },
 
   onLoad(options) {
@@ -55,6 +63,8 @@ Page({
 
     // 每次显示页面时检查登录状态
     this.checkLoginStatus();
+    // 加载发布消耗预览（余额）
+    this.loadPublishCostInfo();
   },
 
   // 检查登录状态但不跳转
@@ -361,10 +371,8 @@ Page({
       wx.hideLoading();
 
       if (result.code === 0) {
-        wx.showToast({
-          title: this.data.isEditMode ? '保存成功' : '发布成功',
-          icon: 'success'
-        });
+        const data = result.data || {}
+        const isNewUser = data.newUserBonus
 
         // 标记首页需要刷新
         wx.setStorageSync('refreshMarkers', true);
@@ -374,10 +382,37 @@ Page({
         // 清空表单
         this.resetForm();
 
-        // 延迟返回
-        setTimeout(() => {
-          wx.navigateBack();
-        }, 1500);
+        if (isNewUser) {
+          // 新用户奖励 → 弹窗恭喜
+          wx.showModal({
+            title: '🎉 恭喜发布成功！',
+            content: `你的第一件物品已成功发布！\n\n作为新用户奖励，你获得了 ${data.bonusAmount} 积分，快去看看你的积分余额吧～`,
+            confirmText: '知道了',
+            showCancel: false,
+            success: () => {
+              wx.navigateBack()
+            }
+          })
+        } else {
+          wx.showToast({
+            title: this.data.isEditMode ? '保存成功' : '发布成功',
+            icon: 'success',
+            duration: 1500
+          })
+          // 延迟返回
+          setTimeout(() => {
+            wx.navigateBack()
+          }, 1500)
+        }
+      } else if (result.code === 402) {
+        // 积分不足 → 弹窗引导看广告
+        this.setData({
+          showPointsModal: true,
+          pointsModalData: {
+            cost: result.data ? result.data.cost : 0,
+            balance: result.data ? result.data.balance : 0
+          }
+        })
       } else {
         wx.showToast({
           title: result.message || (this.data.isEditMode ? '保存失败' : '发布失败'),
@@ -550,6 +585,15 @@ Page({
               setTimeout(() => {
                 wx.navigateBack();
               }, 1500);
+            } else if (res.result && res.result.code === 402) {
+              // 积分不足
+              this.setData({
+                showPointsModal: true,
+                pointsModalData: {
+                  cost: res.result.data ? res.result.data.cost : 0,
+                  balance: res.result.data ? res.result.data.balance : 0
+                }
+              })
             } else {
               wx.showToast({
                 title: res.result?.message || '上架失败',
@@ -659,5 +703,40 @@ Page({
       title: '闲置地图 - 发布你的闲置物品',
       path: '/pages/publish/publish'
     };
-  }
+  },
+
+  // 加载发布消耗预览（获取当前积分余额）
+  async loadPublishCostInfo() {
+    if (!this.isActuallyLoggedIn()) return
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'points-service',
+        data: { action: 'balance' }
+      })
+      if (res.result && res.result.code === 0) {
+        this.setData({
+          'publishCostPreview.balance': res.result.data.balance || 0,
+          'publishCostPreview.loaded': true
+        })
+      }
+    } catch (e) {
+      console.log('加载发布消耗预览失败:', e)
+    }
+  },
+
+  // 关闭积分不足弹窗
+  closePointsModal() {
+    this.setData({ showPointsModal: false })
+  },
+
+  // 前往看广告
+  goWatchAd() {
+    this.setData({ showPointsModal: false })
+    wx.switchTab({
+      url: '/pages/profile/profile'
+    })
+  },
+
+  // 阻止冒泡
+  preventBubble() {}
 });

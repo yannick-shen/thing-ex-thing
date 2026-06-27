@@ -142,23 +142,39 @@ class AuthManager {
           }
         }
 
-        const { userId, profile, stats, isNewUser } = cloudResult.data
+        const { userId, profile, stats, isNewUser, lastSignDate, consecutiveDays, todayAdCount, todayContactCount, adCountDate, contactCountDate } = cloudResult.data
         
         console.log('登录成功解析用户数据:')
         console.log('- userId:', userId)
         console.log('- profile:', profile)
         console.log('- stats:', stats)
         console.log('- isNewUser:', isNewUser)
+        console.log('- lastSignDate:', lastSignDate, 'consecutiveDays:', consecutiveDays)
         
-        // 保存用户信息到本地
+        // 保存用户信息到本地（包含积分字段）
         wx.setStorageSync('userId', userId)
-        wx.setStorageSync('userInfo', { profile, stats })
+        wx.setStorageSync('userInfo', { 
+          profile, 
+          stats,
+          lastSignDate: lastSignDate || '',
+          consecutiveDays: consecutiveDays || 0,
+          todayAdCount: todayAdCount || 0,
+          todayContactCount: todayContactCount || 0,
+          adCountDate: adCountDate || '',
+          contactCountDate: contactCountDate || ''
+        })
         wx.setStorageSync('lastLoginTime', Date.now())
         
         this.currentUser = {
           userId: userId,
           profile: profile,
-          stats: stats
+          stats: stats,
+          lastSignDate: lastSignDate || '',
+          consecutiveDays: consecutiveDays || 0,
+          todayAdCount: todayAdCount || 0,
+          todayContactCount: todayContactCount || 0,
+          adCountDate: adCountDate || '',
+          contactCountDate: contactCountDate || ''
         }
 
         console.log('用户信息已保存到本地存储')
@@ -222,7 +238,9 @@ class AuthManager {
         const currentUser = this.getCurrentUser()
         if (currentUser) {
           currentUser.profile = { ...currentUser.profile, ...profile }
+          const existingInfo = wx.getStorageSync('userInfo') || {}
           wx.setStorageSync('userInfo', { 
+            ...existingInfo,
             profile: currentUser.profile, 
             stats: currentUser.stats 
           })
@@ -299,6 +317,19 @@ class AuthManager {
     if (index > -1) {
       this.loginCallbacks.splice(index, 1)
     }
+  }
+
+  // 更新积分相关缓存（签到/广告后调用）
+  updatePointsCache(fields) {
+    const user = this.getCurrentUser()
+    if (!user) return
+
+    Object.assign(user, fields)
+    this.currentUser = user
+
+    const userInfo = wx.getStorageSync('userInfo') || {}
+    Object.assign(userInfo, fields)
+    wx.setStorageSync('userInfo', userInfo)
   }
 }
 
