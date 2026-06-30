@@ -38,9 +38,14 @@ Page({
     detailImgIndex: 0,
     // 视图模式：list / map
     viewMode: 'list',
+    // 自定义导航栏
+    statusBarHeight: 20,
+    navBarHeight: 44,
+    navTotalHeight: 64,
+    navRightGap: 0,   // 导航栏右侧避让胶囊按钮的距离
     // 列表模式相关
     listItems: [],
-    listCity: '',
+    listCity: wx.getStorageSync('cachedListCity') || '',  // 优先显示缓存城市名
     listLoading: false,
     listRefreshing: false
   },
@@ -132,6 +137,19 @@ Page({
   },
 
   onLoad() {
+    // 计算自定义导航栏高度 + 避让胶囊按钮
+    const sysInfo = wx.getSystemInfoSync();
+    const statusBarHeight = sysInfo.statusBarHeight || 20;
+    const navBarHeight = 44; // 胶囊按钮区高度
+    const menuRect = wx.getMenuButtonBoundingClientRect();
+    const navRightGap = sysInfo.windowWidth - menuRect.left + 8; // 胶囊左侧到屏幕右边的距离 + 8px间距
+    this.setData({
+      statusBarHeight,
+      navBarHeight,
+      navTotalHeight: statusBarHeight + navBarHeight,
+      navRightGap
+    });
+    
     // 读取保存的视图模式偏好，默认列表
     const savedViewMode = wx.getStorageSync('indexViewMode') || 'list';
     this.setData({ viewMode: savedViewMode });
@@ -160,50 +178,68 @@ Page({
     const cached = wx.getStorageSync('cachedUserLocation');
     const hasCache = cached && cached.latitude && cached.longitude;
 
-    // 步骤1：有缓存时立刻展示（零等待）
+    // 有缓存时先展示缓存位置（仅设置地图中心，不加载数据）
+    // 数据统一等地图获取真实位置后再加载，避免用旧位置发出无效请求
     if (hasCache) {
-      this._markersLoaded = true;
       this.setData({ center: { latitude: cached.latitude, longitude: cached.longitude } });
       const app = getApp();
       if (app) {
         app.globalData.userLocation = { latitude: cached.latitude, longitude: cached.longitude };
       }
-      console.log('使用缓存位置立即展示:', cached);
-      // 按当前视图模式加载，避免无效请求
-      if (this.data.viewMode === 'list') {
-        this.loadListItems({ latitude: cached.latitude, longitude: cached.longitude });
-      } else {
-        this.loadMarkers();
-      }
+      console.log('使用缓存位置立即展示（暂不加载数据）:', cached);
     }
 
-    // 步骤2：等待地图就绪后检查权限
-    this._waitForMapReady(() => {
-      wx.getSetting({
-        success: (res) => {
-          const authStatus = res.authSetting['scope.userLocation'];
+    // 检查位置权限，授权后通过地图组件获取位置（不依赖 wx.getLocation）
+    wx.getSetting({
+      success: (res) => {
+        const authStatus = res.authSetting['scope.userLocation'];
 
-          if (authStatus === true) {
-            // 已授权 → 获取精确位置 + 刷新蓝点
-            this.setData({ showLocationTip: false });
+        if (authStatus === true) {
+          // 已授权 → 等地图就绪后通过地图组件获取位置
+          this.setData({ showLocationTip: false });
+          this._waitForMapReady(() => {
             this._doMoveToLocation(hasCache ? cached : null);
-          } else {
-            // 未授权（undefined 或 false）→ 显示气泡引导
-            if (!hasCache) {
-              // 无缓存：不加载物品，等用户操作
-              this.setData({ showLocationTip: true });
-            } else {
-              // 有缓存但权限被撤销了，仍然提示用户
-              this.setData({ showLocationTip: true });
+          });
+        } else if (authStatus === undefined) {
+          // 首次使用：弹出系统授权窗口
+          console.log('首次请求位置授权');
+          wx.authorize({
+            scope: 'scope.userLocation',
+            success: () => {
+              console.log('用户同意授权');
+              this.setData({ showLocationTip: false });
+              this._waitForMapReady(() => {
+                this._doMoveToLocation(hasCache ? cached : null);
+              });
+            },
+            fail: () => {
+              console.log('用户拒绝授权');
+              this._loadFallback(hasCache);
             }
-          }
-        },
-        fail: () => {
-          // getSetting 失败也显示气泡
-          if (!hasCache) this.setData({ showLocationTip: true });
+          });
+        } else {
+          // 曾拒绝授权（false）：用默认/缓存位置加载
+          this._loadFallback(hasCache);
         }
-      });
+      },
+      fail: () => {
+        this._loadFallback(hasCache);
+      }
     });
+  },
+
+  // 降级加载：无 GPS 授权时，用默认中心点或缓存位置加载数据
+  _loadFallback(hasCache) {
+    if (this._markersLoaded) return;
+    this._markersLoaded = true;
+    if (hasCache) {
+      this.setData({ showLocationTip: true });
+    }
+    if (this.data.viewMode === 'list') {
+      this.loadListItems();
+    } else {
+      this.loadMarkers();
+    }
   },
 
   // 移动地图到用户位置并加载物品
@@ -240,7 +276,10 @@ Page({
         console.error('定位异常:', error);
         if (!this._markersLoaded) {
           this._markersLoaded = true;
-          if (this.data.viewMode !== 'list') {
+          // 列表和地图模式都降级加载
+          if (this.data.viewMode === 'list') {
+            this.loadListItems();
+          } else {
             this.loadMarkers();
           }
         }
@@ -987,13 +1026,13 @@ Page({
     wx.setStorageSync('indexViewMode', mode);
     this.setData({ viewMode: mode });
     if (mode === 'list') {
-      // 切到列表：未加载或无数据时触发加载
-      if (this.data.listItems.length === 0 || !this.data.listCity) {
+      // 切到列表：未加载且未在加载中时才触发
+      if ((this.data.listItems.length === 0 || !this.data.listCity) && !this._listLoading) {
         this.loadListItems();
       }
     } else {
       // 切到地图：确保标记点已加载
-      if (this.data.markers.length === 0) {
+      if (this.data.markers.length === 0 && !this.isLoading) {
         this.loadMarkers();
       }
     }
@@ -1026,14 +1065,16 @@ Page({
       if (res.result && res.result.code === 0) {
         const rawItems = res.result.data.items || [];
         const city = res.result.data.city || '';
+        // 缓存城市名，下次打开直接显示
+        if (city) wx.setStorageSync('cachedListCity', city);
         // 计算距离并格式化
         const items = rawItems.map(it => ({
           ...it,
           distanceText: calculateListDistance(center.latitude, center.longitude, it.lat, it.lng),
           timeText: formatRelativeTime(it.createdAt)
         }));
-        this.setData({ listItems: items, listCity: city });
-        console.log(`[列表] 加载完成，城市: ${city}，共 ${items.length} 条`);
+        this.setData({ listItems: items, listCity: city || this.data.listCity });
+        console.log(`[列表] 加载完成，城市: ${city || '(未获取)'}，共 ${items.length} 条`);
       } else {
         this.setData({ listItems: [] });
       }

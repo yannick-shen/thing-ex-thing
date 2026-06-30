@@ -1,26 +1,31 @@
-<!-- 搜索胶囊 -->
-<view class="search-capsule" catchtap="openSearch">
-  <view class="capsule">
-    <text class="capsule-text">搜索标题或描述</text>
+<!-- 自定义导航栏 -->
+<view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
+  <view class="nav-inner" style="padding-right: {{navRightGap}}px;">
+    <!-- 视图切换 tabs（改名在这里：把"地图"/"列表"改成你想要的文字即可） -->
+    <view class="nav-tabs">
+      <view class="nav-tab {{viewMode === 'map' ? 'active' : ''}}" bindtap="switchView" data-mode="map">逛附近</view>
+      <view class="nav-tab {{viewMode === 'list' ? 'active' : ''}}" bindtap="switchView" data-mode="list">淘好物</view>
+    </view>
   </view>
 </view>
 
-<!-- 视图切换 tabs -->
-<view class="view-tabs">
-  <view class="tab {{viewMode === 'map' ? 'active' : ''}}" bindtap="switchView" data-mode="map">📍 地图</view>
-  <view class="tab {{viewMode === 'list' ? 'active' : ''}}" bindtap="switchView" data-mode="list">📋 列表</view>
+<!-- 搜索条（导航栏下方） -->
+<view class="search-bar" style="top: {{navTotalHeight}}px;" catchtap="openSearch">
+  <view class="search-bar-inner">
+    <text class="search-bar-icon">🔍</text>
+    <text class="search-bar-text">搜索标题或描述</text>
+  </view>
+</view>
+
+<!-- 列表模式：城市头部（搜索条下方） -->
+<view wx:if="{{viewMode === 'list'}}" class="list-city-header" style="padding-top: {{navTotalHeight + 48}}px;">
+  <text class="list-city-name">{{listCity}}</text>
 </view>
 
 <!-- ==================== 列表模式 ==================== -->
-<view wx:if="{{viewMode === 'list'}}" class="list-container">
-  <!-- 城市头部 -->
-  <view class="list-city-header">
-    <text class="list-city-name">{{listCity || '定位中...'}}</text>
-    <text class="list-city-count">共 {{listItems.length}} 件物品</text>
-  </view>
-
+<view wx:if="{{viewMode === 'list'}}" class="list-container" style="height: calc(100vh - {{navTotalHeight}}px - 10px);">
   <!-- 物品卡片列表 -->
-  <scroll-view wx:if="{{listItems.length > 0}}" class="list-scroll" scroll-y="true" refresher-enabled="true" bindrefresherrefresh="onListRefresh" refresher-triggered="{{listRefreshing}}">
+  <scroll-view wx:if="{{listItems.length > 0}}" class="list-scroll" style="height: calc(100vh - {{navTotalHeight}}px - 10px);" scroll-y="true" refresher-enabled="true" bindrefresherrefresh="onListRefresh" refresher-triggered="{{listRefreshing}}">
     <view
       wx:for="{{listItems}}"
       wx:key="id"
@@ -37,39 +42,42 @@
           <text wx:if="{{item.mode === 'exchange'}}" class="list-card-price mode-exchange">交换</text>
           <text wx:if="{{item.mode === 'donate'}}" class="list-card-price mode-donate">赠送</text>
           <text wx:if="{{item.mode === 'help'}}" class="list-card-price mode-help">求助</text>
-          <text class="list-card-distance" wx:if="{{item.distanceText}}">{{item.distanceText}}</text>
+          <text class="list-card-distance" wx:if="{{item.distanceText}}">距离 {{item.distanceText}}</text>
+          <text class="list-card-time">发布于 {{item.timeText}}</text>
         </view>
         <view class="list-card-footer">
-          <text class="list-card-address" wx:if="{{item.addressText}}">📍 {{item.addressText}}</text>
-          <text class="list-card-time">{{item.timeText}}</text>
+          <image wx:if="{{item.addressText}}" class="list-card-loc-icon" src="/assets/icons/icon-main-location.png" mode="aspectFit" />
+          <text class="list-card-address" wx:if="{{item.addressText}}">{{item.addressText}}</text>
         </view>
       </view>
     </view>
-
-    <!-- 底部提示 -->
-    <view class="list-footer-hint">
-      <text class="text-muted">— 已展示全部 {{listItems.length}} 条 —</text>
-    </view>
   </scroll-view>
 
-  <!-- 空状态 -->
-  <view wx:if="{{listItems.length === 0 && !listLoading}}" class="list-empty">
-    <text class="list-empty-icon">📦</text>
-    <text class="text-muted">{{listCity ? listCity + '暂无物品' : '获取位置中...'}}</text>
-    <text class="text-small text-muted">快去发布第一件物品吧</text>
-    <button class="btn-primary list-empty-btn" bindtap="goPublish">发布物品</button>
+  <!-- 获取位置中 -->
+  <view wx:if="{{listItems.length === 0 && !listLoading && !listCity}}" class="list-empty">
+    <image class="list-empty-loading-icon" src="/assets/icons/icon-contact-loading.png" mode="aspectFit" />
+    <text class="text-muted list-empty-msg">正在获取你的位置</text>
+    <text class="text-small text-muted">马上为你展示身边的闲置好物</text>
   </view>
 
-  <!-- 加载中 -->
-  <view wx:if="{{listLoading}}" class="list-loading">
+  <!-- 空状态（有城市但无物品） -->
+  <view wx:if="{{listItems.length === 0 && !listLoading && listCity}}" class="list-empty">
+    <text class="list-empty-icon">📦</text>
+    <text class="text-muted">{{listCity}}暂无物品</text>
+    <text class="text-small text-muted">快去发布第一件物品吧</text>
+  </view>
+
+  <!-- 加载中（仅无数据时显示） -->
+  <view wx:if="{{listLoading && listItems.length === 0}}" class="list-loading">
+    <image class="list-loading-icon" src="/assets/icons/icon-contact-loading.png" mode="aspectFit" />
     <text class="text-muted">加载中...</text>
   </view>
 </view>
 
 <!-- ==================== 地图模式（原有） ==================== -->
 <!-- 聚合物品列表弹窗 -->
-<view wx:if="{{viewMode === 'map' && showClusterList}}" class="overlay cluster-overlay" catchtouchmove="prevent">
-  <view class="card cluster-panel" catchtap="prevent">
+<view wx:if="{{viewMode === 'map' && showClusterList}}" class="overlay cluster-overlay" bindtap="hideClusterList" catchtouchmove="prevent">
+  <view class="card cluster-panel" style="margin-top: {{navTotalHeight + 12}}px;" catchtap="prevent">
     <view class="flex-between">
       <text class="text-title">附近物品</text>
       <text class="text-muted" bindtap="hideClusterList">×</text>
@@ -97,10 +105,10 @@
   </view>
 </view>
 
-<view wx:if="{{viewMode === 'map' && searchKeyword}}" class="filter-tag" catchtap="clearSearch">已筛选:{{searchKeyword}}</view>
+<view wx:if="{{searchKeyword}}" class="filter-tag" style="top: {{navTotalHeight + 48}}px;" catchtap="clearSearch">已筛选:{{searchKeyword}}</view>
 
 <!-- 地图 -->
-<map wx:if="{{viewMode === 'map'}}" id="map" longitude="{{center.longitude}}" latitude="{{center.latitude}}" scale="{{scale}}" style="width: 100%; height: 100vh;" show-location="{{showLocation}}" enable-scroll="true" enable-zoom="true" bindregionchange="onRegionChange" bindmarkertap="onMarkerTap" markers="{{markers}}">
+<map hidden="{{viewMode !== 'map'}}" id="map" longitude="{{center.longitude}}" latitude="{{center.latitude}}" scale="{{scale}}" style="width: 100%; height: 100vh; position: fixed; top: 0; left: 0; z-index: 0;" show-location="{{showLocation}}" enable-scroll="true" enable-zoom="true" bindregionchange="onRegionChange" bindmarkertap="onMarkerTap" markers="{{markers}}">
 </map>
 
 <!-- 定位提示气泡 -->
@@ -195,7 +203,7 @@
 
 <!-- 搜索面板 -->
 <view wx:if="{{showSearch}}" class="overlay" catchtouchmove="prevent">
-  <view class="card search-panel">
+  <view class="card search-panel" style="margin-top: {{navTotalHeight + 12}}px;">
     <input class="input" placeholder="请输入关键词" value="{{tmpKeyword}}" bindinput="onInput" confirm-type="search" bindconfirm="applySearch" />
 
     <view class="mode-section">

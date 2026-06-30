@@ -1,113 +1,61 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: 'cloud1-3gsbomiw03ea5416' });
 const db = cloud.database();
-const https = require('https');
 
-// ===== 通过 Nominatim 逆地理编码获取城市名 =====
-function reverseGeocodeCity(lat, lng) {
-  return new Promise((resolve, reject) => {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=zh`;
-    https.get(url, { headers: { 'User-Agent': 'WxMiniprogram/1.0' } }, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          const addr = json.address || {};
-          // state_district：中文 OSM 中代表地级市（如"郑州市"），解决县级市（登封）→地级市（郑州）的映射
-          const city = addr.city || addr.state_district || addr.county || addr.state || addr.town || '';
-          if (city) {
-            resolve(city.replace(/市$/, ''));
-          } else {
-            resolve('');
-          }
-        } catch (e) {
-          reject(e);
-        }
-      });
-    }).on('error', reject);
-  });
+// 从物品列表中提取最常出现的城市名（不需要外部逆地理编码）
+function extractCity(items) {
+  const cityCount = {};
+  let topCity = '', topCount = 0;
+  for (const it of items) {
+    const c = (it.city || '').trim();
+    if (!c) continue;
+    cityCount[c] = (cityCount[c] || 0) + 1;
+    if (cityCount[c] > topCount) {
+      topCount = cityCount[c];
+      topCity = c;
+    }
+  }
+  return topCity;
 }
 
 exports.main = async (event, context) => {
   try {
     const {
       center, radiusKm = 2, keyword = '', mode = '',
-      city = '',          // 直接按城市查询
-      autoDetectCity = false // 根据 center 自动识别城市
+      city = '',          // 直接按城市名查询
+      autoDetectCity = false // 列表模式：从半径查询结果中提取城市名
     } = event || {};
 
     const _ = db.command;
-    const now = Date.now();
 
-    // ===== 城市模式：全城查询，按时间倒序 =====
-    if (city || autoDetectCity) {
-      let queryCity = city;
-      if (autoDetectCity && center && center.latitude && center.longitude) {
-        try {
-          queryCity = await reverseGeocodeCity(center.latitude, center.longitude);
-        } catch (e) {
-          console.warn('逆地理编码失败，退回到半径查询:', e.message);
-          // 失败时回退到地理半径查询
-        }
-      }
-      if (!queryCity) {
-        // 无法获取城市，回退到半径查询
-        if (!center || typeof center.latitude !== 'number') {
-          return { code: 400, message: '无法获取城市且无有效坐标' };
-        }
-        // 使用较大半径作为回退
-        const lat = center.latitude, lng = center.longitude;
-        const dLat = (radiusKm || 50) / 111;
-        const dLng = (radiusKm || 50) / (111 * Math.cos(lat * Math.PI / 180));
-        const where = {
-          status: _.eq('on'),
-          lat: _.gte(lat - dLat).and(_.lte(lat + dLat)),
-          lng: _.gte(lng - dLng).and(_.lte(lng + dLng)),
-          auditStatus: _.eq('pass'),
-          expireAt: _.gte(now)
-        };
-        if (keyword) {
-          const reg = db.RegExp({ regexp: keyword, options: 'i' });
-          where._or = [{ title: reg }, { desc: reg }];
-        }
-        if (mode) where.mode = _.eq(mode);
-        const res = await db.collection('items').where(where).limit(500).get();
-        const items = (res.data || []).map(it => formatItem(it));
-        return { code: 0, data: { items, city: '' } };
-      }
-
-      // 按城市查询，时间倒序
+    // 如果直接传了 city（非 autoDetect），按城市查询
+    if (city && !autoDetectCity) {
       const where = {
         status: _.eq('on'),
-        city: db.RegExp({ regexp: queryCity, options: 'i' }),
+        city: db.RegExp({ regexp: city, options: 'i' }),
         auditStatus: _.eq('pass'),
-        expireAt: _.gte(now)
       };
       if (keyword) {
         const reg = db.RegExp({ regexp: keyword, options: 'i' });
         where._or = [{ title: reg }, { desc: reg }];
       }
       if (mode) where.mode = _.eq(mode);
-
       const res = await db.collection('items')
         .where(where)
         .orderBy('createdAt', 'desc')
         .limit(500)
         .get();
-
-      const items = (res.data || []).map(it => formatItem(it));
-      return { code: 0, data: { items, city: queryCity } };
+      return { code: 0, data: { items: (res.data || []).map(formatItem), city } };
     }
 
-    // ===== 地理半径模式（原有逻辑）=====
+    // ===== 半径查询模式（默认，列表和地图通用）=====
     if (!center || typeof center.latitude !== 'number' || typeof center.longitude !== 'number') {
       return { code: 400, message: 'invalid center' };
     }
     const lat = center.latitude;
     const lng = center.longitude;
-    const dLat = radiusKm / 111;
-    const dLng = radiusKm / (111 * Math.cos(lat * Math.PI / 180));
+    const dLat = (radiusKm || 50) / 111;
+    const dLng = (radiusKm || 50) / (111 * Math.cos(lat * Math.PI / 180));
     const minLat = lat - dLat, maxLat = lat + dLat;
     const minLng = lng - dLng, maxLng = lng + dLng;
 
@@ -116,7 +64,6 @@ exports.main = async (event, context) => {
       lat: _.gte(minLat).and(_.lte(maxLat)),
       lng: _.gte(minLng).and(_.lte(maxLng)),
       auditStatus: _.eq('pass'),
-      expireAt: _.gte(now)
     };
     if (keyword) {
       const reg = db.RegExp({ regexp: keyword, options: 'i' });
@@ -124,17 +71,30 @@ exports.main = async (event, context) => {
     }
     if (mode) where.mode = _.eq(mode);
 
-    const res = await db.collection('items').where(where).limit(500).get();
-    const items = (res.data || []).map(it => formatItem(it));
+    // 半径查询：只取必要字段 + 限制数量，加快查询速度
+    const res = await db.collection('items')
+      .where(where)
+      .field({
+        _id: true, lat: true, lng: true, title: true, desc: true,
+        mode: true, price: true, images: true, city: true,
+        addressText: true, createdAt: true, counters: true,
+        commentCount: true, authorId: true
+      })
+      .orderBy('createdAt', 'desc')
+      .limit(200)
+      .get();
+    const rawItems = res.data || [];
+    const items = rawItems.map(formatItem);
 
-    return { code: 0, data: { items } };
+    // 从查询结果中提取城市名（列表模式需要显示城市名）
+    const detectedCity = autoDetectCity ? extractCity(rawItems) : '';
+    return { code: 0, data: { items, city: detectedCity } };
   } catch (e) {
     console.error(e);
     return { code: 500, message: 'server error' };
   }
 };
 
-// ===== 格式化输出 =====
 function formatItem(it) {
   return {
     id: it._id,
