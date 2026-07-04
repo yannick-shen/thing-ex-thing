@@ -28,8 +28,8 @@
     </view>
   </view>
 
-  <!-- 积分管理 -->
-  <view class="setting-section">
+  <!-- 积分管理（ENABLE_POINTS=true 时显示） -->
+  <view class="setting-section" wx:if="{{enablePoints}}">
     <view class="section-title">
       <image class="section-icon-img" src="/assets/icons/icon-mine-about.png" />积分管理
     </view>

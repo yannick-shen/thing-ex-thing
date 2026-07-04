@@ -2,38 +2,26 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const https = require('https')
 
 // ── 逆地理编码获取城市名（带缓存） ──
 const cityCache = new Map()
-function reverseGeocodeCity(lat, lng) {
-  // 粗粒度缓存 key：同一经纬度附近共享结果
+async function reverseGeocodeCity(lat, lng) {
   const key = `${lat.toFixed(2)},${lng.toFixed(2)}`
-  if (cityCache.has(key)) return Promise.resolve(cityCache.get(key))
+  if (cityCache.has(key)) return cityCache.get(key)
 
-  return new Promise((resolve) => {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=zh`
-    https.get(url, { headers: { 'User-Agent': 'WxMiniprogram/1.0' } }, (res) => {
-      let data = ''
-      res.on('data', chunk => data += chunk)
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data)
-          const addr = json.address || {}
-          // state_district：中文 OSM 中代表地级市，解决县级市→地级市映射
-          const city = (addr.city || addr.state_district || addr.county || addr.state || addr.town || '').replace(/市$/, '')
-          cityCache.set(key, city)
-          resolve(city)
-        } catch (e) {
-          resolve('')
-        }
-      })
-    }).on('error', () => resolve(''))
-  })
+  try {
+    const res = await cloud.callFunction({
+      name: 'reverse-geocode',
+      data: { lat, lng, fields: ['city'] }
+    })
+    const city = (res.result && res.result.code === 0) ? (res.result.data.city || '') : ''
+    cityCache.set(key, city)
+    return city
+  } catch (e) {
+    console.error('逆地理编码失败:', e)
+    return ''
+  }
 }
-
-// ── 简单延迟 ──
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
 
 // ── 工具：生成唯一 demo openid ──
 function makeOpenid(nickname) {
@@ -105,16 +93,23 @@ exports.main = async (event, context) => {
     
     // ── 获取/创建作者 ──
     const nickname = item.authorName || '闲置达人'
-    let author
-    if (userCache.has(nickname)) {
-      author = userCache.get(nickname)
+    let authorId
+
+    if (item.authorId) {
+      // 直接使用指定的 authorId（不做校验，调用者自行保证正确）
+      authorId = item.authorId
     } else {
-      try {
-        author = await ensureUser(nickname, item.authorAvatar || '')
-        userCache.set(nickname, author)
-      } catch (e) {
-        results.push({ index: i, status: 'error', reason: `创建用户失败: ${e.message}` })
-        continue
+      if (userCache.has(nickname)) {
+        authorId = userCache.get(nickname)
+      } else {
+        try {
+          const author = await ensureUser(nickname, item.authorAvatar || '')
+          userCache.set(nickname, author._id)
+          authorId = author._id
+        } catch (e) {
+          results.push({ index: i, status: 'error', reason: `创建用户失败: ${e.message}` })
+          continue
+        }
       }
     }
     
@@ -134,7 +129,7 @@ exports.main = async (event, context) => {
       addressText: item.addressText || '',
       city: item.city || '',  // 可手动指定，也可自动逆地理编码获取
       images: Array.isArray(item.images) ? item.images : [],
-      authorId: author._id,
+      authorId,
       status: 'on',
       auditStatus: 'pass',
       counters: { views: Math.floor(Math.random() * 200) + 10, favorites: Math.floor(Math.random() * 15), comments: 0 },
@@ -143,9 +138,8 @@ exports.main = async (event, context) => {
       expireAt
     }
 
-    // 如果没有手动指定 city，通过逆地理编码自动获取
+    // 如果没有手动指定 city，通过腾讯地图逆地理编码获取
     if (!doc.city) {
-      await sleep(1000)  // Nominatim 限速约 1 req/s
       doc.city = await reverseGeocodeCity(item.lat, item.lng)
     }
     

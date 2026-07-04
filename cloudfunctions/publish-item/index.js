@@ -1,31 +1,25 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
-const https = require('https');
 
 // ===== 功能开关 =====
 const ENABLE_POINTS = false  // 积分系统：获得广告资格后改为 true
 
-// ===== 通过 Nominatim 逆地理编码获取城市名（地级市级别）=====
-function reverseGeocodeCity(lat, lng) {
-  return new Promise((resolve) => {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=zh`;
-    https.get(url, { headers: { 'User-Agent': 'WxMiniprogram/1.0' } }, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          const addr = json.address || {};
-          // state_district：中文 OSM 中代表地级市（如"郑州市"），解决县级市（登封）→地级市（郑州）的映射
-          const city = addr.city || addr.state_district || addr.county || addr.state || addr.town || '';
-          resolve(city ? city.replace(/市$/, '') : '');
-        } catch (e) {
-          resolve('');
-        }
-      });
-    }).on('error', () => resolve(''));
-  });
+// ===== 通过腾讯地图 API 逆地理编码获取城市名 =====
+async function reverseGeocodeCity(lat, lng) {
+  try {
+    const res = await cloud.callFunction({
+      name: 'reverse-geocode',
+      data: { lat, lng, fields: ['city'] }
+    })
+    if (res.result && res.result.code === 0) {
+      return res.result.data.city || ''
+    }
+    return ''
+  } catch (e) {
+    console.error('逆地理编码失败:', e)
+    return ''
+  }
 }
 
 // 位置模糊处理：在原位置基础上生成稳定的偏移（基于种子值，确保同一位置每次偏移相同）

@@ -52,7 +52,9 @@
   gap: 6px;
 }
 .search-bar-icon {
-  font-size: 14px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 .search-bar-text {
   font-size: 14px;

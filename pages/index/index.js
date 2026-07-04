@@ -47,7 +47,8 @@ Page({
     listItems: [],
     listCity: wx.getStorageSync('cachedListCity') || '',  // 优先显示缓存城市名
     listLoading: false,
-    listRefreshing: false
+    listRefreshing: false,
+    listEverLoaded: false  // 是否已完成过列表加载
   },
 
   // 显示聚合点物品列表
@@ -1073,14 +1074,14 @@ Page({
           distanceText: calculateListDistance(center.latitude, center.longitude, it.lat, it.lng),
           timeText: formatRelativeTime(it.createdAt)
         }));
-        this.setData({ listItems: items, listCity: city || this.data.listCity });
+        this.setData({ listItems: items, listCity: city || this.data.listCity, listEverLoaded: true });
         console.log(`[列表] 加载完成，城市: ${city || '(未获取)'}，共 ${items.length} 条`);
       } else {
-        this.setData({ listItems: [] });
+        this.setData({ listItems: [], listEverLoaded: true });
       }
     } catch (err) {
       this._listLoading = false;
-      this.setData({ listLoading: false, listRefreshing: false });
+      this.setData({ listLoading: false, listRefreshing: false, listEverLoaded: true });
       console.error('[列表] 加载失败:', err);
     }
   },

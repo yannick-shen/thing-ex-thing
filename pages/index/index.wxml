@@ -12,20 +12,15 @@
 <!-- 搜索条（导航栏下方） -->
 <view class="search-bar" style="top: {{navTotalHeight}}px;" catchtap="openSearch">
   <view class="search-bar-inner">
-    <text class="search-bar-icon">🔍</text>
+    <image class="search-bar-icon" src="/assets/icons/icon-index-search.png" mode="aspectFit" />
     <text class="search-bar-text">搜索标题或描述</text>
   </view>
 </view>
 
-<!-- 列表模式：城市头部（搜索条下方） -->
-<view wx:if="{{viewMode === 'list'}}" class="list-city-header" style="padding-top: {{navTotalHeight + 48}}px;">
-  <text class="list-city-name">{{listCity}}</text>
-</view>
-
 <!-- ==================== 列表模式 ==================== -->
-<view wx:if="{{viewMode === 'list'}}" class="list-container" style="height: calc(100vh - {{navTotalHeight}}px - 10px);">
+<view wx:if="{{viewMode === 'list'}}" class="list-container" style="padding-top: {{navTotalHeight + 48}}px; height: calc(100vh - {{navTotalHeight}}px + 100px);">
   <!-- 物品卡片列表 -->
-  <scroll-view wx:if="{{listItems.length > 0}}" class="list-scroll" style="height: calc(100vh - {{navTotalHeight}}px - 10px);" scroll-y="true" refresher-enabled="true" bindrefresherrefresh="onListRefresh" refresher-triggered="{{listRefreshing}}">
+  <scroll-view wx:if="{{listItems.length > 0}}" class="list-scroll" style="height: calc(100vh - {{navTotalHeight}}px + 100px);" scroll-y="true" refresher-enabled="true" bindrefresherrefresh="onListRefresh" refresher-triggered="{{listRefreshing}}">
     <view
       wx:for="{{listItems}}"
       wx:key="id"
@@ -53,17 +48,17 @@
     </view>
   </scroll-view>
 
-  <!-- 获取位置中 -->
-  <view wx:if="{{listItems.length === 0 && !listLoading && !listCity}}" class="list-empty">
+  <!-- 获取位置中（尚未完成过列表加载） -->
+  <view wx:if="{{listItems.length === 0 && !listLoading && !listEverLoaded}}" class="list-empty">
     <image class="list-empty-loading-icon" src="/assets/icons/icon-contact-loading.png" mode="aspectFit" />
     <text class="text-muted list-empty-msg">正在获取你的位置</text>
     <text class="text-small text-muted">马上为你展示身边的闲置好物</text>
   </view>
 
-  <!-- 空状态（有城市但无物品） -->
-  <view wx:if="{{listItems.length === 0 && !listLoading && listCity}}" class="list-empty">
+  <!-- 空状态（已加载完成但无物品） -->
+  <view wx:if="{{listItems.length === 0 && !listLoading && listEverLoaded}}" class="list-empty">
     <text class="list-empty-icon">📦</text>
-    <text class="text-muted">{{listCity}}暂无物品</text>
+    <text class="text-muted">{{listCity || '当前城市'}}暂无物品</text>
     <text class="text-small text-muted">快去发布第一件物品吧</text>
   </view>
 

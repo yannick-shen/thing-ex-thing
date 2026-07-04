@@ -2,20 +2,21 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: 'cloud1-3gsbomiw03ea5416' });
 const db = cloud.database();
 
-// 从物品列表中提取最常出现的城市名（不需要外部逆地理编码）
-function extractCity(items) {
-  const cityCount = {};
-  let topCity = '', topCount = 0;
-  for (const it of items) {
-    const c = (it.city || '').trim();
-    if (!c) continue;
-    cityCount[c] = (cityCount[c] || 0) + 1;
-    if (cityCount[c] > topCount) {
-      topCount = cityCount[c];
-      topCity = c;
+// 通过腾讯地图逆地理编码获取城市名
+async function reverseGeocodeCity(lat, lng) {
+  try {
+    const res = await cloud.callFunction({
+      name: 'reverse-geocode',
+      data: { lat, lng, fields: ['city'] }
+    })
+    if (res.result && res.result.code === 0) {
+      return res.result.data.city || ''
     }
+    return ''
+  } catch (e) {
+    console.error('逆地理编码失败:', e)
+    return ''
   }
-  return topCity;
 }
 
 exports.main = async (event, context) => {
@@ -23,7 +24,7 @@ exports.main = async (event, context) => {
     const {
       center, radiusKm = 2, keyword = '', mode = '',
       city = '',          // 直接按城市名查询
-      autoDetectCity = false // 列表模式：从半径查询结果中提取城市名
+      autoDetectCity = false // 列表模式：通过逆地理编码获取用户所在城市
     } = event || {};
 
     const _ = db.command;
@@ -86,8 +87,10 @@ exports.main = async (event, context) => {
     const rawItems = res.data || [];
     const items = rawItems.map(formatItem);
 
-    // 从查询结果中提取城市名（列表模式需要显示城市名）
-    const detectedCity = autoDetectCity ? extractCity(rawItems) : '';
+    // 列表模式：通过逆地理编码获取用户所在城市
+    const detectedCity = autoDetectCity 
+      ? await reverseGeocodeCity(center.latitude, center.longitude)
+      : '';
     return { code: 0, data: { items, city: detectedCity } };
   } catch (e) {
     console.error(e);

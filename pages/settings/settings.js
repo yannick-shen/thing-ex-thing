@@ -1,7 +1,15 @@
 const locationUtil = require('../../utils/location.js');
 
+// ============================================================
+//  积分 & 广告功能总开关（与 profile.js、各云函数同步修改）
+// ============================================================
+const AD_CONFIG = {
+  ENABLE_POINTS: false   // ← 积分系统总开关
+}
+
 Page({
   data: {
+    enablePoints: AD_CONFIG.ENABLE_POINTS,
     notificationEnabled: true,
     locationStatus: false,
     showContactModal: false

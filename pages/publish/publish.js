@@ -115,15 +115,32 @@ Page({
     });
   },
 
-  // 自动获取当前位置
+  // 自动获取当前位置（逆地理编码获取真实地址）
   async autoGetCurrentLocation() {
     const result = await locationUtil.requestLocationPermission();
     if (result.success && result.location) {
+      const lat = result.location.latitude;
+      const lng = result.location.longitude;
+      
+      // 调逆地理编码获取真实地址
+      let addressName = '';
+      try {
+        const geocodeRes = await wx.cloud.callFunction({
+          name: 'reverse-geocode',
+          data: { lat, lng, fields: ['address', 'city'] }
+        });
+        if (geocodeRes.result && geocodeRes.result.code === 0) {
+          addressName = geocodeRes.result.data.address || '';
+        }
+      } catch (e) {
+        console.error('逆地理编码失败:', e);
+      }
+
       this.setData({
         location: {
-          latitude: result.location.latitude,
-          longitude: result.location.longitude,
-          name: '当前位置'
+          latitude: lat,
+          longitude: lng,
+          name: addressName || '当前位置'
         }
       });
     }
@@ -162,22 +179,20 @@ Page({
   async chooseLocation() {
     const result = await locationUtil.openLocationSelector();
     if (result.success) {
-      // 检测是否使用了默认坐标（方案C）
-      // 只要显示"选中位置"就警告，无论后面是否有地址
-      const isRisk = result.location.name === '选中位置';
+      let location = result.location;
+
+      // "选中位置"：用微信返回的 address 替代无意义的占位名
+      if (location.name === '选中位置' && location.address) {
+        location = {
+          ...location,
+          name: location.address
+        };
+      }
 
       this.setData({
-        location: result.location,
-        locationWarning: isRisk
+        location,
+        locationWarning: false
       });
-
-      if (isRisk) {
-        wx.showToast({
-          title: '建议从地址列表中选择具体位置',
-          icon: 'none',
-          duration: 2000
-        });
-      }
     }
   },
 
@@ -485,7 +500,7 @@ Page({
           latitude: location.latitude,
           longitude: location.longitude
         },
-        addressText: location.name || '当前位置',
+        addressText: location.name,
         status: isDraft ? 'draft' : 'on'
       }
     }).then(res => res.result);
@@ -508,7 +523,7 @@ Page({
           latitude: location.latitude,
           longitude: location.longitude
         },
-        addressText: location.name || '当前位置'
+        addressText: location.name
       }
     }).then(res => res.result);
   },

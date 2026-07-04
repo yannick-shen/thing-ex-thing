@@ -27,9 +27,12 @@ exports.main = async (event, context) => {
     }
 
     const { status = 'all' } = event || {};
-    const where = { authorId: userId };
+    const where = { 
+      authorId: userId,
+      status: _.neq('deleted')  // 始终排除已删除物品
+    };
     if (status !== 'all') {
-      where.status = status;
+      where.status = _.and(_.eq(status), _.neq('deleted'));
     }
 
     const res = await db.collection('items').where(where).orderBy('createdAt', 'desc').limit(100).get();
