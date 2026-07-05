@@ -1,0 +1,9 @@
+# 忽略所有层级的 node_modules
+**/node_modules/
+
+# 小程序常见忽略项
+miniprogram_npm/
+.idea/
+.vscode/
+*.log
+.DS_Store

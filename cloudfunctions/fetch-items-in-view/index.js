@@ -1,22 +1,37 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: 'cloud1-3gsbomiw03ea5416' });
 const db = cloud.database();
+const https = require('https');
 
-// 通过腾讯地图逆地理编码获取城市名
-async function reverseGeocodeCity(lat, lng) {
-  try {
-    const res = await cloud.callFunction({
-      name: 'reverse-geocode',
-      data: { lat, lng, fields: ['city'] }
-    })
-    if (res.result && res.result.code === 0) {
-      return res.result.data.city || ''
-    }
-    return ''
-  } catch (e) {
-    console.error('逆地理编码失败:', e)
-    return ''
-  }
+// 通过 PConline IP 库获取城市名（不消耗腾讯地图配额）
+function ipToCity(clientIp) {
+  return new Promise((resolve) => {
+    const url = `https://whois.pconline.com.cn/ipJson.jsp?ip=${encodeURIComponent(clientIp)}&json=true`;
+    const req = https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          // PConline 返回 GBK 编码，但 Node https 默认按 UTF-8 解析
+          // 需要转换：先按 latin1 取字节，再用 iconv-lite 解码
+          const buf = Buffer.from(data, 'binary');
+          const iconv = require('iconv-lite');
+          const text = iconv.decode(buf, 'gbk');
+          const json = JSON.parse(text);
+          if (!json.err) {
+            resolve(json.city || '');
+          } else {
+            resolve('');
+          }
+        } catch (e) {
+          console.error('PConline 解析失败:', e);
+          resolve('');
+        }
+      });
+    });
+    req.on('error', () => resolve(''));
+    req.setTimeout(3000, () => { req.destroy(); resolve(''); });
+  });
 }
 
 exports.main = async (event, context) => {
@@ -24,7 +39,7 @@ exports.main = async (event, context) => {
     const {
       center, radiusKm = 2, keyword = '', mode = '',
       city = '',          // 直接按城市名查询
-      autoDetectCity = false // 列表模式：通过逆地理编码获取用户所在城市
+      autoDetectCity = false // 列表模式：通过 PConline IP 库获取用户城市
     } = event || {};
 
     const _ = db.command;
@@ -87,10 +102,14 @@ exports.main = async (event, context) => {
     const rawItems = res.data || [];
     const items = rawItems.map(formatItem);
 
-    // 列表模式：通过逆地理编码获取用户所在城市
-    const detectedCity = autoDetectCity 
-      ? await reverseGeocodeCity(center.latitude, center.longitude)
-      : '';
+    // 列表模式：通过 PConline IP 库获取用户城市（不消耗腾讯地图配额）
+    let detectedCity = '';
+    if (autoDetectCity) {
+      const clientIp = cloud.getWXContext().CLIENTIP;
+      if (clientIp) {
+        detectedCity = await ipToCity(clientIp);
+      }
+    }
     return { code: 0, data: { items, city: detectedCity } };
   } catch (e) {
     console.error(e);
